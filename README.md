@@ -15,7 +15,7 @@ result back through the graph. Full spec in [ASSIGNMENT.md](ASSIGNMENT.md).
 ## Layout
 
 ```
-S8SharedCode/
+Root/
 ├── README.md          ← you are here
 ├── ASSIGNMENT.md      ← what you implement, how it gets graded
 ├── .env.example       ← copy to .env, fill in keys you have
