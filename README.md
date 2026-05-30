@@ -1,5 +1,8 @@
 # EAGV3 Session 8 — Student Scaffolding
 
+> 📚 **[Interactive course: How a Multi-Agent DAG Agent Works →](https://sujitojha1.github.io/MultiAgent-DAG/)**
+> A beginner-friendly, single-page walkthrough of this codebase — the query lifecycle, the skill cast, the growing graph, the LLM gateway, failure recovery, and how to extend the agent. No coding background required.
+
 Multi-agent growing-graph orchestrator built on the Session 7 cognitive
 architecture. The graph itself is the agent loop: each node is a typed
 skill (Planner, Researcher, Distiller, Critic, Formatter, …), edges
