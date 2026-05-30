@@ -1,0 +1,193 @@
+    <section class="module" id="module-5" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">05</span>
+          <h1 class="module-title">When Things Break</h1>
+          <p class="module-subtitle">A call times out. A specialist returns garbage. Someone yanks the power cord mid-run. A real agent has to survive all three — and this one does.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: GPS on a road trip</h2>
+            <p>You're driving with GPS. Things go wrong constantly — and a good GPS responds <em>differently</em> depending on what kind of wrong it is. It doesn't recalculate the entire route every time a single light turns red.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🗺️</div>
+              <div class="callout-content">
+                <strong class="callout-title">The core skill of this module</strong>
+                <p>Not all failures deserve the same response. Knowing <em>which</em> failures to retry, ignore, or re-plan around is the difference between an agent that recovers and one that spins forever.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Three kinds of "wrong"</h2>
+            <p>When a node fails, the system first <em>classifies</em> the failure into one of three buckets:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+                <div class="pattern-icon" style="background: var(--color-actor-4)">🚧</div>
+                <h4 class="pattern-title">Transient → skip</h4>
+                <p class="pattern-desc">A timeout or "all lines busy." The toll booth was briefly shut. The gateway already retried — no point re-planning.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid #C93B3B">
+                <div class="pattern-icon" style="background: #C93B3B">📝</div>
+                <h4 class="pattern-title">Validation error → skip</h4>
+                <p class="pattern-desc">A specialist produced <span class="term" data-definition="Malformed means the data doesn't follow the required structure — like a form with required boxes left blank. The program can't safely use it.">malformed</span> output. That's a typo in the address — re-planning won't fix it. Fix the prompt.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">🛣️</div>
+                <h4 class="pattern-title">Upstream failure → re-plan</h4>
+                <p class="pattern-desc">The road is genuinely closed. <em>This</em> is when it's worth sending the Planner back to find another route.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The classifier, in its own words</h2>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · recovery.py</span>
+                <pre><code><span class="code-line"><span class="code-keyword">if</span> <span class="code-string">"malformed"</span> <span class="code-keyword">in</span> e <span class="code-keyword">or</span> <span class="code-string">"validationerror"</span> <span class="code-keyword">in</span> e:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-string">"validation_error"</span></span>
+<span class="code-line">transient_markers = (<span class="code-string">"503"</span>, <span class="code-string">"502"</span>, <span class="code-string">"timeout"</span>, ...)</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">any</span>(m <span class="code-keyword">in</span> e <span class="code-keyword">for</span> m <span class="code-keyword">in</span> transient_markers):</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-string">"transient"</span></span>
+<span class="code-line"><span class="code-keyword">return</span> <span class="code-string">"upstream_failure"</span></span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">If the error text mentions a structure problem…</p>
+                  <p class="tl">…call it a validation error (a prompt bug).</p>
+                  <p class="tl">Keep a list of "temporary glitch" signals.</p>
+                  <p class="tl">If the error matches any of them…</p>
+                  <p class="tl">…call it transient (it'll probably pass).</p>
+                  <p class="tl">Anything else is a real, structural failure worth re-planning.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🔁</div>
+              <div class="callout-content">
+                <strong class="callout-title">The infinite-loop guard</strong>
+                <p>One special rule: if the <em>Planner itself</em> fails, never re-plan. Asking a broken GPS to recalculate forever is how agents get stuck. That single guard is what keeps the whole system from looping.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The fact-checker's veto</h2>
+            <p>Remember the Critic from Module 2? When a specialist is marked "needs checking," a Critic is slotted in front of the next step. If the Critic says <strong>fail</strong>, a careful sequence kicks off:</p>
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">1</div><p>Critic returns <strong>fail</strong> + a reason</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">2</div><p>The waiting child is marked <strong>skipped</strong></p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">3</div><p>A fresh Planner is spliced in <strong>with the failure reason</strong></p></div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🎯</div>
+              <div class="callout-content">
+                <strong class="callout-title">…but only once per branch (the cap)</strong>
+                <p>That re-plan is allowed <strong>exactly one time</strong> per branch. If the redo <em>also</em> fails the Critic, the system stops trying and loudly warns you that the final answer is missing data — instead of silently looping or silently lying. Honesty over pretending, again.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Surviving a power-cord yank</h2>
+            <p>Here's the scary one. What if the process is <span class="term" data-definition="SIGKILL is a forceful 'stop right now' signal to a program — it gets no chance to clean up or save. Like pulling the plug.">killed</span> mid-run — laptop dies, someone hits Ctrl-C hard? The agent keeps an <strong>autosave</strong>. Every change to the board is written to disk safely:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · persistence.py</span>
+                <pre><code><span class="code-line">tmp = path.<span class="code-function">with_suffix</span>(path.suffix + <span class="code-string">".tmp"</span>)</span>
+<span class="code-line">tmp.<span class="code-function">write_text</span>(data)</span>
+<span class="code-line">os.<span class="code-function">replace</span>(tmp, path)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Write the new save to a <em>temporary</em> file first.</p>
+                  <p class="tl">Fill it completely, off to the side.</p>
+                  <p class="tl">Only then swap it into place in one instant move. If the plug is pulled mid-write, the <em>old</em> save is still intact. This is an <span class="term" data-definition="An atomic write completes fully or not at all — there's no half-written state. The instant file-swap here is what makes it atomic.">atomic write</span>.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Picking up where it left off</h2>
+            <p>When you re-run with <code>--resume</code>, the agent loads the saved board and does one clever thing: any node that was <em>mid-flight</em> when the plug was pulled gets reset to "not started," so it runs again cleanly. Finished nodes are left untouched.</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line"><span class="code-keyword">for</span> _, d <span class="code-keyword">in</span> graph.g.<span class="code-function">nodes</span>(data=<span class="code-keyword">True</span>):</span>
+<span class="code-line">    <span class="code-keyword">if</span> d[<span class="code-string">"status"</span>] == <span class="code-string">"running"</span>:</span>
+<span class="code-line">        d[<span class="code-string">"status"</span>] = <span class="code-string">"pending"</span></span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Look at every node on the restored board.</p>
+                  <p class="tl">If it was caught mid-run when we died…</p>
+                  <p class="tl">…mark it "not started" so it runs fresh. Already-finished work is never redone — no wasted calls, no duplicates.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">💾</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why you'd want this in your own apps</strong>
+                <p>Long AI runs cost real money. Restarting from zero after a crash means paying twice. "Save progress safely, resume from the boundary" is a pattern worth asking your AI assistant to build into anything that runs for minutes.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module5">
+              <div class="quiz-question-block"
+                   data-correct="opt-b"
+                   data-explanation-right="Exactly. Transient errors (like a 503) are skipped, not re-planned, because the gateway already retried. Re-planning around a momentary blip just wastes a Planner call on a road that's already open again."
+                   data-explanation-wrong="Think about which bucket a brief timeout falls into, and what the system does with that bucket. The gateway has already retried before the error ever reached the recovery logic.">
+                <h3 class="quiz-question">A Researcher node fails with a <code>timeout</code>. Why doesn't the system immediately send the Planner back to re-plan that branch?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Re-planning is disabled for Researchers specifically</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>A timeout is "transient" — the gateway already retried, so the system skips rather than re-plan</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>It does re-plan — there's no special handling for timeouts</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <div class="quiz-question-block"
+                   data-correct="opt-a"
+                   data-explanation-right="Right. The graph autosaves with atomic writes, and on --resume any node that was 'running' resets to pending. So you resume from the boundary — finished work is kept, the interrupted node re-runs, nothing duplicates."
+                   data-explanation-wrong="Recall the autosave + resume design. The whole point of the atomic-write manifest is that you don't start over and don't double-charge for finished work.">
+                <h3 class="quiz-question">Your laptop dies 40 seconds into a 60-second run. You re-run with <code>--resume</code>. What happens to the work that already finished?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>It's kept — only the node that was mid-flight re-runs; finished nodes aren't redone</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Everything starts over from scratch</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The save file is corrupt because it was killed mid-write</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">One module left — and it's the most useful for you personally: how to add a whole new ability to this agent without writing a single line of Python.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>

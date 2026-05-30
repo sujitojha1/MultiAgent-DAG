@@ -1,0 +1,227 @@
+    <section class="module" id="module-6" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">06</span>
+          <h1 class="module-title">Adding a Skill the Two-File Way</h1>
+          <p class="module-subtitle">The whole architecture was built for this moment: teaching the agent a brand-new ability by touching exactly two text files — and zero lines of Python.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a standard wall outlet</h2>
+            <p>Your home's wiring doesn't change when you buy a new lamp. As long as the plug fits the <strong>standard outlet</strong>, the lamp just works — the electrician never comes back. This agent is wired the same way. The "outlet" is a simple contract; any new specialist that fits it plugs right in.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🔌</div>
+              <div class="callout-content">
+                <strong class="callout-title">The two-file rule</strong>
+                <p>To add a skill: <strong>(1)</strong> add an entry to <code>agent_config.yaml</code>, <strong>(2)</strong> write a <code>prompts/yourskill.md</code> file. That's the entire job. The orchestrator (<code>flow.py</code>) is never edited.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Add a skill in two steps</h2>
+            <div class="step-cards stagger-children">
+              <div class="step-card animate-in">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>Declare it in the config</strong><p>A handful of YAML lines: its prompt file, which tools it may use, how creative it is.</p></div>
+              </div>
+              <div class="step-card animate-in">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>Write its instructions</strong><p>A Markdown file telling the AI what to do — ending with "reply as JSON." Done. It now shows up as a usable specialist.</p></div>
+              </div>
+            </div>
+            <p>Why does step 2 always say "reply as <span class="term" data-definition="JSON is a structured text format — labelled values in braces. Every specialist replies in JSON so the orchestrator can read the result the same way every time.">JSON</span>"? Because that's the shape of the outlet. Every specialist returns JSON, so the orchestrator can handle all of them identically.</p>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A chain that wires itself: Coder → Runner</h2>
+            <p>The one ability the system ships ready to demo is the <span class="term" data-definition="The Coder is a specialist that writes Python code to answer a question (e.g. doing math), instead of looking facts up on the web.">Coder</span>: it writes Python, then a runner executes it. The cool part — nobody has to <em>ask</em> for the runner. The config glues them together:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · agent_config.yaml</span>
+                <pre><code><span class="code-line"><span class="code-property">coder</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/coder.md</span>
+<span class="code-line">  <span class="code-property">internal_successors</span>: [sandbox_executor]</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A specialist named "coder".</p>
+                  <p class="tl">Its instructions live here.</p>
+                  <p class="tl">"Whenever I finish, <em>automatically</em> add a code-runner after me." The Planner never has to know — the wiring is declared, not coded.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The contract between them</h2>
+            <p>The Coder promises to emit exactly this shape, and the runner knows exactly where to look:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · the Coder's output + skills.py</span>
+                <pre><code><span class="code-line"><span class="code-comment"># Coder returns:</span></span>
+<span class="code-line">{<span class="code-string">"code"</span>: <span class="code-string">"print(9_541_000)"</span>, <span class="code-string">"rationale"</span>: <span class="code-string">"..."</span>}</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-comment"># Runner picks it up:</span></span>
+<span class="code-line">code = r[<span class="code-string">"output"</span>].<span class="code-function">get</span>(<span class="code-string">"code"</span>) <span class="code-keyword">or</span> code</span>
+<span class="code-line">out = <span class="code-function">run_python</span>(code)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">The Coder hands back a labelled package…</p>
+                  <p class="tl">…with the Python in the "code" slot.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">The runner reaches into the upstream package…</p>
+                  <p class="tl">…grabs the "code" slot and runs it. If the slot is empty, it fails cleanly with "no code found."</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A warning you should be able to call out</h2>
+            <p>The runner executes code in a <span class="term" data-definition="A sandbox is a contained space meant to run code without it affecting the rest of the system. How strong the containment is varies a lot — read the fine print.">sandbox</span>. But read what the code's own author says it is — and isn't:</p>
+            <div class="callout callout-warning">
+              <div class="callout-icon">⚠️</div>
+              <div class="callout-content">
+                <strong class="callout-title">"Usability boundary, NOT a security boundary"</strong>
+                <p>The sandbox stops a runaway loop from flooding your screen and scrubs secret keys from the environment. It does <strong>not</strong> stop malicious code from reading files or hitting the network. If an AI assistant ever tells you "it's sandboxed, so it's safe to run anything" — that's the kind of overclaim you now know to push back on.</p>
+              </div>
+            </div>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · sandbox.py</span>
+                <pre><code><span class="code-line">scrubbed = {k: os.environ[k] <span class="code-keyword">for</span> k <span class="code-keyword">in</span> env_whitelist</span>
+<span class="code-line">            <span class="code-keyword">if</span> k <span class="code-keyword">in</span> os.environ}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Before running the code, build a clean, tiny set of environment values — only the safe ones on an allow-list (like the system PATH).</p>
+                  <p class="tl">Your API keys are deliberately left out, so a script can't read and leak them.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Spot the anti-pattern</h2>
+            <p>Suppose someone "adds" a Translator skill by editing the orchestrator like this. One line betrays that they missed the whole point of the design. Click it:</p>
+            <div class="bug-challenge">
+              <h3>Which line breaks the two-file rule?</h3>
+              <div class="bug-code">
+                <div class="bug-line" data-line="1" onclick="checkBugLine(this, false)">
+                  <span class="line-num">1</span><code>for nid in ready:</code>
+                </div>
+                <div class="bug-line" data-line="2" onclick="checkBugLine(this, false)">
+                  <span class="line-num">2</span><code>    skill = self.registry.get(skill_name)</code>
+                </div>
+                <div class="bug-line bug-target" data-line="3" onclick="checkBugLine(this, true)">
+                  <span class="line-num">3</span><code>    if skill.name == "translator": do_translation_logic()</code>
+                </div>
+                <div class="bug-line" data-line="4" onclick="checkBugLine(this, false)">
+                  <span class="line-num">4</span><code>    result = await run_skill(skill, nid, ...)</code>
+                </div>
+              </div>
+              <div class="bug-feedback" id="bug-feedback"></div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🚫</div>
+              <div class="callout-content">
+                <strong class="callout-title">No special cases in the engine</strong>
+                <p>A hardcoded <code>if skill.name == "..."</code> means the orchestrator now has to <em>know about</em> each skill. Do that a few times and the engine becomes a tangle of exceptions. The clean design treats every skill identically — special behavior lives in the prompt and config, never in the loop.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">What you should never touch</h2>
+            <p>The flip side of "easy to extend" is "know what's load-bearing." A few files are carried over from an earlier version and should be left alone:</p>
+            <div class="badge-list">
+              <div class="badge-item">
+                <code class="badge-code">perception.py · memory.py</code>
+                <span class="badge-desc">Carried over byte-for-byte from a prior session. Other parts quietly depend on them being unchanged.</span>
+              </div>
+              <div class="badge-item">
+                <code class="badge-code">gateway/</code>
+                <span class="badge-desc">Treat it as a service you call, not code you patch. Found a real bug? File it; don't fix it inside your work.</span>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🧠</div>
+              <div class="callout-content">
+                <strong class="callout-title">The instinct to build</strong>
+                <p>Knowing the boundary between "extend here" and "don't touch this" is exactly the judgment that lets you steer an AI assistant confidently through a codebase you didn't write.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Final check</h2>
+            <div class="quiz-container" id="quiz-module6">
+              <div class="scenario-block">
+                <div class="scenario-context">
+                  <span class="scenario-label">Scenario</span>
+                  <p>You want to add a brand-new <strong>Translator</strong> skill that turns the final answer into Spanish. You ask your AI assistant to do it, and it proposes editing <code>flow.py</code> to add translation logic.</p>
+                </div>
+                <div class="quiz-question-block"
+                     data-correct="opt-c"
+                     data-explanation-right="Exactly. The two-file rule means a new skill is a YAML entry + a prompt file — nothing in flow.py. An AI reaching for the orchestrator is the red flag you can now catch and correct."
+                     data-explanation-wrong="Re-read the two-file rule and the spot-the-bug. Editing the orchestrator for a new skill is the anti-pattern this whole architecture was designed to avoid.">
+                  <h3 class="quiz-question">What's the correct steer to give the AI?</h3>
+                  <div class="quiz-options">
+                    <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>"Looks good, go ahead and edit flow.py"</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>"Add an <code>if skill.name == 'translator'</code> branch so it's explicit"</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>"Don't touch flow.py — add a YAML entry and a prompts/translator.md instead"</span>
+                    </button>
+                  </div>
+                  <div class="quiz-feedback"></div>
+                </div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">You made it — here's what you now own</h2>
+            <p>You can read this agent, reason about it, and steer an AI through it:</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">🕸️</div>
+                <div><strong>The graph is the agent loop</strong><p>A team that draws itself, running everyone it can at once.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-2)">📞</div>
+                <div><strong>One front desk for AI</strong><p>The gateway routes, fails over, and is honest about a 503.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-4)">🧭</div>
+                <div><strong>Failures are classified, not panicked over</strong><p>Skip, re-plan, or stop — and resume cleanly after a crash.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-5)">🔌</div>
+                <div><strong>Two files, zero Python</strong><p>You know how to extend it — and how to catch an AI that does it wrong.</p></div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🎓</div>
+              <div class="callout-content">
+                <strong class="callout-title">Go try it</strong>
+                <p>Run <code>uv run python flow.py "hello"</code>, then open a session with <code>replay.py</code> and watch a real graph grow. You now know exactly what you're looking at.</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </section>

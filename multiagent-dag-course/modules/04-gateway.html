@@ -1,0 +1,195 @@
+    <section class="module" id="module-4" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">04</span>
+          <h1 class="module-title">The Outside World: the Gateway</h1>
+          <p class="module-subtitle">Every specialist needs an AI brain to think with. None of them talk to an AI directly — they all go through one front desk that decides who handles the call.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a switchboard operator</h2>
+            <p>Imagine a big company with one phone number. A <strong>switchboard operator</strong> answers every call, sizes it up in a second, and routes it to the right department — billing, support, sales. The caller never dials a department directly.</p>
+            <p>The <span class="term" data-definition="The gateway is a small server (here on port 8108) that sits between the agent and the actual AI providers. Every AI request goes through it.">Gateway</span> is that operator. Every specialist's request for AI thinking goes through it first.</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">☎️</div>
+                <div><strong>One number for everyone</strong><p>Researcher, Critic, Formatter — all call the same front desk, never an AI vendor directly.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-4)">🔀</div>
+                <div><strong>The operator routes the call</strong><p>It picks which AI <span class="term" data-definition="A provider is a company that hosts an AI model you can call over the internet — like Gemini, Groq, or a local model via Ollama. The gateway juggles several.">provider</span> (Gemini, Groq, a local model…) should handle this request.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A specialist phoning the front desk</h2>
+            <p>From the specialist's side, calling the AI is almost boringly simple — it just hands its written prompt to the gateway and says who it is:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · skills.py</span>
+                <pre><code><span class="code-line">reply = <span class="code-keyword">await</span> asyncio.<span class="code-function">to_thread</span>(</span>
+<span class="code-line">    <span class="code-function">LLM</span>().chat,</span>
+<span class="code-line">    prompt=rendered,</span>
+<span class="code-line">    agent=skill.name,</span>
+<span class="code-line">    temperature=skill.temperature,</span>
+<span class="code-line">)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Make the call (and don't freeze everyone else while we wait).</p>
+                  <p class="tl">Dial the gateway's "chat" line.</p>
+                  <p class="tl">Here's the question, written out.</p>
+                  <p class="tl">"I'm the researcher" — the gateway uses this to bill and route per specialist.</p>
+                  <p class="tl">"And here's how creative I'm allowed to be."</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🔌</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why route everything through one door?</strong>
+                <p>The agent never hard-codes "use Gemini." Swap providers, add a new one, or handle an outage — all of that lives in the gateway. The specialists don't know or care which AI answered.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">How the operator sizes up a call</h2>
+            <p>The gateway has a tiny, cheap AI — a <span class="term" data-definition="A router is a small fast AI whose only job is to classify an incoming request by size, so the gateway knows which tier of model to send it to.">router</span> — that labels each request as one of three sizes, then sends it to a fitting model:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+                <div class="pattern-icon" style="background: var(--color-actor-5)">🐣</div>
+                <h4 class="pattern-title">TINY</h4>
+                <p class="pattern-desc">Under ~1,000 tokens. "What's the capital of France?" → a small fast model. No need to wake the big one.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">🐘</div>
+                <h4 class="pattern-title">LARGE</h4>
+                <p class="pattern-desc">1,000–8,000 tokens. A dense research digest → a stronger model that can hold it all.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid #C93B3B">
+                <div class="pattern-icon" style="background: #C93B3B">🛑</div>
+                <h4 class="pattern-title">HUGE</h4>
+                <p class="pattern-desc">Over 8,000 tokens. The gateway refuses with a clear error rather than pretend it can do a bad job.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The wall — the cleverest idea in the gateway</h2>
+            <p>Here's the part worth slowing down for. The router decides <em>where</em> a call goes — but it is <strong>never shown what the call actually says.</strong> It sees only two things:</p>
+            <div class="badge-list">
+              <div class="badge-item">
+                <code class="badge-code">token_count</code>
+                <span class="badge-desc">Roughly how big the request is — a number, nothing else</span>
+              </div>
+              <div class="badge-item">
+                <code class="badge-code">sample</code>
+                <span class="badge-desc">The first 400 + last 400 characters — a peek at the shape, not the content</span>
+              </div>
+            </div>
+            <p>It never sees the system prompt, the tools, the conversation history, or the answer. By <em>construction</em>, it can't leak any of that into its routing decision.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🧱</div>
+              <div class="callout-content">
+                <strong class="callout-title">Separation of concerns, enforced by code</strong>
+                <p>This is the same principle from Module 1, but stricter: the wall isn't a polite agreement — the router is <em>physically handed</em> only a size and a snippet. You can read the 30 lines and verify it. <strong>Good architecture makes the wrong thing impossible, not just discouraged.</strong></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Watch one call get routed</h2>
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-actor-1","label":"A Researcher hands its written prompt to the gateway front desk."},
+              {"highlight":"flow-actor-2","label":"The router gets ONLY a size number and an 800-char snippet. It labels the call: LARGE.","packet":true,"from":"actor-1","to":"actor-2"},
+              {"highlight":"flow-actor-3","label":"LARGE maps to a worker pool. The gateway tries the first available provider.","packet":true,"from":"actor-2","to":"actor-3"},
+              {"highlight":"flow-actor-3","label":"That provider is rate-limited? Skip to the next one in the ring. This is failover."},
+              {"highlight":"flow-actor-1","label":"A worker answers. The reply travels back to the Researcher. The router never saw the content.","packet":true,"from":"actor-3","to":"actor-1"}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-actor-1">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-2)">🔎</div>
+                  <span>Specialist</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-2">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-4)">🔀</div>
+                  <span>Router</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-3">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-1)">🧠</div>
+                  <span>Worker pool</span>
+                </div>
+              </div>
+              <div class="flow-packet" id="flow-packet"></div>
+              <div class="flow-step-label" id="flow-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">When all the lines are busy</h2>
+            <p>These are free AI providers with strict <span class="term" data-definition="A rate limit is a cap on how many requests you can make in a window of time — e.g. 5 calls per minute. Exceed it and the provider says no.">rate limits</span>. The gateway keeps a ring of providers and <span class="term" data-definition="Failover means automatically switching to a backup when the first choice fails or is unavailable — so one outage doesn't stop the whole system.">fails over</span> from one to the next. But if <em>every</em> provider is maxed out, it returns one specific signal:</p>
+            <div class="badge-list">
+              <div class="badge-item">
+                <code class="badge-code">503</code>
+                <span class="badge-desc">"All workers busy or in cooldown." Not a bug in your code — the free tiers are saturated. Add a key or wait a minute.</span>
+              </div>
+              <div class="badge-item">
+                <code class="badge-code">fallback_used: true</code>
+                <span class="badge-desc">The router itself was too busy, so the gateway used a simple size rule instead. Totally normal — the call still went through.</span>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🩺</div>
+              <div class="callout-content">
+                <strong class="callout-title">This is "honest" failure design</strong>
+                <p>The gateway never silently pretends. A 503 means "I genuinely couldn't, here's why." Building systems that are honest about <em>how</em> they fail is what separates a toy from production software.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module4">
+              <div class="scenario-block">
+                <div class="scenario-context">
+                  <span class="scenario-label">Scenario</span>
+                  <p>Mid-run, the agent prints <code>503 Service Unavailable</code> from the gateway. Your prompts are fine and the code didn't change since yesterday.</p>
+                </div>
+                <div class="quiz-question-block"
+                     data-correct="opt-c"
+                     data-explanation-right="Right. A 503 from this gateway specifically means every provider in the ring is rate-limited or in cooldown. The fix is more capacity (another API key) or patience — not rewriting code."
+                     data-explanation-wrong="A 503 here isn't about your code being wrong. Think about what the gateway does when every free provider it can reach is temporarily maxed out.">
+                  <h3 class="quiz-question">What's the right read on this, and what do you do?</h3>
+                  <div class="quiz-options">
+                    <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>There's a bug in your Planner prompt — rewrite it</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The router leaked your prompt and crashed — disable routing</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>All providers are temporarily maxed out — add another API key or wait a minute</span>
+                    </button>
+                  </div>
+                  <div class="quiz-feedback"></div>
+                </div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">Calls fail. Specialists return junk. Power gets pulled mid-run. Next: how the agent survives all of it.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>

@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How a Multi-Agent DAG Agent Works</title>
+
+  <!-- Google Fonts: Bricolage Grotesque · DM Sans · JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <!--
+    CUSTOMIZE PER COURSE — change only the three accent variables below.
+    Chosen: teal — calm, technical, fits a graph-orchestration system.
+  -->
+  <style>
+    :root {
+      --color-accent:       #2A7B9B;
+      --color-accent-hover: #1F6280;
+      --color-accent-light: #E4F2F7;
+      --color-accent-muted: #5A9DB8;
+    }
+  </style>
+
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">How a Multi-Agent DAG Agent Works</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="What This Thing Does" role="tab" aria-label="Module 1: What This Thing Does"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="The Cast of Characters" role="tab" aria-label="Module 2: The Cast of Characters"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="How the Graph Grows" role="tab" aria-label="Module 3: How the Graph Grows"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="The Outside World: the Gateway" role="tab" aria-label="Module 4: The Outside World"></button>
+        <button class="nav-dot" data-target="module-5" data-tooltip="When Things Break" role="tab" aria-label="Module 5: When Things Break"></button>
+        <button class="nav-dot" data-target="module-6" data-tooltip="Adding a Skill the Two-File Way" role="tab" aria-label="Module 6: Adding a Skill"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- modules/*.html content is assembled here by build.sh -->
+    <section class="module" id="module-1" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">01</span>
+          <h1 class="module-title">What This Thing Actually Does</h1>
+          <p class="module-subtitle">You type a question. A team of AI specialists assembles itself, works in parallel, and hands you back one answer. Let's watch it happen.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Start with something you'd actually type</h2>
+            <p>Imagine you open a terminal and run this:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE</span>
+                <pre><code><span class="code-line"><span class="code-function">uv</span> run python flow.py <span class="code-string">"Compare the populations of London, Paris, and Berlin"</span></span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">You ask one plain-English question.</p>
+                  <p class="tl">Behind the scenes, that single line kicks off a whole team of AI workers — not one big AI doing everything.</p>
+                </div>
+              </div>
+            </div>
+            <p>This project is an <span class="term" data-definition="An agent is a program that takes a goal, decides the steps to reach it, and carries them out — instead of you spelling out every step. Here, the 'steps' are AI specialists it picks and runs.">AI agent</span>. Its one job: take a messy human request and figure out how to answer it by orchestrating a team of small, focused specialists.</p>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a newsroom on deadline</h2>
+            <p>The cleanest way to picture this system is a <strong>newsroom</strong>. You're the reader who wants a story. Nobody writes the whole thing alone:</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">📋</div>
+                <div>
+                  <strong>The Editor</strong> — reads your request and decides who needs to work on it
+                  <p>In the code this is the <span class="term" data-definition="The Planner is the first AI specialist to run. It reads your question and writes out a list of which other specialists should run and in what order.">Planner</span>.</p>
+                </div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-2)">🔎</div>
+                <div>
+                  <strong>The Reporters</strong> — go out, gather facts, come back
+                  <p>Here, three <span class="term" data-definition="The Researcher is a specialist that searches the web and reads pages to answer one specific question.">Researchers</span> — one each for London, Paris, Berlin — working at the same time.</p>
+                </div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-5)">✍️</div>
+                <div>
+                  <strong>The Copy Editor</strong> — assembles the final piece the reader sees
+                  <p>The <span class="term" data-definition="The Formatter is the last specialist. It takes everyone's findings and writes the single, clean answer you actually read.">Formatter</span> writes the answer that lands in your terminal.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">💡</div>
+              <div class="callout-content">
+                <strong class="callout-title">The big idea</strong>
+                <p>Instead of one giant AI trying to do everything, the work is split into small specialists. Each one is good at exactly one thing. Engineers call this <strong>separation of concerns</strong> — and it's the single most important pattern in this whole codebase.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Watch your question flow through the team</h2>
+            <p>Click through each step. This is the exact journey your "compare populations" question takes:</p>
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-actor-1","label":"You type the question and hit enter. It lands on the Editor (Planner) desk."},
+              {"highlight":"flow-actor-2","label":"The Planner reads it and writes an assignment: three reporters, one per city.","packet":true,"from":"actor-1","to":"actor-2"},
+              {"highlight":"flow-actor-2","label":"All three Researchers go out at once — not one after another. London, Paris, Berlin in parallel."},
+              {"highlight":"flow-actor-3","label":"Each reporter brings back facts. The Formatter waits until ALL three are back.","packet":true,"from":"actor-2","to":"actor-3"},
+              {"highlight":"flow-actor-3","label":"The Formatter writes one clean comparison and hands it to you. Done."}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-actor-1">
+                  <div class="flow-actor-icon" style="background: var(--color-text)">🧑</div>
+                  <span>You</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-2">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-1)">📋</div>
+                  <span>Planner + Researchers</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-3">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-5)">✍️</div>
+                  <span>Formatter</span>
+                </div>
+              </div>
+              <div class="flow-packet" id="flow-packet"></div>
+              <div class="flow-step-label" id="flow-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Where does the team "live"? In a graph.</h2>
+            <p>The team isn't a fixed pipeline. It's drawn as a <span class="term" data-definition="A graph (in computer science) is just dots connected by lines. The dots are tasks; the lines mean 'this must finish before that can start.' It is not a chart or a bar graph.">graph</span> — dots (the specialists) connected by arrows (who waits for whom).</p>
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">1</div><p>Each <span class="term" data-definition="A node is one dot in the graph — here, one AI specialist with one job to do.">node</span> is one specialist</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">2</div><p>Each <span class="term" data-definition="An edge is an arrow between two nodes. Arrow from A to B means: B cannot start until A is finished.">arrow</span> is a dependency</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">3</div><p>The graph <strong>grows</strong> as work finishes</p></div>
+            </div>
+            <p>That last point is the magic. The Planner doesn't know the final shape up front — the graph adds new nodes <em>while it runs</em>. That's why this is called a <strong>growing-graph orchestrator</strong>.</p>
+            <div class="callout callout-info">
+              <div class="callout-icon">🧭</div>
+              <div class="callout-content">
+                <strong class="callout-title">The phrase to remember</strong>
+                <p>"The graph <em>is</em> the agent loop." Older AI agents ran one big think-act-repeat loop. Here, the loop is replaced by a graph of specialists that draws itself as it goes. You'll see exactly how in Module 3.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The very first thing that happens</h2>
+            <p>When you hit enter, the system does almost nothing clever at first. It just puts <em>one</em> sticky note on an empty board:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line">store.<span class="code-function">write_query</span>(query)</span>
+<span class="code-line">graph = <span class="code-function">Graph</span>()</span>
+<span class="code-line">graph.<span class="code-function">add_node</span>(<span class="code-string">"planner"</span>, inputs=[<span class="code-string">"USER_QUERY"</span>])</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Save your exact question to disk (so it can be replayed or resumed later).</p>
+                  <p class="tl">Create a brand-new, empty board.</p>
+                  <p class="tl">Pin one note: "Planner — go look at the user's question." That single note is the seed the whole team grows from.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🌱</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why this matters for steering AI</strong>
+                <p>Everything downstream is decided by the Planner reading your words. If your results are wrong, the first question is always: <em>"What did the Planner think I asked?"</em> You'll learn to inspect exactly that in Module 5.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <p>One question to make sure the shape of the system clicked.</p>
+            <div class="quiz-container" id="quiz-module1">
+              <div class="quiz-question-block"
+                   data-correct="opt-b"
+                   data-explanation-right="Exactly. The Planner reads your question first and decides the whole plan. So when output is wrong, that's the first place to look — did it even understand the request?"
+                   data-explanation-wrong="Think about the order things run in. Nothing else can happen until one specialist has read your question and decided who does what.">
+                <h3 class="quiz-question">You run the agent and get a thin, off-target answer. Based on the newsroom picture, which specialist's work should you inspect <em>first</em>?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The Formatter — it wrote the final answer, so it's to blame</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The Planner — it decided the whole plan from your words</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The Researchers — they must have found bad facts</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">Next up: meet each specialist on the team — and discover the surprising fact that <em>none of them are written in Python</em>.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-2" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">02</span>
+          <h1 class="module-title">The Cast of Characters</h1>
+          <p class="module-subtitle">Meet the specialists. The twist: not one of them is written in Python. Each is just a text file and a few lines of config.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A skill is an actor with a playbill</h2>
+            <p>Think of a theater <strong>playbill</strong>. Every actor has two things: a <em>script</em> telling them what to say, and a <em>casting sheet</em> with their role and rules. A <span class="term" data-definition="A skill is one specialist the agent can use — like Planner or Researcher. In this codebase a skill is defined entirely by a text prompt plus a short config entry, with no custom code.">skill</span> here works the exact same way:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">📜</div>
+                <h4 class="pattern-title">The script</h4>
+                <p class="pattern-desc">A plain Markdown file in <code>prompts/</code> — the instructions handed to the AI. This is the actor's lines.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+                <div class="pattern-icon" style="background: var(--color-actor-4)">🗂️</div>
+                <h4 class="pattern-title">The casting sheet</h4>
+                <p class="pattern-desc">One entry in <code>agent_config.yaml</code> — which tools it may use, how creative it's allowed to be, what it does.</p>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🤯</div>
+              <div class="callout-content">
+                <strong class="callout-title">The surprising part</strong>
+                <p>There is <strong>no Python class per skill.</strong> No <code>class Researcher:</code> anywhere. A skill is 100% a prompt file + a config entry. You'll see in Module 6 why this is the whole point of the design.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The main cast</h2>
+            <p>Six specialists do almost all the work. Each is good at exactly one thing:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+                <div class="pattern-icon" style="background: var(--color-actor-1)">📋</div>
+                <h4 class="pattern-title">Planner</h4>
+                <p class="pattern-desc">Reads your question and writes the list of who should run. The editor of the newsroom.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">🔎</div>
+                <h4 class="pattern-title">Researcher</h4>
+                <p class="pattern-desc">Searches the web and reads pages. The only one allowed to leave the building.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+                <div class="pattern-icon" style="background: var(--color-actor-3)">🗄️</div>
+                <h4 class="pattern-title">Retriever</h4>
+                <p class="pattern-desc">Searches the agent's <em>own</em> memory — documents it already filed away. The in-house archivist.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+                <div class="pattern-icon" style="background: var(--color-actor-4)">🧪</div>
+                <h4 class="pattern-title">Distiller</h4>
+                <p class="pattern-desc">Pulls clean, structured facts out of messy text. (And it always gets fact-checked — Module 5.)</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid #C93B3B">
+                <div class="pattern-icon" style="background: #C93B3B">⚖️</div>
+                <h4 class="pattern-title">Critic</h4>
+                <p class="pattern-desc">Approves or rejects another specialist's work. Says only "pass" or "fail" with a reason.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+                <div class="pattern-icon" style="background: var(--color-actor-5)">✍️</div>
+                <h4 class="pattern-title">Formatter</h4>
+                <p class="pattern-desc">Writes the final answer you read. Always the last node — engineers call this a <span class="term" data-definition="A terminal node is the end of the line — the last task in the graph. Its output is what gets returned to the user.">terminal</span>.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A casting sheet, line by line</h2>
+            <p>Here is the entire definition of the Researcher. Notice there's no logic here — just a description of <em>what kind of worker</em> it is:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · agent_config.yaml</span>
+                <pre><code><span class="code-line"><span class="code-property">researcher</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/researcher.md</span>
+<span class="code-line">  <span class="code-property">tools_allowed</span>: [web_search, fetch_url]</span>
+<span class="code-line">  <span class="code-property">temperature</span>: <span class="code-number">0.7</span></span>
+<span class="code-line">  <span class="code-property">max_tokens</span>: <span class="code-number">2500</span></span>
+<span class="code-line">  <span class="code-property">description</span>: Performs multi-step web research.</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A specialist named "researcher".</p>
+                  <p class="tl">Its instructions live in this Markdown file.</p>
+                  <p class="tl">It's allowed to use two <span class="term" data-definition="A tool is an external action an AI can call, like searching the web or reading a URL — beyond just generating text.">tools</span>: web search and fetching a page. Most specialists get none.</p>
+                  <p class="tl"><span class="term" data-definition="Temperature controls how random/creative an AI's output is. 0 = same answer every time; near 1 = more varied, exploratory wording.">Temperature</span> 0.7 = fairly exploratory, good for open research.</p>
+                  <p class="tl">It may write up to 2500 <span class="term" data-definition="A token is roughly a word-piece — about 4 characters. AI usage and limits are measured in tokens, not words.">tokens</span> of output.</p>
+                  <p class="tl">A one-line human summary. That's the whole definition.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🎚️</div>
+              <div class="callout-content">
+                <strong class="callout-title">A knob worth knowing</strong>
+                <p>The Critic and Distiller run at <code>temperature: 0</code> (be exact, no surprises). The Researcher runs hot at <code>0.7</code> (explore). Tuning a specialist's behavior is a one-line edit to this file — <strong>no code change.</strong> This is exactly the kind of dial you can tell an AI assistant to adjust.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">How the config becomes a working team</h2>
+            <p>On startup, the system reads that whole config file and turns every entry into a <span class="term" data-definition="An object is a bundle of related data the program keeps in memory — here, one bundle per skill holding its prompt path, tools, and settings.">skill object</span> it can run. One loop, no special cases:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · skills.py</span>
+                <pre><code><span class="code-line"><span class="code-keyword">class</span> <span class="code-function">SkillRegistry</span>:</span>
+<span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):</span>
+<span class="code-line">        cfg = yaml.<span class="code-function">safe_load</span>(AGENT_CONFIG_PATH.<span class="code-function">read_text</span>())</span>
+<span class="code-line">        self._skills = {n: <span class="code-function">Skill</span>(n, c) <span class="code-keyword">for</span> n, c <span class="code-keyword">in</span> cfg.<span class="code-function">items</span>()}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">The "registry" is just the cast list, loaded into memory.</p>
+                  <p class="tl">When it's built…</p>
+                  <p class="tl">…read the whole config file (that's what <span class="term" data-definition="YAML is a simple, human-friendly text format for configuration — indentation and colons instead of code. Easy to read and edit.">YAML</span> is).</p>
+                  <p class="tl">…and for every single entry, make one skill object. Add a new entry to the file and it just shows up. No code edit needed.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Match the specialist to the job</h2>
+            <p>Drag each specialist onto the job they own:</p>
+            <div class="dnd-container">
+              <div class="dnd-chips">
+                <div class="dnd-chip" draggable="true" data-answer="planner">📋 Planner</div>
+                <div class="dnd-chip" draggable="true" data-answer="researcher">🔎 Researcher</div>
+                <div class="dnd-chip" draggable="true" data-answer="critic">⚖️ Critic</div>
+                <div class="dnd-chip" draggable="true" data-answer="formatter">✍️ Formatter</div>
+              </div>
+              <div class="dnd-zones">
+                <div class="dnd-zone" data-correct="planner">
+                  <p class="dnd-zone-label">Reads the request and decides who works on it</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+                <div class="dnd-zone" data-correct="researcher">
+                  <p class="dnd-zone-label">Leaves the building to gather facts from the web</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+                <div class="dnd-zone" data-correct="critic">
+                  <p class="dnd-zone-label">Approves or rejects another node's work with a reason</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+                <div class="dnd-zone" data-correct="formatter">
+                  <p class="dnd-zone-label">Writes the final answer the user reads</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+              </div>
+              <button class="btn" onclick="checkDnD()">Check Matches</button>
+              <button class="btn" onclick="resetDnD()">Reset</button>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module2">
+              <div class="quiz-question-block"
+                   data-correct="opt-c"
+                   data-explanation-right="Right. A skill is just a prompt file + a YAML entry — no Python class exists for it. So 'rewrite the Researcher to be less chatty' means editing prompts/researcher.md, not hunting for code."
+                   data-explanation-wrong="Re-read the casting-sheet idea. The behavior of a specialist isn't coded in Python — it's described in two text files.">
+                <h3 class="quiz-question">You want the Researcher to stop padding its answers with fluff. Where do you make that change?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Find the <code>Researcher</code> class in the Python code and edit its logic</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Lower the temperature in <code>flow.py</code></span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Edit the instructions in <code>prompts/researcher.md</code> (and maybe its config entry)</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">Now you know the cast. Next: how do they actually talk to each other — and how does the team grow itself while running?</p>
+          </section>
+
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-3" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">03</span>
+          <h1 class="module-title">How the Graph Grows &amp; Runs at Once</h1>
+          <p class="module-subtitle">The team isn't a fixed assembly line. It draws new workers onto the board as it goes — and runs everyone it can, all at the same time.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a construction schedule</h2>
+            <p>Picture building a house. Some jobs <em>must</em> wait — you can't roof before the walls are up. But plumbing and electrical can happen <strong>at the same time</strong>. A site manager doesn't do them one-by-one; they start everything whose prerequisites are met.</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">⛓️</div>
+                <div><strong>An arrow means "wait for this"</strong><p>Roof waits for walls. In code, an <span class="term" data-definition="An edge is the arrow between two tasks. A→B means B can't start until A is done.">edge</span> A→B means B can't start until A finishes.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-2)">⚡</div>
+                <div><strong>No arrow between them? Do both now.</strong><p>Plumbing and wiring run together. Three Researchers with no dependency on each other run <span class="term" data-definition="Concurrency means doing multiple things in overlapping time, so the total wait is the slowest one — not the sum of all of them.">concurrently</span>.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The whole engine, in one sentence</h2>
+            <p>The <span class="term" data-definition="The orchestrator is the controller that decides which nodes are ready and runs them — the site manager of the whole graph. It lives in flow.py.">orchestrator</span> repeats a tiny loop until there's nothing left to do:</p>
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">1</div><p>Find every node whose prerequisites are done</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">2</div><p>Run them <strong>all at once</strong></p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">3</div><p>Let finished nodes <strong>add new nodes</strong></p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">4</div><p>Repeat</p></div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🔁</div>
+              <div class="callout-content">
+                <strong class="callout-title">This is "the graph is the agent loop"</strong>
+                <p>There's no giant scripted pipeline. Just: find-ready, run-ready, grow, repeat. The graph's shape <em>emerges</em> as work completes.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">"Find every ready node" — the actual code</h2>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line">preds = <span class="code-function">list</span>(self.g.<span class="code-function">predecessors</span>(nid))</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">all</span>(self.g.nodes[p][<span class="code-string">"status"</span>] <span class="code-keyword">in</span> (<span class="code-string">"complete"</span>, <span class="code-string">"skipped"</span>)</span>
+<span class="code-line">       <span class="code-keyword">for</span> p <span class="code-keyword">in</span> preds):</span>
+<span class="code-line">    out.<span class="code-function">append</span>(nid)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Look at everyone this node is waiting on (its prerequisites).</p>
+                  <p class="tl">If <em>all</em> of them are either finished…</p>
+                  <p class="tl">…or skipped (a dead branch still unblocks the path)…</p>
+                  <p class="tl">…then this node is ready — add it to the "run now" list.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🟡</div>
+              <div class="callout-content">
+                <strong class="callout-title">"Skipped counts as done"</strong>
+                <p>A node that got cancelled still <em>unblocks</em> whatever waited on it. That little detail keeps one dead branch from freezing the whole board. You'll see why it matters in Module 5.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">"Run them all at once" — one magic word</h2>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line">outcomes = <span class="code-keyword">await</span> asyncio.<span class="code-function">gather</span>(</span>
+<span class="code-line">    *[self.<span class="code-function">_run_one</span>(nid, ...) <span class="code-keyword">for</span> nid <span class="code-keyword">in</span> ready]</span>
+<span class="code-line">)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Kick off every ready node at the same moment…</p>
+                  <p class="tl">…using <span class="term" data-definition="asyncio.gather starts many tasks together and waits for all of them to finish before moving on. It's Python's way of doing things in parallel without extra threads.">asyncio.gather</span>, which launches them together and waits for all to come back.</p>
+                  <p class="tl">This line is why 3 cities take as long as the <em>slowest one</em>, not all three added up.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">⏱️</div>
+              <div class="callout-content">
+                <strong class="callout-title">Wall-clock math worth memorizing</strong>
+                <p>3 Researchers taking 30s, 28s, 26s finish in <strong>~30s</strong> (the slowest), not 84s (the sum). If you ever see fan-out work taking the <em>sum</em> of its parts, something broke the parallelism — that's a real debugging signal.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Listen in: the team coordinating</h2>
+            <p>Here's the same fan-out as a group chat. Watch the Formatter wait for the <span class="term" data-definition="A barrier is a checkpoint where work pauses until every parallel task has arrived — like waiting for all carpool riders before leaving.">barrier</span> — it won't start until all three reporters are back:</p>
+            <div class="chat-window" id="chat-module3">
+              <div class="chat-messages">
+                <div class="chat-message" data-msg="0" data-sender="planner" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-1)">📋</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-1)">Planner</span>
+                    <p>Plan's up. London, Paris, Berlin — one reporter each. All three go now. Formatter, you write the final once they're all in.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="1" data-sender="r1" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">🔎</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Researcher · London</span>
+                    <p>On it. Searching now.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="2" data-sender="r2" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">🔎</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Researcher · Paris</span>
+                    <p>Same — already pulling pages. (We didn't wait our turn; we all started together.)</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="3" data-sender="r3" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">🔎</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Researcher · Berlin</span>
+                    <p>Berlin done first! But I'll sit tight — the Formatter needs everyone.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="4" data-sender="formatter" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-5)">✍️</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-5)">Formatter</span>
+                    <p>I'm the barrier. The moment all three of you are back, I write one clean comparison. Not a second before.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="chat-typing" id="chat-typing" style="display:none">
+                <div class="chat-avatar" id="typing-avatar">?</div>
+                <div class="chat-typing-dots"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
+              </div>
+              <div class="chat-controls">
+                <button class="btn chat-next-btn">Next Message</button>
+                <button class="btn chat-all-btn">Play All</button>
+                <button class="btn chat-reset-btn">Replay</button>
+                <span class="chat-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">How the board grows new notes</h2>
+            <p>After any node succeeds, the orchestrator runs <code>extend_from</code>, which can add new nodes <strong>three</strong> different ways:</p>
+            <div class="step-cards stagger-children">
+              <div class="step-card animate-in">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>The node asked for them</strong><p>A specialist can return "successors" — new nodes it wants run next. The Planner uses this to create the whole initial team.</p></div>
+              </div>
+              <div class="step-card animate-in">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>The config wired them in automatically</strong><p>Some skills always get a follow-up. The Coder is <em>always</em> followed by a code-runner — the config says so, no one has to ask. (Module 6.)</p></div>
+              </div>
+              <div class="step-card animate-in">
+                <div class="step-num">3</div>
+                <div class="step-body"><strong>A fact-checker got slotted in</strong><p>If a skill is marked "needs checking," the system quietly inserts a Critic in front of whatever comes next. (Module 5.)</p></div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🧩</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why this is powerful — and where bugs hide</strong>
+                <p>Because the graph builds itself, a node that "should have run" might simply never have been <em>added</em>. When debugging, don't just ask "did the node fail?" — ask "did the node ever get created?"</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">What a node actually "sees"</h2>
+            <p>A node doesn't get the whole history. It only receives the outputs of its direct predecessors, bundled as <span class="term" data-definition="JSON is a simple text format for structured data — labels and values in braces. It's how these specialists pass results to each other.">JSON</span> inputs. The Formatter sees three research results; it never sees how they were found.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">💸</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why narrow inputs = cheaper &amp; sharper</strong>
+                <p>Feeding each specialist only what it needs (not the entire transcript) keeps the prompts small. Smaller prompts = fewer tokens = lower cost and less for the AI to get confused by. This is a deliberate design choice you can copy in your own projects.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module3">
+              <div class="scenario-block">
+                <div class="scenario-context">
+                  <span class="scenario-label">Scenario</span>
+                  <p>You ask the agent to compare 4 cities. You expect it to finish in about the time of one search. Instead it takes roughly 4× as long — each city clearly ran one after another.</p>
+                </div>
+                <div class="quiz-question-block"
+                     data-correct="opt-b"
+                     data-explanation-right="Exactly. Parallel fan-out only happens when the nodes have no edges forcing them into a line. If each city's node was made to depend on the previous one, gather() can only ever run one at a time."
+                     data-explanation-wrong="Re-read how 'ready' works. gather() runs everything ready at once — so if things ran sequentially, it's because the graph's arrows chained them, not because gather is slow.">
+                  <h3 class="quiz-question">What's the most likely cause?</h3>
+                  <div class="quiz-options">
+                    <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The gateway is rate-limiting — nothing you can do</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The Planner accidentally made each city's node depend on the previous one, so they're chained instead of parallel</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The Formatter is running too early</span>
+                    </button>
+                  </div>
+                  <div class="quiz-feedback"></div>
+                </div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">The specialists all need an AI brain to think with. Where does that come from? Next: the Gateway — the agent's connection to the outside world.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-4" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">04</span>
+          <h1 class="module-title">The Outside World: the Gateway</h1>
+          <p class="module-subtitle">Every specialist needs an AI brain to think with. None of them talk to an AI directly — they all go through one front desk that decides who handles the call.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a switchboard operator</h2>
+            <p>Imagine a big company with one phone number. A <strong>switchboard operator</strong> answers every call, sizes it up in a second, and routes it to the right department — billing, support, sales. The caller never dials a department directly.</p>
+            <p>The <span class="term" data-definition="The gateway is a small server (here on port 8108) that sits between the agent and the actual AI providers. Every AI request goes through it.">Gateway</span> is that operator. Every specialist's request for AI thinking goes through it first.</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">☎️</div>
+                <div><strong>One number for everyone</strong><p>Researcher, Critic, Formatter — all call the same front desk, never an AI vendor directly.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-4)">🔀</div>
+                <div><strong>The operator routes the call</strong><p>It picks which AI <span class="term" data-definition="A provider is a company that hosts an AI model you can call over the internet — like Gemini, Groq, or a local model via Ollama. The gateway juggles several.">provider</span> (Gemini, Groq, a local model…) should handle this request.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A specialist phoning the front desk</h2>
+            <p>From the specialist's side, calling the AI is almost boringly simple — it just hands its written prompt to the gateway and says who it is:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · skills.py</span>
+                <pre><code><span class="code-line">reply = <span class="code-keyword">await</span> asyncio.<span class="code-function">to_thread</span>(</span>
+<span class="code-line">    <span class="code-function">LLM</span>().chat,</span>
+<span class="code-line">    prompt=rendered,</span>
+<span class="code-line">    agent=skill.name,</span>
+<span class="code-line">    temperature=skill.temperature,</span>
+<span class="code-line">)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Make the call (and don't freeze everyone else while we wait).</p>
+                  <p class="tl">Dial the gateway's "chat" line.</p>
+                  <p class="tl">Here's the question, written out.</p>
+                  <p class="tl">"I'm the researcher" — the gateway uses this to bill and route per specialist.</p>
+                  <p class="tl">"And here's how creative I'm allowed to be."</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🔌</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why route everything through one door?</strong>
+                <p>The agent never hard-codes "use Gemini." Swap providers, add a new one, or handle an outage — all of that lives in the gateway. The specialists don't know or care which AI answered.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">How the operator sizes up a call</h2>
+            <p>The gateway has a tiny, cheap AI — a <span class="term" data-definition="A router is a small fast AI whose only job is to classify an incoming request by size, so the gateway knows which tier of model to send it to.">router</span> — that labels each request as one of three sizes, then sends it to a fitting model:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+                <div class="pattern-icon" style="background: var(--color-actor-5)">🐣</div>
+                <h4 class="pattern-title">TINY</h4>
+                <p class="pattern-desc">Under ~1,000 tokens. "What's the capital of France?" → a small fast model. No need to wake the big one.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">🐘</div>
+                <h4 class="pattern-title">LARGE</h4>
+                <p class="pattern-desc">1,000–8,000 tokens. A dense research digest → a stronger model that can hold it all.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid #C93B3B">
+                <div class="pattern-icon" style="background: #C93B3B">🛑</div>
+                <h4 class="pattern-title">HUGE</h4>
+                <p class="pattern-desc">Over 8,000 tokens. The gateway refuses with a clear error rather than pretend it can do a bad job.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The wall — the cleverest idea in the gateway</h2>
+            <p>Here's the part worth slowing down for. The router decides <em>where</em> a call goes — but it is <strong>never shown what the call actually says.</strong> It sees only two things:</p>
+            <div class="badge-list">
+              <div class="badge-item">
+                <code class="badge-code">token_count</code>
+                <span class="badge-desc">Roughly how big the request is — a number, nothing else</span>
+              </div>
+              <div class="badge-item">
+                <code class="badge-code">sample</code>
+                <span class="badge-desc">The first 400 + last 400 characters — a peek at the shape, not the content</span>
+              </div>
+            </div>
+            <p>It never sees the system prompt, the tools, the conversation history, or the answer. By <em>construction</em>, it can't leak any of that into its routing decision.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🧱</div>
+              <div class="callout-content">
+                <strong class="callout-title">Separation of concerns, enforced by code</strong>
+                <p>This is the same principle from Module 1, but stricter: the wall isn't a polite agreement — the router is <em>physically handed</em> only a size and a snippet. You can read the 30 lines and verify it. <strong>Good architecture makes the wrong thing impossible, not just discouraged.</strong></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Watch one call get routed</h2>
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-actor-1","label":"A Researcher hands its written prompt to the gateway front desk."},
+              {"highlight":"flow-actor-2","label":"The router gets ONLY a size number and an 800-char snippet. It labels the call: LARGE.","packet":true,"from":"actor-1","to":"actor-2"},
+              {"highlight":"flow-actor-3","label":"LARGE maps to a worker pool. The gateway tries the first available provider.","packet":true,"from":"actor-2","to":"actor-3"},
+              {"highlight":"flow-actor-3","label":"That provider is rate-limited? Skip to the next one in the ring. This is failover."},
+              {"highlight":"flow-actor-1","label":"A worker answers. The reply travels back to the Researcher. The router never saw the content.","packet":true,"from":"actor-3","to":"actor-1"}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-actor-1">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-2)">🔎</div>
+                  <span>Specialist</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-2">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-4)">🔀</div>
+                  <span>Router</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-3">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-1)">🧠</div>
+                  <span>Worker pool</span>
+                </div>
+              </div>
+              <div class="flow-packet" id="flow-packet"></div>
+              <div class="flow-step-label" id="flow-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">When all the lines are busy</h2>
+            <p>These are free AI providers with strict <span class="term" data-definition="A rate limit is a cap on how many requests you can make in a window of time — e.g. 5 calls per minute. Exceed it and the provider says no.">rate limits</span>. The gateway keeps a ring of providers and <span class="term" data-definition="Failover means automatically switching to a backup when the first choice fails or is unavailable — so one outage doesn't stop the whole system.">fails over</span> from one to the next. But if <em>every</em> provider is maxed out, it returns one specific signal:</p>
+            <div class="badge-list">
+              <div class="badge-item">
+                <code class="badge-code">503</code>
+                <span class="badge-desc">"All workers busy or in cooldown." Not a bug in your code — the free tiers are saturated. Add a key or wait a minute.</span>
+              </div>
+              <div class="badge-item">
+                <code class="badge-code">fallback_used: true</code>
+                <span class="badge-desc">The router itself was too busy, so the gateway used a simple size rule instead. Totally normal — the call still went through.</span>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🩺</div>
+              <div class="callout-content">
+                <strong class="callout-title">This is "honest" failure design</strong>
+                <p>The gateway never silently pretends. A 503 means "I genuinely couldn't, here's why." Building systems that are honest about <em>how</em> they fail is what separates a toy from production software.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module4">
+              <div class="scenario-block">
+                <div class="scenario-context">
+                  <span class="scenario-label">Scenario</span>
+                  <p>Mid-run, the agent prints <code>503 Service Unavailable</code> from the gateway. Your prompts are fine and the code didn't change since yesterday.</p>
+                </div>
+                <div class="quiz-question-block"
+                     data-correct="opt-c"
+                     data-explanation-right="Right. A 503 from this gateway specifically means every provider in the ring is rate-limited or in cooldown. The fix is more capacity (another API key) or patience — not rewriting code."
+                     data-explanation-wrong="A 503 here isn't about your code being wrong. Think about what the gateway does when every free provider it can reach is temporarily maxed out.">
+                  <h3 class="quiz-question">What's the right read on this, and what do you do?</h3>
+                  <div class="quiz-options">
+                    <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>There's a bug in your Planner prompt — rewrite it</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The router leaked your prompt and crashed — disable routing</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>All providers are temporarily maxed out — add another API key or wait a minute</span>
+                    </button>
+                  </div>
+                  <div class="quiz-feedback"></div>
+                </div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">Calls fail. Specialists return junk. Power gets pulled mid-run. Next: how the agent survives all of it.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-5" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">05</span>
+          <h1 class="module-title">When Things Break</h1>
+          <p class="module-subtitle">A call times out. A specialist returns garbage. Someone yanks the power cord mid-run. A real agent has to survive all three — and this one does.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: GPS on a road trip</h2>
+            <p>You're driving with GPS. Things go wrong constantly — and a good GPS responds <em>differently</em> depending on what kind of wrong it is. It doesn't recalculate the entire route every time a single light turns red.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🗺️</div>
+              <div class="callout-content">
+                <strong class="callout-title">The core skill of this module</strong>
+                <p>Not all failures deserve the same response. Knowing <em>which</em> failures to retry, ignore, or re-plan around is the difference between an agent that recovers and one that spins forever.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Three kinds of "wrong"</h2>
+            <p>When a node fails, the system first <em>classifies</em> the failure into one of three buckets:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+                <div class="pattern-icon" style="background: var(--color-actor-4)">🚧</div>
+                <h4 class="pattern-title">Transient → skip</h4>
+                <p class="pattern-desc">A timeout or "all lines busy." The toll booth was briefly shut. The gateway already retried — no point re-planning.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid #C93B3B">
+                <div class="pattern-icon" style="background: #C93B3B">📝</div>
+                <h4 class="pattern-title">Validation error → skip</h4>
+                <p class="pattern-desc">A specialist produced <span class="term" data-definition="Malformed means the data doesn't follow the required structure — like a form with required boxes left blank. The program can't safely use it.">malformed</span> output. That's a typo in the address — re-planning won't fix it. Fix the prompt.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">🛣️</div>
+                <h4 class="pattern-title">Upstream failure → re-plan</h4>
+                <p class="pattern-desc">The road is genuinely closed. <em>This</em> is when it's worth sending the Planner back to find another route.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The classifier, in its own words</h2>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · recovery.py</span>
+                <pre><code><span class="code-line"><span class="code-keyword">if</span> <span class="code-string">"malformed"</span> <span class="code-keyword">in</span> e <span class="code-keyword">or</span> <span class="code-string">"validationerror"</span> <span class="code-keyword">in</span> e:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-string">"validation_error"</span></span>
+<span class="code-line">transient_markers = (<span class="code-string">"503"</span>, <span class="code-string">"502"</span>, <span class="code-string">"timeout"</span>, ...)</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">any</span>(m <span class="code-keyword">in</span> e <span class="code-keyword">for</span> m <span class="code-keyword">in</span> transient_markers):</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-string">"transient"</span></span>
+<span class="code-line"><span class="code-keyword">return</span> <span class="code-string">"upstream_failure"</span></span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">If the error text mentions a structure problem…</p>
+                  <p class="tl">…call it a validation error (a prompt bug).</p>
+                  <p class="tl">Keep a list of "temporary glitch" signals.</p>
+                  <p class="tl">If the error matches any of them…</p>
+                  <p class="tl">…call it transient (it'll probably pass).</p>
+                  <p class="tl">Anything else is a real, structural failure worth re-planning.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🔁</div>
+              <div class="callout-content">
+                <strong class="callout-title">The infinite-loop guard</strong>
+                <p>One special rule: if the <em>Planner itself</em> fails, never re-plan. Asking a broken GPS to recalculate forever is how agents get stuck. That single guard is what keeps the whole system from looping.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The fact-checker's veto</h2>
+            <p>Remember the Critic from Module 2? When a specialist is marked "needs checking," a Critic is slotted in front of the next step. If the Critic says <strong>fail</strong>, a careful sequence kicks off:</p>
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">1</div><p>Critic returns <strong>fail</strong> + a reason</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">2</div><p>The waiting child is marked <strong>skipped</strong></p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">3</div><p>A fresh Planner is spliced in <strong>with the failure reason</strong></p></div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🎯</div>
+              <div class="callout-content">
+                <strong class="callout-title">…but only once per branch (the cap)</strong>
+                <p>That re-plan is allowed <strong>exactly one time</strong> per branch. If the redo <em>also</em> fails the Critic, the system stops trying and loudly warns you that the final answer is missing data — instead of silently looping or silently lying. Honesty over pretending, again.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Surviving a power-cord yank</h2>
+            <p>Here's the scary one. What if the process is <span class="term" data-definition="SIGKILL is a forceful 'stop right now' signal to a program — it gets no chance to clean up or save. Like pulling the plug.">killed</span> mid-run — laptop dies, someone hits Ctrl-C hard? The agent keeps an <strong>autosave</strong>. Every change to the board is written to disk safely:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · persistence.py</span>
+                <pre><code><span class="code-line">tmp = path.<span class="code-function">with_suffix</span>(path.suffix + <span class="code-string">".tmp"</span>)</span>
+<span class="code-line">tmp.<span class="code-function">write_text</span>(data)</span>
+<span class="code-line">os.<span class="code-function">replace</span>(tmp, path)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Write the new save to a <em>temporary</em> file first.</p>
+                  <p class="tl">Fill it completely, off to the side.</p>
+                  <p class="tl">Only then swap it into place in one instant move. If the plug is pulled mid-write, the <em>old</em> save is still intact. This is an <span class="term" data-definition="An atomic write completes fully or not at all — there's no half-written state. The instant file-swap here is what makes it atomic.">atomic write</span>.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Picking up where it left off</h2>
+            <p>When you re-run with <code>--resume</code>, the agent loads the saved board and does one clever thing: any node that was <em>mid-flight</em> when the plug was pulled gets reset to "not started," so it runs again cleanly. Finished nodes are left untouched.</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line"><span class="code-keyword">for</span> _, d <span class="code-keyword">in</span> graph.g.<span class="code-function">nodes</span>(data=<span class="code-keyword">True</span>):</span>
+<span class="code-line">    <span class="code-keyword">if</span> d[<span class="code-string">"status"</span>] == <span class="code-string">"running"</span>:</span>
+<span class="code-line">        d[<span class="code-string">"status"</span>] = <span class="code-string">"pending"</span></span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Look at every node on the restored board.</p>
+                  <p class="tl">If it was caught mid-run when we died…</p>
+                  <p class="tl">…mark it "not started" so it runs fresh. Already-finished work is never redone — no wasted calls, no duplicates.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">💾</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why you'd want this in your own apps</strong>
+                <p>Long AI runs cost real money. Restarting from zero after a crash means paying twice. "Save progress safely, resume from the boundary" is a pattern worth asking your AI assistant to build into anything that runs for minutes.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module5">
+              <div class="quiz-question-block"
+                   data-correct="opt-b"
+                   data-explanation-right="Exactly. Transient errors (like a 503) are skipped, not re-planned, because the gateway already retried. Re-planning around a momentary blip just wastes a Planner call on a road that's already open again."
+                   data-explanation-wrong="Think about which bucket a brief timeout falls into, and what the system does with that bucket. The gateway has already retried before the error ever reached the recovery logic.">
+                <h3 class="quiz-question">A Researcher node fails with a <code>timeout</code>. Why doesn't the system immediately send the Planner back to re-plan that branch?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Re-planning is disabled for Researchers specifically</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>A timeout is "transient" — the gateway already retried, so the system skips rather than re-plan</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>It does re-plan — there's no special handling for timeouts</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <div class="quiz-question-block"
+                   data-correct="opt-a"
+                   data-explanation-right="Right. The graph autosaves with atomic writes, and on --resume any node that was 'running' resets to pending. So you resume from the boundary — finished work is kept, the interrupted node re-runs, nothing duplicates."
+                   data-explanation-wrong="Recall the autosave + resume design. The whole point of the atomic-write manifest is that you don't start over and don't double-charge for finished work.">
+                <h3 class="quiz-question">Your laptop dies 40 seconds into a 60-second run. You re-run with <code>--resume</code>. What happens to the work that already finished?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>It's kept — only the node that was mid-flight re-runs; finished nodes aren't redone</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Everything starts over from scratch</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The save file is corrupt because it was killed mid-write</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">One module left — and it's the most useful for you personally: how to add a whole new ability to this agent without writing a single line of Python.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-6" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">06</span>
+          <h1 class="module-title">Adding a Skill the Two-File Way</h1>
+          <p class="module-subtitle">The whole architecture was built for this moment: teaching the agent a brand-new ability by touching exactly two text files — and zero lines of Python.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a standard wall outlet</h2>
+            <p>Your home's wiring doesn't change when you buy a new lamp. As long as the plug fits the <strong>standard outlet</strong>, the lamp just works — the electrician never comes back. This agent is wired the same way. The "outlet" is a simple contract; any new specialist that fits it plugs right in.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🔌</div>
+              <div class="callout-content">
+                <strong class="callout-title">The two-file rule</strong>
+                <p>To add a skill: <strong>(1)</strong> add an entry to <code>agent_config.yaml</code>, <strong>(2)</strong> write a <code>prompts/yourskill.md</code> file. That's the entire job. The orchestrator (<code>flow.py</code>) is never edited.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Add a skill in two steps</h2>
+            <div class="step-cards stagger-children">
+              <div class="step-card animate-in">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>Declare it in the config</strong><p>A handful of YAML lines: its prompt file, which tools it may use, how creative it is.</p></div>
+              </div>
+              <div class="step-card animate-in">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>Write its instructions</strong><p>A Markdown file telling the AI what to do — ending with "reply as JSON." Done. It now shows up as a usable specialist.</p></div>
+              </div>
+            </div>
+            <p>Why does step 2 always say "reply as <span class="term" data-definition="JSON is a structured text format — labelled values in braces. Every specialist replies in JSON so the orchestrator can read the result the same way every time.">JSON</span>"? Because that's the shape of the outlet. Every specialist returns JSON, so the orchestrator can handle all of them identically.</p>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A chain that wires itself: Coder → Runner</h2>
+            <p>The one ability the system ships ready to demo is the <span class="term" data-definition="The Coder is a specialist that writes Python code to answer a question (e.g. doing math), instead of looking facts up on the web.">Coder</span>: it writes Python, then a runner executes it. The cool part — nobody has to <em>ask</em> for the runner. The config glues them together:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · agent_config.yaml</span>
+                <pre><code><span class="code-line"><span class="code-property">coder</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/coder.md</span>
+<span class="code-line">  <span class="code-property">internal_successors</span>: [sandbox_executor]</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A specialist named "coder".</p>
+                  <p class="tl">Its instructions live here.</p>
+                  <p class="tl">"Whenever I finish, <em>automatically</em> add a code-runner after me." The Planner never has to know — the wiring is declared, not coded.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The contract between them</h2>
+            <p>The Coder promises to emit exactly this shape, and the runner knows exactly where to look:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · the Coder's output + skills.py</span>
+                <pre><code><span class="code-line"><span class="code-comment"># Coder returns:</span></span>
+<span class="code-line">{<span class="code-string">"code"</span>: <span class="code-string">"print(9_541_000)"</span>, <span class="code-string">"rationale"</span>: <span class="code-string">"..."</span>}</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-comment"># Runner picks it up:</span></span>
+<span class="code-line">code = r[<span class="code-string">"output"</span>].<span class="code-function">get</span>(<span class="code-string">"code"</span>) <span class="code-keyword">or</span> code</span>
+<span class="code-line">out = <span class="code-function">run_python</span>(code)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">The Coder hands back a labelled package…</p>
+                  <p class="tl">…with the Python in the "code" slot.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">The runner reaches into the upstream package…</p>
+                  <p class="tl">…grabs the "code" slot and runs it. If the slot is empty, it fails cleanly with "no code found."</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A warning you should be able to call out</h2>
+            <p>The runner executes code in a <span class="term" data-definition="A sandbox is a contained space meant to run code without it affecting the rest of the system. How strong the containment is varies a lot — read the fine print.">sandbox</span>. But read what the code's own author says it is — and isn't:</p>
+            <div class="callout callout-warning">
+              <div class="callout-icon">⚠️</div>
+              <div class="callout-content">
+                <strong class="callout-title">"Usability boundary, NOT a security boundary"</strong>
+                <p>The sandbox stops a runaway loop from flooding your screen and scrubs secret keys from the environment. It does <strong>not</strong> stop malicious code from reading files or hitting the network. If an AI assistant ever tells you "it's sandboxed, so it's safe to run anything" — that's the kind of overclaim you now know to push back on.</p>
+              </div>
+            </div>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · sandbox.py</span>
+                <pre><code><span class="code-line">scrubbed = {k: os.environ[k] <span class="code-keyword">for</span> k <span class="code-keyword">in</span> env_whitelist</span>
+<span class="code-line">            <span class="code-keyword">if</span> k <span class="code-keyword">in</span> os.environ}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Before running the code, build a clean, tiny set of environment values — only the safe ones on an allow-list (like the system PATH).</p>
+                  <p class="tl">Your API keys are deliberately left out, so a script can't read and leak them.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Spot the anti-pattern</h2>
+            <p>Suppose someone "adds" a Translator skill by editing the orchestrator like this. One line betrays that they missed the whole point of the design. Click it:</p>
+            <div class="bug-challenge">
+              <h3>Which line breaks the two-file rule?</h3>
+              <div class="bug-code">
+                <div class="bug-line" data-line="1" onclick="checkBugLine(this, false)">
+                  <span class="line-num">1</span><code>for nid in ready:</code>
+                </div>
+                <div class="bug-line" data-line="2" onclick="checkBugLine(this, false)">
+                  <span class="line-num">2</span><code>    skill = self.registry.get(skill_name)</code>
+                </div>
+                <div class="bug-line bug-target" data-line="3" onclick="checkBugLine(this, true)">
+                  <span class="line-num">3</span><code>    if skill.name == "translator": do_translation_logic()</code>
+                </div>
+                <div class="bug-line" data-line="4" onclick="checkBugLine(this, false)">
+                  <span class="line-num">4</span><code>    result = await run_skill(skill, nid, ...)</code>
+                </div>
+              </div>
+              <div class="bug-feedback" id="bug-feedback"></div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🚫</div>
+              <div class="callout-content">
+                <strong class="callout-title">No special cases in the engine</strong>
+                <p>A hardcoded <code>if skill.name == "..."</code> means the orchestrator now has to <em>know about</em> each skill. Do that a few times and the engine becomes a tangle of exceptions. The clean design treats every skill identically — special behavior lives in the prompt and config, never in the loop.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">What you should never touch</h2>
+            <p>The flip side of "easy to extend" is "know what's load-bearing." A few files are carried over from an earlier version and should be left alone:</p>
+            <div class="badge-list">
+              <div class="badge-item">
+                <code class="badge-code">perception.py · memory.py</code>
+                <span class="badge-desc">Carried over byte-for-byte from a prior session. Other parts quietly depend on them being unchanged.</span>
+              </div>
+              <div class="badge-item">
+                <code class="badge-code">gateway/</code>
+                <span class="badge-desc">Treat it as a service you call, not code you patch. Found a real bug? File it; don't fix it inside your work.</span>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🧠</div>
+              <div class="callout-content">
+                <strong class="callout-title">The instinct to build</strong>
+                <p>Knowing the boundary between "extend here" and "don't touch this" is exactly the judgment that lets you steer an AI assistant confidently through a codebase you didn't write.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Final check</h2>
+            <div class="quiz-container" id="quiz-module6">
+              <div class="scenario-block">
+                <div class="scenario-context">
+                  <span class="scenario-label">Scenario</span>
+                  <p>You want to add a brand-new <strong>Translator</strong> skill that turns the final answer into Spanish. You ask your AI assistant to do it, and it proposes editing <code>flow.py</code> to add translation logic.</p>
+                </div>
+                <div class="quiz-question-block"
+                     data-correct="opt-c"
+                     data-explanation-right="Exactly. The two-file rule means a new skill is a YAML entry + a prompt file — nothing in flow.py. An AI reaching for the orchestrator is the red flag you can now catch and correct."
+                     data-explanation-wrong="Re-read the two-file rule and the spot-the-bug. Editing the orchestrator for a new skill is the anti-pattern this whole architecture was designed to avoid.">
+                  <h3 class="quiz-question">What's the correct steer to give the AI?</h3>
+                  <div class="quiz-options">
+                    <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>"Looks good, go ahead and edit flow.py"</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>"Add an <code>if skill.name == 'translator'</code> branch so it's explicit"</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>"Don't touch flow.py — add a YAML entry and a prompts/translator.md instead"</span>
+                    </button>
+                  </div>
+                  <div class="quiz-feedback"></div>
+                </div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">You made it — here's what you now own</h2>
+            <p>You can read this agent, reason about it, and steer an AI through it:</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">🕸️</div>
+                <div><strong>The graph is the agent loop</strong><p>A team that draws itself, running everyone it can at once.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-2)">📞</div>
+                <div><strong>One front desk for AI</strong><p>The gateway routes, fails over, and is honest about a 503.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-4)">🧭</div>
+                <div><strong>Failures are classified, not panicked over</strong><p>Skip, re-plan, or stop — and resume cleanly after a crash.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-5)">🔌</div>
+                <div><strong>Two files, zero Python</strong><p>You know how to extend it — and how to catch an AI that does it wrong.</p></div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🎓</div>
+              <div class="callout-content">
+                <strong class="callout-title">Go try it</strong>
+                <p>Run <code>uv run python flow.py "hello"</code>, then open a session with <code>replay.py</code> and watch a real graph grow. You now know exactly what you're looking at.</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
