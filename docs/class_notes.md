@@ -28,7 +28,7 @@
 ### Project Nuance: DiGraph with Self-Loops
 The code utilizes a NetworkX **DiGraph** (Directed Graph). While a pure DAG does not permit loops, a DiGraph allows a node to call itself for recovery, critic-retries, or self-correction, enabling localized loops without polluting the entire orchestrator flow.
 
-![NetworkX Graph Types](../images/networkx-graph-types-cf81549883bb93cd4b558d22ceb8a27a.png)
+<img src="../images/networkx-graph-types-cf81549883bb93cd4b558d22ceb8a27a.png" width="600" alt="NetworkX Graph Types" />
 
 ### Why a graph instead of a sequential loop
 
@@ -50,7 +50,7 @@ The code utilizes a NetworkX **DiGraph** (Directed Graph). While a pure DAG does
 
 > **Query:** "Find the populations of London, Paris, and Berlin and tell me which two are closest in size."
 
-![Session 8 Flow Graph](../images/session%208%20flow.png)
+<img src="../images/session%208%20flow.png" width="650" alt="Session 8 Flow Graph" />
 
 ```text
 USER QUERY → n:1 planner
@@ -82,7 +82,7 @@ A **skill = prompt + MCP tools + temperature** (a triple). Instead of one mega-a
 
 > **The Trinity Analogy:** Like Trinity downloading the helicopter piloting skill in *The Matrix*, an agent instantly assumes a specific capability by loading a skill prompt and its associated tools.
 
-![Skills Architecture: LLM Orchestrator & SLM Experts](../images/1_TWsORgga5sI5glJnELWRmA.png)
+<img src="../images/1_TWsORgga5sI5glJnELWRmA.png" width="650" alt="Skills Architecture: LLM Orchestrator & SLM Experts" />
 
 ### Real-World Specialized Skills
 * **LaTeX Compiling:** A specialized skill compiling complex layout, bibliography, and fonts (similar to building Linux kernels).
@@ -116,7 +116,7 @@ coder:                      # Student Assignment
 ### What it is
 An LLM running at temperature `0.0` that acts as a quality gate. It reads an upstream node's output, checks it against the initial constraints (e.g. Syllable count, JSON schema, currency formatting), and emits a binary `pass` or `fail` verdict with a short rationale.
 
-![Multi-Agent Critic Loop](../images/critic_loop_diagram.png)
+<img src="../images/critic_loop_diagram.png" width="550" alt="Multi-Agent Critic Loop" />
 
 ### The Loop & Splicing
 * **Verdict = PASS:** Flow continues uninterrupted.
@@ -133,7 +133,7 @@ An LLM running at temperature `0.0` that acts as a quality gate. It reads an ups
 ### What it is
 A clean, secure wrapper around `subprocess.run` (`code/sandbox.py`) that runs code produced by the **Coder** node in an isolated child process, returning `stdout`, `stderr`, `exit_code`, and a list of generated files.
 
-![Secure Sandbox Environment for AI Code Execution](../images/sandbox_environment.png)
+<img src="../images/sandbox_environment.png" width="550" alt="Secure Sandbox Environment for AI Code Execution" />
 
 ### Security: Environment Scrubbing
 To prevent the sandboxed script from stealing sensitive environment secrets (like `OPENAI_API_KEY` or database credentials), the environment is scrubbed. Only a whitelisted subset is passed to the subprocess:
