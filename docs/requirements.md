@@ -1,10 +1,12 @@
 # Software Requirements Specification
 
-**Project:** EAG V3 — Session 8: Multi-Agent DAG Orchestration Assignment  
+**Project:** EAG V3 — Session 8: Multi-Agent DAG Orchestration Assignment — **PulseDAG-GithubRepo**  
 **Document ID:** SRS-EAG3-S8-001  
-**Version:** 1.0  
-**Date:** 2026-05-30  
+**Version:** 1.1  
+**Date:** 2026-05-31  
 **Standard:** IEEE 29148:2018 + EARS (Easy Approach to Requirements Syntax, Mavin et al.)
+
+> **v1.1 change:** aligned to the chosen problem — **PulseDAG-GithubRepo** (a trending-repo scout). Graded new skill is `relevance_filter` (was a generic `course_generator` placeholder, now retired from assignment scope). Adds the alignment critic (FR-305), the trending-data-source requirement (FR-106/RSK-1), the relevance-criteria input (FR-505), and the non-graded Chrome-extension trigger (§5.7, CON-107). See `docs/idea.md`.
 
 ---
 
@@ -16,17 +18,21 @@ This document specifies the software requirements for completing the Session 8 a
 
 ### 1.2 Scope
 
-**System name:** `multiagent-dag-s8` (the growing-graph orchestrator rooted in `code/flow.py`)
+**System name:** `PulseDAG-GithubRepo` — the growing-graph orchestrator rooted in `code/flow.py`, applied to a GitHub-trending repository scout.
+
+**Problem domain:** scout GitHub Trending across languages and timeframes, then merge, compute star **metrics** (velocity, cross-source delta), filter for **relevance**, and explain the most useful rising repositories. The DAG mechanics are proven on this domain; see `docs/idea.md` for the full concept.
 
 The system extends the Session 7 cognitive architecture by replacing the single-iteration loop with a directed acyclic graph (DAG) of typed skill nodes. The student must:
 
 1. Pass five base queries carried over from earlier sessions.
-2. Demonstrate a parallel fan-out query.
-3. Demonstrate a Critic verdict cycle (pass + fail + recovery).
-4. Implement the stub Coder skill prompt.
-5. Add one new skill to the catalogue.
+2. Demonstrate a parallel fan-out query — 4 trending researchers (Python/Rust × weekly/monthly).
+3. Demonstrate a Critic verdict cycle (pass + fail + recovery) — **two critics**: completeness and alignment.
+4. Implement the stub Coder skill prompt — trending metrics + a deterministic per-repo fact-line.
+5. Add one new skill to the catalogue — **`relevance_filter`**.
 
-Out of scope: gateway internals (`gateway/`), Session 7 carry-over modules (`perception.py`, `decision.py`, `action.py`, `memory.py`, `vector_index.py`, `artifacts.py`, `mcp_server.py`).
+A non-graded **Chrome-extension trigger** (§5.7) wraps the existing `Executor` for a usable UI; it is shown in the demo video but is not one of the five graded parts.
+
+Out of scope: gateway internals (`gateway/`), Session 7 carry-over modules (`perception.py`, `decision.py`, `action.py`, `memory.py`, `vector_index.py`, `artifacts.py`, `mcp_server.py`). **Retired from scope:** the `course_generator` placeholder skill (a separate codebase-understanding idea, not part of PulseDAG-GithubRepo).
 
 ### 1.3 Intended Audience
 
@@ -48,6 +54,8 @@ Out of scope: gateway internals (`gateway/`), Session 7 carry-over modules (`per
 | [D7] | `code/recovery.py` | Failure classification and critic-fail splice |
 | [D8] | `code/skills.py` | Skill registry, prompt rendering, dispatcher |
 | [D9] | `code/tests/test_recovery.py` | 22 pinned unit tests (normative) |
+| [D10] | `docs/idea.md` | PulseDAG-GithubRepo concept — graph shape, skill design, open decisions |
+| [D11] | `docs/class_notes.md` | DAG / skills / critic / sandbox study notes |
 
 ---
 
@@ -163,10 +171,20 @@ When query K ("For Lagos, Cairo, and Kinshasa, find current populations and grow
 
 ---
 
+### 5.1b Trending Data Source (PulseDAG)
+
+**FR-106** [E, M, Part 2/4]  
+When a `researcher` node is asked for trending repositories, the system shall obtain, per `(language, timeframe)`, a list of repositories with at least `owner/repo`, `total_stars`, `stars_gained`, and `description`.
+
+**FR-107** [O, S, Part 2/4]  
+Where GitHub Trending HTML cannot be parsed reliably by `fetch_url`, the system shall fall back to a structured trending data source (e.g. an unofficial trending JSON API), and the `fetch_url` limitation shall be recorded as motivation for the Session 9 browser skill.
+
+---
+
 ### 5.2 Part 2 — Parallel Fan-Out
 
 **FR-201** [E, M, Part 2]  
-When a query instructs comparison or processing of N ≥ 3 independent concrete items, the Planner shall emit one node per item so the Executor dispatches them in a single `asyncio.gather` call.
+When the user submits the fan-out query (*"top trending Python and Rust repos for both this week and this month"*), the Planner shall emit one `researcher` node per `(language × timeframe)` page — at least four independent nodes — so the Executor dispatches them in a single `asyncio.gather` call.
 
 **FR-202** [U, M, Part 2]  
 The system shall demonstrate that the wall-clock time of a parallel layer equals the maximum elapsed time across its branches, not the sum.
@@ -176,19 +194,27 @@ The per-node timing printed to stdout shall show parallel-layer nodes with overl
 
 ---
 
-### 5.3 Part 3 — Critic Verdict
+### 5.3 Part 3 — Critic Verdict (two critics)
+
+PulseDAG-GithubRepo demonstrates the Critic in **two distinct roles**, both with recoverable fails:
+
+- **Completeness critic** (FR-301) — auto-inserted (`critic: true`) on `distiller`; checks each repo row has all required fields.
+- **Alignment critic** (FR-305) — planner-emitted between `relevance_filter` and `formatter`; checks each "why it matters" is faithful to the repo's real description and the interest criteria.
 
 **FR-301** [E, M, Part 3]  
-When a query specifies a verifiable structural constraint (e.g., exact character count, JSON schema validity, numeric bounds), the Planner shall insert a `critic` node between the writing node and the `formatter` node.
+When the `distiller` (marked `critic: true`) produces normalised repo rows, the orchestrator shall auto-insert a `critic` node on its outgoing edge that verifies every row contains `owner/repo`, `total_stars`, `stars_gained`, and `description`. (Completeness only — de-duplication is the Coder's responsibility, not the Critic's.)
 
 **FR-302** [E, M, Part 3]  
 When a Critic node returns `{"verdict": "fail", "rationale": "..."}`, the system shall mark the blocked child node as `skipped` and queue a recovery Planner node whose `metadata.failure_report` contains the critic rationale.
 
 **FR-303** [U, M, Part 3]  
-The student shall demonstrate the same Critic query across two runs: one producing `{"verdict": "pass"}` and one producing `{"verdict": "fail"}` followed by a corrected answer from the recovery Planner.
+The student shall demonstrate each Critic across two runs: one producing `{"verdict": "pass"}` and one producing `{"verdict": "fail"}` followed by a corrected answer from the recovery. The forced fail shall be **recoverable** — i.e. a re-plan on different/refreshed inputs yields a passing result (a permanently-malformed input that fails twice and hits the per-target cap does not satisfy this requirement).
 
 **FR-304** [UB, M, Part 3]  
 If a Critic-fail recovery has already been triggered for a given target node within the same session, the system shall not queue a second recovery Planner for that target (per-target cap = 1).
+
+**FR-305** [E, M, Part 3]  
+When the Planner builds a graph containing a `relevance_filter` node, it shall emit an alignment `critic` node between that node and the `formatter`, whose `metadata.question` asks whether each kept repo's "why it matters" is supported by the repo's description and matches the interest criteria. A planted hallucinated rationale shall produce `{"verdict": "fail"}` and trigger a re-filter that corrects it. This requires no `Executor` change (planner-emitted critics are already supported).
 
 ---
 
@@ -207,23 +233,29 @@ When the `sandbox_executor` node runs, the system shall extract the `"code"` fie
 If the upstream Coder node's `AgentResult.output` does not contain a `"code"` field, the `sandbox_executor` node shall return `AgentResult(success=False, error="no code in upstream coder output")` without attempting subprocess execution.
 
 **FR-405** [U, M, Part 4]  
-The student shall demonstrate the Coder on one query where the correct answer requires numeric computation (ranking, arithmetic, statistical comparison) that the Formatter cannot reliably produce from free text alone.
+The student shall demonstrate the Coder on the trending-metrics query, where the correct answer requires computation the Formatter cannot reliably produce from text: de-duplicating repos across the four lists, computing `velocity = stars_gained / total_stars × 100` per repo, computing the cross-source delta (repos appearing in both weekly and monthly), and ranking by momentum.
+
+**FR-406** [E, S, Part 4]  
+When the Coder runs, it shall additionally emit a **deterministic templated fact-line** per repo (string assembly from the computed metrics + the distilled description) — code-generated, not LLM prose, so it carries no hallucination risk.
 
 ---
 
 ### 5.5 Part 5 — New Skill
 
 **FR-501** [U, M, Part 5]  
-The student shall add one new entry to `agent_config.yaml` for a skill capability not covered by the existing catalogue (`planner`, `retriever`, `researcher`, `distiller`, `summariser`, `critic`, `formatter`, `sandbox_executor`, `coder`, `browser`).
+The student shall add one new entry — **`relevance_filter`** — to `agent_config.yaml`, a capability not covered by the existing catalogue (`planner`, `retriever`, `researcher`, `distiller`, `summariser`, `critic`, `formatter`, `sandbox_executor`, `coder`, `browser`). It is prompt-only (`tools_allowed: []`): it consumes the Coder's computed table and applies semantic relevance judgment (keep/drop) plus a one-line "why it matters" per kept repo.
 
 **FR-502** [U, M, Part 5]  
-The new skill shall have a corresponding prompt file at `prompts/<skill_name>.md` following the same structural conventions as existing prompt files.
+The new skill shall have a corresponding prompt file at `prompts/relevance_filter.md` following the same structural conventions as existing prompt files.
 
 **FR-503** [E, M, Part 5]  
-When a query requiring the new skill is submitted, the Planner shall emit the new skill as a node in the DAG, and the Executor shall dispatch it through the standard `run_skill` path without any `flow.py` or `skills.py` modification.
+When a query requiring `relevance_filter` is submitted, the Planner shall emit it as a node in the DAG, and the Executor shall dispatch it through the standard `run_skill` path without any `flow.py` or `skills.py` modification.
 
 **FR-504** [UB, M, Part 5]  
-If a new skill implementation requires adding a skill-name branch (`if skill.name == "<new>"`) to `flow.Executor`, the implementation shall be considered non-conformant to the architectural rule: adding a skill is a YAML edit and a prompt file only.
+If the new skill implementation requires adding a skill-name branch (`if skill.name == "relevance_filter"`) to `flow.Executor`, the implementation shall be considered non-conformant to the architectural rule: adding a skill is a YAML edit and a prompt file only.
+
+**FR-505** [E, S, Part 5]  
+When `relevance_filter` runs, the interest criteria shall be available to it — either hard-coded in `relevance_filter.md` or supplied via the query / the extension's profile field — so its keep/drop judgment is grounded in a stated interest profile (default: agentic / MCP / dev-tooling).
 
 ---
 
@@ -234,6 +266,21 @@ The student shall submit a YouTube demo video that clearly shows Parts 1–5 wit
 
 **FR-602** [U, M, Submission]  
 The student shall update `README.md` with gateway log excerpts or terminal screenshots confirming results for all five parts.
+
+---
+
+### 5.7 Chrome Extension Trigger (non-graded)
+
+The extension is the trigger + presentation layer for PulseDAG-GithubRepo. It is **not** one of the five graded parts; it is built and shown in the demo video for usability. All graded logic is proven via the DAG run logs, independent of the extension.
+
+**FR-701** [O, C, Extension]  
+Where the Chrome extension is included, its popup shall let the user choose language(s), a time window, and a "🎲 random pick" option, and a "Run" action shall trigger an agent run and render the resulting digest.
+
+**FR-702** [O, S, Extension]  
+Where the extension is included, it shall reach the agent through a thin HTTP bridge — a **new, separate module** that imports and calls the existing `flow.Executor` — and shall not require changes to `Executor.run` internals.
+
+**FR-703** [O, C, Extension]  
+Where "random pick" is selected, the system shall surface a single repository to explore. The simplest conformant implementation is client-side selection from the ranked digest; a server-side `mode:"random"` planner branch is an allowed alternative (and would introduce a second new skill, `picker`).
 
 ---
 
@@ -270,6 +317,14 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 
 **CON-106** — `MAX_NODES = 60` in `flow.py` must not be increased as a workaround for a looping Planner. If the cap fires, the root cause must be fixed in the prompt.
 
+**CON-107** — The Chrome-extension HTTP bridge must be a separate module that imports and calls the existing `flow.Executor`; it must not edit `Executor.run` internals (it is a new invocation entry point, a permitted "new generic mechanism", not a logic change). The trigger endpoint is distinct from Gateway V8's LLM port 8108.
+
+---
+
+## 7a. Risks
+
+**RSK-1 — Trending data fetch.** Parts 2/3/4 all depend on researchers obtaining trending data. GitHub Trending is server-rendered HTML and may not parse cleanly via `fetch_url`. **Mitigation (FR-107):** spike `fetch_url` first; fall back to a structured trending JSON API. Decide before implementing the fan-out. Residual `fetch_url` gap → documented S9 browser-skill motivation.
+
 ---
 
 ## 8. Traceability Matrix
@@ -281,22 +336,28 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 | FR-103 | Populations parallel, ≤ 90 s | Parts 1 & 2 | `flow.py` (asyncio.gather), `prompts/researcher.md` | demo / timing log | #22 |
 | FR-104 | Graceful fail on bad path | Part 1 | `prompts/planner.md` | demo / log | #23 |
 | FR-105 | SIGKILL + resume | Part 1 | `flow.py`, `persistence.py` | demo / log | #24 |
-| FR-201 | Planner emits ≥ 3 parallel nodes | Part 2 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log | #25 |
+| FR-106 | Researcher returns trending rows w/ required fields | Parts 2 & 4 | `prompts/researcher.md` | demo / log | #25 |
+| FR-107 | fetch_url → JSON API fallback (data source) | Parts 2 & 4 | `prompts/researcher.md` | spike / RSK-1 | (new) |
+| FR-201 | Planner emits 4 parallel trending researchers | Part 2 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log | #25 |
 | FR-202 | Wall-clock = max not sum | Part 2 | `flow.Executor.run` (gather) | demo / timing table | #27 |
 | FR-203 | Shared finish timestamp in log | Part 2 | `flow.Executor.run` stdout | demo / log | #26 |
-| FR-301 | Critic inserted for constraint queries | Part 3 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log | #28 |
+| FR-301 | Completeness critic auto on distiller | Part 3 | `agent_config.yaml`, `prompts/critic.md`, `flow.Graph.extend_from` | demo / log | #28 |
 | FR-302 | Critic-fail → child skipped + recovery | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` lines 97–135 | #30 |
-| FR-303 | Pass + fail demonstrated across 2 runs | Part 3 | `prompts/critic.md` | demo / 2 × log | #29, #30 |
+| FR-303 | Pass + recoverable fail across 2 runs (both critics) | Part 3 | `prompts/critic.md` | demo / 2 × log | #29, #30 |
 | FR-304 | Per-target cap = 1 re-plan | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` | #31 |
+| FR-305 | Alignment critic (planner-emitted) on relevance_filter | Part 3 | `prompts/planner.md`, `prompts/critic.md` | demo / log | #28, #30 |
 | FR-401 | coder.md complete prompt | Part 4 | `prompts/coder.md` | code review / demo | #33 |
 | FR-402 | internal_successors auto-appends sandbox | Part 4 | `agent_config.yaml`, `flow.Graph.extend_from:133` | demo / log | #34 |
 | FR-403 | sandbox_executor runs code field | Part 4 | `skills.run_skill` (sandbox branch) | demo / stdout | #34 |
 | FR-404 | sandbox_executor fails on missing code | Part 4 | `skills.run_skill:257` | demo / log | #45 |
-| FR-405 | Coder on computation query | Part 4 | `prompts/coder.md`, `sandbox.py` | demo / sandbox stdout | #35 |
-| FR-501 | New skill in agent_config.yaml | Part 5 | `agent_config.yaml` | code review | #36 |
-| FR-502 | New skill prompt file | Part 5 | `prompts/<new>.md` | code review | #37 |
-| FR-503 | New skill dispatched, no Executor change | Part 5 | `flow.py` (unchanged), `skills.py` (unchanged) | demo / diff | #38 |
-| FR-504 | No Executor branch for new skill | Part 5 | `flow.py` | code review / `git diff` | #39 |
+| FR-405 | Coder on trending metrics (velocity, delta, dedup, rank) | Part 4 | `prompts/coder.md`, `sandbox.py` | demo / sandbox stdout | #35 |
+| FR-406 | Coder emits deterministic per-repo fact-line | Part 4 | `prompts/coder.md` | demo / stdout | #35 |
+| FR-501 | `relevance_filter` in agent_config.yaml | Part 5 | `agent_config.yaml` | code review | #36 |
+| FR-502 | `prompts/relevance_filter.md` prompt file | Part 5 | `prompts/relevance_filter.md` | code review | #37 |
+| FR-503 | relevance_filter dispatched, no Executor change | Part 5 | `flow.py` (unchanged), `skills.py` (unchanged) | demo / diff | #38 |
+| FR-504 | No Executor branch for relevance_filter | Part 5 | `flow.py` | code review / `git diff` | #39 |
+| FR-505 | Relevance criteria available to the skill | Part 5 | `prompts/relevance_filter.md` | code review / demo | #36, #38 |
+| FR-701..703 | Chrome extension trigger (non-graded) | Extension | extension/, HTTP bridge module | demo video | (new) |
 | FR-601 | YouTube demo | Submission | — | instructor view | #43 |
 | FR-602 | README.md logs | Submission | `README.md` | instructor review | #40, #41, #42 |
 | NFR-101 | 22 tests pass before and after | All | `tests/test_recovery.py` | `uv run pytest` | #14 |
@@ -310,3 +371,5 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 | CON-104 | Gateway V8 untouched | — | `gateway/` | `git diff` | #12 |
 | CON-105 | Graph acyclic by construction | All | `flow.Graph.add_node` | architecture review | — |
 | CON-106 | MAX_NODES not raised as workaround | All | `flow.py:32` | code review | — |
+| CON-107 | Extension bridge is separate module, no Executor edit | Extension | HTTP bridge module, `flow.py` | `git diff` | (new) |
+| RSK-1 | Trending data fetch risk + mitigation | Parts 2/3/4 | `prompts/researcher.md` | spike | (new) |
