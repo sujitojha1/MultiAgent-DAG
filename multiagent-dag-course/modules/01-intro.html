@@ -1,0 +1,177 @@
+    <section class="module" id="module-1" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">01</span>
+          <h1 class="module-title">What This Thing Actually Does</h1>
+          <p class="module-subtitle">You type a question. A team of AI specialists assembles itself, works in parallel, and hands you back one answer. Let's watch it happen.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Start with something you'd actually type</h2>
+            <p>Imagine you open a terminal and run this:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE</span>
+                <pre><code><span class="code-line"><span class="code-function">uv</span> run python flow.py <span class="code-string">"Compare the populations of London, Paris, and Berlin"</span></span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">You ask one plain-English question.</p>
+                  <p class="tl">Behind the scenes, that single line kicks off a whole team of AI workers — not one big AI doing everything.</p>
+                </div>
+              </div>
+            </div>
+            <p>This project is an <span class="term" data-definition="An agent is a program that takes a goal, decides the steps to reach it, and carries them out — instead of you spelling out every step. Here, the 'steps' are AI specialists it picks and runs.">AI agent</span>. Its one job: take a messy human request and figure out how to answer it by orchestrating a team of small, focused specialists.</p>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a newsroom on deadline</h2>
+            <p>The cleanest way to picture this system is a <strong>newsroom</strong>. You're the reader who wants a story. Nobody writes the whole thing alone:</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">📋</div>
+                <div>
+                  <strong>The Editor</strong> — reads your request and decides who needs to work on it
+                  <p>In the code this is the <span class="term" data-definition="The Planner is the first AI specialist to run. It reads your question and writes out a list of which other specialists should run and in what order.">Planner</span>.</p>
+                </div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-2)">🔎</div>
+                <div>
+                  <strong>The Reporters</strong> — go out, gather facts, come back
+                  <p>Here, three <span class="term" data-definition="The Researcher is a specialist that searches the web and reads pages to answer one specific question.">Researchers</span> — one each for London, Paris, Berlin — working at the same time.</p>
+                </div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-5)">✍️</div>
+                <div>
+                  <strong>The Copy Editor</strong> — assembles the final piece the reader sees
+                  <p>The <span class="term" data-definition="The Formatter is the last specialist. It takes everyone's findings and writes the single, clean answer you actually read.">Formatter</span> writes the answer that lands in your terminal.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">💡</div>
+              <div class="callout-content">
+                <strong class="callout-title">The big idea</strong>
+                <p>Instead of one giant AI trying to do everything, the work is split into small specialists. Each one is good at exactly one thing. Engineers call this <strong>separation of concerns</strong> — and it's the single most important pattern in this whole codebase.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Watch your question flow through the team</h2>
+            <p>Click through each step. This is the exact journey your "compare populations" question takes:</p>
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-actor-1","label":"You type the question and hit enter. It lands on the Editor (Planner) desk."},
+              {"highlight":"flow-actor-2","label":"The Planner reads it and writes an assignment: three reporters, one per city.","packet":true,"from":"actor-1","to":"actor-2"},
+              {"highlight":"flow-actor-2","label":"All three Researchers go out at once — not one after another. London, Paris, Berlin in parallel."},
+              {"highlight":"flow-actor-3","label":"Each reporter brings back facts. The Formatter waits until ALL three are back.","packet":true,"from":"actor-2","to":"actor-3"},
+              {"highlight":"flow-actor-3","label":"The Formatter writes one clean comparison and hands it to you. Done."}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-actor-1">
+                  <div class="flow-actor-icon" style="background: var(--color-text)">🧑</div>
+                  <span>You</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-2">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-1)">📋</div>
+                  <span>Planner + Researchers</span>
+                </div>
+                <div class="flow-actor" id="flow-actor-3">
+                  <div class="flow-actor-icon" style="background: var(--color-actor-5)">✍️</div>
+                  <span>Formatter</span>
+                </div>
+              </div>
+              <div class="flow-packet" id="flow-packet"></div>
+              <div class="flow-step-label" id="flow-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Where does the team "live"? In a graph.</h2>
+            <p>The team isn't a fixed pipeline. It's drawn as a <span class="term" data-definition="A graph (in computer science) is just dots connected by lines. The dots are tasks; the lines mean 'this must finish before that can start.' It is not a chart or a bar graph.">graph</span> — dots (the specialists) connected by arrows (who waits for whom).</p>
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">1</div><p>Each <span class="term" data-definition="A node is one dot in the graph — here, one AI specialist with one job to do.">node</span> is one specialist</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">2</div><p>Each <span class="term" data-definition="An edge is an arrow between two nodes. Arrow from A to B means: B cannot start until A is finished.">arrow</span> is a dependency</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">3</div><p>The graph <strong>grows</strong> as work finishes</p></div>
+            </div>
+            <p>That last point is the magic. The Planner doesn't know the final shape up front — the graph adds new nodes <em>while it runs</em>. That's why this is called a <strong>growing-graph orchestrator</strong>.</p>
+            <div class="callout callout-info">
+              <div class="callout-icon">🧭</div>
+              <div class="callout-content">
+                <strong class="callout-title">The phrase to remember</strong>
+                <p>"The graph <em>is</em> the agent loop." Older AI agents ran one big think-act-repeat loop. Here, the loop is replaced by a graph of specialists that draws itself as it goes. You'll see exactly how in Module 3.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The very first thing that happens</h2>
+            <p>When you hit enter, the system does almost nothing clever at first. It just puts <em>one</em> sticky note on an empty board:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line">store.<span class="code-function">write_query</span>(query)</span>
+<span class="code-line">graph = <span class="code-function">Graph</span>()</span>
+<span class="code-line">graph.<span class="code-function">add_node</span>(<span class="code-string">"planner"</span>, inputs=[<span class="code-string">"USER_QUERY"</span>])</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Save your exact question to disk (so it can be replayed or resumed later).</p>
+                  <p class="tl">Create a brand-new, empty board.</p>
+                  <p class="tl">Pin one note: "Planner — go look at the user's question." That single note is the seed the whole team grows from.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🌱</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why this matters for steering AI</strong>
+                <p>Everything downstream is decided by the Planner reading your words. If your results are wrong, the first question is always: <em>"What did the Planner think I asked?"</em> You'll learn to inspect exactly that in Module 5.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <p>One question to make sure the shape of the system clicked.</p>
+            <div class="quiz-container" id="quiz-module1">
+              <div class="quiz-question-block"
+                   data-correct="opt-b"
+                   data-explanation-right="Exactly. The Planner reads your question first and decides the whole plan. So when output is wrong, that's the first place to look — did it even understand the request?"
+                   data-explanation-wrong="Think about the order things run in. Nothing else can happen until one specialist has read your question and decided who does what.">
+                <h3 class="quiz-question">You run the agent and get a thin, off-target answer. Based on the newsroom picture, which specialist's work should you inspect <em>first</em>?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The Formatter — it wrote the final answer, so it's to blame</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The Planner — it decided the whole plan from your words</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>The Researchers — they must have found bad facts</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">Next up: meet each specialist on the team — and discover the surprising fact that <em>none of them are written in Python</em>.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>

@@ -1,0 +1,230 @@
+    <section class="module" id="module-3" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">03</span>
+          <h1 class="module-title">How the Graph Grows &amp; Runs at Once</h1>
+          <p class="module-subtitle">The team isn't a fixed assembly line. It draws new workers onto the board as it goes — and runs everyone it can, all at the same time.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a construction schedule</h2>
+            <p>Picture building a house. Some jobs <em>must</em> wait — you can't roof before the walls are up. But plumbing and electrical can happen <strong>at the same time</strong>. A site manager doesn't do them one-by-one; they start everything whose prerequisites are met.</p>
+            <div class="icon-rows stagger-children">
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-1)">⛓️</div>
+                <div><strong>An arrow means "wait for this"</strong><p>Roof waits for walls. In code, an <span class="term" data-definition="An edge is the arrow between two tasks. A→B means B can't start until A is done.">edge</span> A→B means B can't start until A finishes.</p></div>
+              </div>
+              <div class="icon-row animate-in">
+                <div class="icon-circle" style="background: var(--color-actor-2)">⚡</div>
+                <div><strong>No arrow between them? Do both now.</strong><p>Plumbing and wiring run together. Three Researchers with no dependency on each other run <span class="term" data-definition="Concurrency means doing multiple things in overlapping time, so the total wait is the slowest one — not the sum of all of them.">concurrently</span>.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The whole engine, in one sentence</h2>
+            <p>The <span class="term" data-definition="The orchestrator is the controller that decides which nodes are ready and runs them — the site manager of the whole graph. It lives in flow.py.">orchestrator</span> repeats a tiny loop until there's nothing left to do:</p>
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">1</div><p>Find every node whose prerequisites are done</p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">2</div><p>Run them <strong>all at once</strong></p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">3</div><p>Let finished nodes <strong>add new nodes</strong></p></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><div class="flow-step-num">4</div><p>Repeat</p></div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🔁</div>
+              <div class="callout-content">
+                <strong class="callout-title">This is "the graph is the agent loop"</strong>
+                <p>There's no giant scripted pipeline. Just: find-ready, run-ready, grow, repeat. The graph's shape <em>emerges</em> as work completes.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">"Find every ready node" — the actual code</h2>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line">preds = <span class="code-function">list</span>(self.g.<span class="code-function">predecessors</span>(nid))</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">all</span>(self.g.nodes[p][<span class="code-string">"status"</span>] <span class="code-keyword">in</span> (<span class="code-string">"complete"</span>, <span class="code-string">"skipped"</span>)</span>
+<span class="code-line">       <span class="code-keyword">for</span> p <span class="code-keyword">in</span> preds):</span>
+<span class="code-line">    out.<span class="code-function">append</span>(nid)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Look at everyone this node is waiting on (its prerequisites).</p>
+                  <p class="tl">If <em>all</em> of them are either finished…</p>
+                  <p class="tl">…or skipped (a dead branch still unblocks the path)…</p>
+                  <p class="tl">…then this node is ready — add it to the "run now" list.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🟡</div>
+              <div class="callout-content">
+                <strong class="callout-title">"Skipped counts as done"</strong>
+                <p>A node that got cancelled still <em>unblocks</em> whatever waited on it. That little detail keeps one dead branch from freezing the whole board. You'll see why it matters in Module 5.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">"Run them all at once" — one magic word</h2>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · flow.py</span>
+                <pre><code><span class="code-line">outcomes = <span class="code-keyword">await</span> asyncio.<span class="code-function">gather</span>(</span>
+<span class="code-line">    *[self.<span class="code-function">_run_one</span>(nid, ...) <span class="code-keyword">for</span> nid <span class="code-keyword">in</span> ready]</span>
+<span class="code-line">)</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Kick off every ready node at the same moment…</p>
+                  <p class="tl">…using <span class="term" data-definition="asyncio.gather starts many tasks together and waits for all of them to finish before moving on. It's Python's way of doing things in parallel without extra threads.">asyncio.gather</span>, which launches them together and waits for all to come back.</p>
+                  <p class="tl">This line is why 3 cities take as long as the <em>slowest one</em>, not all three added up.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">⏱️</div>
+              <div class="callout-content">
+                <strong class="callout-title">Wall-clock math worth memorizing</strong>
+                <p>3 Researchers taking 30s, 28s, 26s finish in <strong>~30s</strong> (the slowest), not 84s (the sum). If you ever see fan-out work taking the <em>sum</em> of its parts, something broke the parallelism — that's a real debugging signal.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Listen in: the team coordinating</h2>
+            <p>Here's the same fan-out as a group chat. Watch the Formatter wait for the <span class="term" data-definition="A barrier is a checkpoint where work pauses until every parallel task has arrived — like waiting for all carpool riders before leaving.">barrier</span> — it won't start until all three reporters are back:</p>
+            <div class="chat-window" id="chat-module3">
+              <div class="chat-messages">
+                <div class="chat-message" data-msg="0" data-sender="planner" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-1)">📋</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-1)">Planner</span>
+                    <p>Plan's up. London, Paris, Berlin — one reporter each. All three go now. Formatter, you write the final once they're all in.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="1" data-sender="r1" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">🔎</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Researcher · London</span>
+                    <p>On it. Searching now.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="2" data-sender="r2" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">🔎</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Researcher · Paris</span>
+                    <p>Same — already pulling pages. (We didn't wait our turn; we all started together.)</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="3" data-sender="r3" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">🔎</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Researcher · Berlin</span>
+                    <p>Berlin done first! But I'll sit tight — the Formatter needs everyone.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="4" data-sender="formatter" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-5)">✍️</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-5)">Formatter</span>
+                    <p>I'm the barrier. The moment all three of you are back, I write one clean comparison. Not a second before.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="chat-typing" id="chat-typing" style="display:none">
+                <div class="chat-avatar" id="typing-avatar">?</div>
+                <div class="chat-typing-dots"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
+              </div>
+              <div class="chat-controls">
+                <button class="btn chat-next-btn">Next Message</button>
+                <button class="btn chat-all-btn">Play All</button>
+                <button class="btn chat-reset-btn">Replay</button>
+                <span class="chat-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">How the board grows new notes</h2>
+            <p>After any node succeeds, the orchestrator runs <code>extend_from</code>, which can add new nodes <strong>three</strong> different ways:</p>
+            <div class="step-cards stagger-children">
+              <div class="step-card animate-in">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>The node asked for them</strong><p>A specialist can return "successors" — new nodes it wants run next. The Planner uses this to create the whole initial team.</p></div>
+              </div>
+              <div class="step-card animate-in">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>The config wired them in automatically</strong><p>Some skills always get a follow-up. The Coder is <em>always</em> followed by a code-runner — the config says so, no one has to ask. (Module 6.)</p></div>
+              </div>
+              <div class="step-card animate-in">
+                <div class="step-num">3</div>
+                <div class="step-body"><strong>A fact-checker got slotted in</strong><p>If a skill is marked "needs checking," the system quietly inserts a Critic in front of whatever comes next. (Module 5.)</p></div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🧩</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why this is powerful — and where bugs hide</strong>
+                <p>Because the graph builds itself, a node that "should have run" might simply never have been <em>added</em>. When debugging, don't just ask "did the node fail?" — ask "did the node ever get created?"</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">What a node actually "sees"</h2>
+            <p>A node doesn't get the whole history. It only receives the outputs of its direct predecessors, bundled as <span class="term" data-definition="JSON is a simple text format for structured data — labels and values in braces. It's how these specialists pass results to each other.">JSON</span> inputs. The Formatter sees three research results; it never sees how they were found.</p>
+            <div class="callout callout-accent">
+              <div class="callout-icon">💸</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why narrow inputs = cheaper &amp; sharper</strong>
+                <p>Feeding each specialist only what it needs (not the entire transcript) keeps the prompts small. Smaller prompts = fewer tokens = lower cost and less for the AI to get confused by. This is a deliberate design choice you can copy in your own projects.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module3">
+              <div class="scenario-block">
+                <div class="scenario-context">
+                  <span class="scenario-label">Scenario</span>
+                  <p>You ask the agent to compare 4 cities. You expect it to finish in about the time of one search. Instead it takes roughly 4× as long — each city clearly ran one after another.</p>
+                </div>
+                <div class="quiz-question-block"
+                     data-correct="opt-b"
+                     data-explanation-right="Exactly. Parallel fan-out only happens when the nodes have no edges forcing them into a line. If each city's node was made to depend on the previous one, gather() can only ever run one at a time."
+                     data-explanation-wrong="Re-read how 'ready' works. gather() runs everything ready at once — so if things ran sequentially, it's because the graph's arrows chained them, not because gather is slow.">
+                  <h3 class="quiz-question">What's the most likely cause?</h3>
+                  <div class="quiz-options">
+                    <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The gateway is rate-limiting — nothing you can do</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The Planner accidentally made each city's node depend on the previous one, so they're chained instead of parallel</span>
+                    </button>
+                    <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                      <div class="quiz-option-radio"></div><span>The Formatter is running too early</span>
+                    </button>
+                  </div>
+                  <div class="quiz-feedback"></div>
+                </div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">The specialists all need an AI brain to think with. Where does that come from? Next: the Gateway — the agent's connection to the outside world.</p>
+          </section>
+
+        </div>
+      </div>
+    </section>

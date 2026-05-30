@@ -1,0 +1,191 @@
+    <section class="module" id="module-2" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">02</span>
+          <h1 class="module-title">The Cast of Characters</h1>
+          <p class="module-subtitle">Meet the specialists. The twist: not one of them is written in Python. Each is just a text file and a few lines of config.</p>
+        </header>
+
+        <div class="module-body">
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A skill is an actor with a playbill</h2>
+            <p>Think of a theater <strong>playbill</strong>. Every actor has two things: a <em>script</em> telling them what to say, and a <em>casting sheet</em> with their role and rules. A <span class="term" data-definition="A skill is one specialist the agent can use — like Planner or Researcher. In this codebase a skill is defined entirely by a text prompt plus a short config entry, with no custom code.">skill</span> here works the exact same way:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">📜</div>
+                <h4 class="pattern-title">The script</h4>
+                <p class="pattern-desc">A plain Markdown file in <code>prompts/</code> — the instructions handed to the AI. This is the actor's lines.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+                <div class="pattern-icon" style="background: var(--color-actor-4)">🗂️</div>
+                <h4 class="pattern-title">The casting sheet</h4>
+                <p class="pattern-desc">One entry in <code>agent_config.yaml</code> — which tools it may use, how creative it's allowed to be, what it does.</p>
+              </div>
+            </div>
+            <div class="callout callout-accent">
+              <div class="callout-icon">🤯</div>
+              <div class="callout-content">
+                <strong class="callout-title">The surprising part</strong>
+                <p>There is <strong>no Python class per skill.</strong> No <code>class Researcher:</code> anywhere. A skill is 100% a prompt file + a config entry. You'll see in Module 6 why this is the whole point of the design.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The main cast</h2>
+            <p>Six specialists do almost all the work. Each is good at exactly one thing:</p>
+            <div class="pattern-cards stagger-children">
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+                <div class="pattern-icon" style="background: var(--color-actor-1)">📋</div>
+                <h4 class="pattern-title">Planner</h4>
+                <p class="pattern-desc">Reads your question and writes the list of who should run. The editor of the newsroom.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">🔎</div>
+                <h4 class="pattern-title">Researcher</h4>
+                <p class="pattern-desc">Searches the web and reads pages. The only one allowed to leave the building.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+                <div class="pattern-icon" style="background: var(--color-actor-3)">🗄️</div>
+                <h4 class="pattern-title">Retriever</h4>
+                <p class="pattern-desc">Searches the agent's <em>own</em> memory — documents it already filed away. The in-house archivist.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+                <div class="pattern-icon" style="background: var(--color-actor-4)">🧪</div>
+                <h4 class="pattern-title">Distiller</h4>
+                <p class="pattern-desc">Pulls clean, structured facts out of messy text. (And it always gets fact-checked — Module 5.)</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid #C93B3B">
+                <div class="pattern-icon" style="background: #C93B3B">⚖️</div>
+                <h4 class="pattern-title">Critic</h4>
+                <p class="pattern-desc">Approves or rejects another specialist's work. Says only "pass" or "fail" with a reason.</p>
+              </div>
+              <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+                <div class="pattern-icon" style="background: var(--color-actor-5)">✍️</div>
+                <h4 class="pattern-title">Formatter</h4>
+                <p class="pattern-desc">Writes the final answer you read. Always the last node — engineers call this a <span class="term" data-definition="A terminal node is the end of the line — the last task in the graph. Its output is what gets returned to the user.">terminal</span>.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">A casting sheet, line by line</h2>
+            <p>Here is the entire definition of the Researcher. Notice there's no logic here — just a description of <em>what kind of worker</em> it is:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · agent_config.yaml</span>
+                <pre><code><span class="code-line"><span class="code-property">researcher</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/researcher.md</span>
+<span class="code-line">  <span class="code-property">tools_allowed</span>: [web_search, fetch_url]</span>
+<span class="code-line">  <span class="code-property">temperature</span>: <span class="code-number">0.7</span></span>
+<span class="code-line">  <span class="code-property">max_tokens</span>: <span class="code-number">2500</span></span>
+<span class="code-line">  <span class="code-property">description</span>: Performs multi-step web research.</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A specialist named "researcher".</p>
+                  <p class="tl">Its instructions live in this Markdown file.</p>
+                  <p class="tl">It's allowed to use two <span class="term" data-definition="A tool is an external action an AI can call, like searching the web or reading a URL — beyond just generating text.">tools</span>: web search and fetching a page. Most specialists get none.</p>
+                  <p class="tl"><span class="term" data-definition="Temperature controls how random/creative an AI's output is. 0 = same answer every time; near 1 = more varied, exploratory wording.">Temperature</span> 0.7 = fairly exploratory, good for open research.</p>
+                  <p class="tl">It may write up to 2500 <span class="term" data-definition="A token is roughly a word-piece — about 4 characters. AI usage and limits are measured in tokens, not words.">tokens</span> of output.</p>
+                  <p class="tl">A one-line human summary. That's the whole definition.</p>
+                </div>
+              </div>
+            </div>
+            <div class="callout callout-info">
+              <div class="callout-icon">🎚️</div>
+              <div class="callout-content">
+                <strong class="callout-title">A knob worth knowing</strong>
+                <p>The Critic and Distiller run at <code>temperature: 0</code> (be exact, no surprises). The Researcher runs hot at <code>0.7</code> (explore). Tuning a specialist's behavior is a one-line edit to this file — <strong>no code change.</strong> This is exactly the kind of dial you can tell an AI assistant to adjust.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">How the config becomes a working team</h2>
+            <p>On startup, the system reads that whole config file and turns every entry into a <span class="term" data-definition="An object is a bundle of related data the program keeps in memory — here, one bundle per skill holding its prompt path, tools, and settings.">skill object</span> it can run. One loop, no special cases:</p>
+            <div class="translation-block">
+              <div class="translation-code">
+                <span class="translation-label">CODE · skills.py</span>
+                <pre><code><span class="code-line"><span class="code-keyword">class</span> <span class="code-function">SkillRegistry</span>:</span>
+<span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):</span>
+<span class="code-line">        cfg = yaml.<span class="code-function">safe_load</span>(AGENT_CONFIG_PATH.<span class="code-function">read_text</span>())</span>
+<span class="code-line">        self._skills = {n: <span class="code-function">Skill</span>(n, c) <span class="code-keyword">for</span> n, c <span class="code-keyword">in</span> cfg.<span class="code-function">items</span>()}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">The "registry" is just the cast list, loaded into memory.</p>
+                  <p class="tl">When it's built…</p>
+                  <p class="tl">…read the whole config file (that's what <span class="term" data-definition="YAML is a simple, human-friendly text format for configuration — indentation and colons instead of code. Easy to read and edit.">YAML</span> is).</p>
+                  <p class="tl">…and for every single entry, make one skill object. Add a new entry to the file and it just shows up. No code edit needed.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Match the specialist to the job</h2>
+            <p>Drag each specialist onto the job they own:</p>
+            <div class="dnd-container">
+              <div class="dnd-chips">
+                <div class="dnd-chip" draggable="true" data-answer="planner">📋 Planner</div>
+                <div class="dnd-chip" draggable="true" data-answer="researcher">🔎 Researcher</div>
+                <div class="dnd-chip" draggable="true" data-answer="critic">⚖️ Critic</div>
+                <div class="dnd-chip" draggable="true" data-answer="formatter">✍️ Formatter</div>
+              </div>
+              <div class="dnd-zones">
+                <div class="dnd-zone" data-correct="planner">
+                  <p class="dnd-zone-label">Reads the request and decides who works on it</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+                <div class="dnd-zone" data-correct="researcher">
+                  <p class="dnd-zone-label">Leaves the building to gather facts from the web</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+                <div class="dnd-zone" data-correct="critic">
+                  <p class="dnd-zone-label">Approves or rejects another node's work with a reason</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+                <div class="dnd-zone" data-correct="formatter">
+                  <p class="dnd-zone-label">Writes the final answer the user reads</p>
+                  <div class="dnd-zone-target">Drop here</div>
+                </div>
+              </div>
+              <button class="btn" onclick="checkDnD()">Check Matches</button>
+              <button class="btn" onclick="resetDnD()">Reset</button>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Quick check</h2>
+            <div class="quiz-container" id="quiz-module2">
+              <div class="quiz-question-block"
+                   data-correct="opt-c"
+                   data-explanation-right="Right. A skill is just a prompt file + a YAML entry — no Python class exists for it. So 'rewrite the Researcher to be less chatty' means editing prompts/researcher.md, not hunting for code."
+                   data-explanation-wrong="Re-read the casting-sheet idea. The behavior of a specialist isn't coded in Python — it's described in two text files.">
+                <h3 class="quiz-question">You want the Researcher to stop padding its answers with fluff. Where do you make that change?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Find the <code>Researcher</code> class in the Python code and edit its logic</span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Lower the temperature in <code>flow.py</code></span>
+                  </button>
+                  <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                    <div class="quiz-option-radio"></div><span>Edit the instructions in <code>prompts/researcher.md</code> (and maybe its config entry)</span>
+                  </button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answer</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+            </div>
+            <p style="margin-top: var(--space-8); color: var(--color-text-secondary)">Now you know the cast. Next: how do they actually talk to each other — and how does the team grow itself while running?</p>
+          </section>
+
+        </div>
+      </div>
+    </section>

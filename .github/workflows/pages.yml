@@ -1,0 +1,45 @@
+name: Deploy course to GitHub Pages
+
+on:
+  # Run on every push to main that touches the course
+  push:
+    branches: [main]
+    paths:
+      - "multiagent-dag-course/**"
+      - ".github/workflows/pages.yml"
+  # Allow manual runs from the Actions tab
+  workflow_dispatch:
+
+# Permissions the deploy needs
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; let an in-progress run finish
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload course as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Serve the built course folder at the site root
+          path: ./multiagent-dag-course
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
