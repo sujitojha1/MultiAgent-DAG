@@ -16,6 +16,19 @@
 
 ---
 
+## What Session 8 Adds Over Session 7
+
+Per `docs/Session8_MultiAgent_DAG_Orchestration.md` ("What this session adds"), S8 adds six changes over S7, each in its own module, while leaving the S7 code byte-identical:
+
+1. **The Orchestrator** — new `flow.py`: a `Graph` wrapper over a NetworkX `DiGraph` plus an `Executor` that walks the graph, running each node once its predecessors complete (independent nodes run concurrently) and returns the terminal Formatter's answer.
+2. **The Skill Catalogue** — new `agent_config.yaml` enumerating the skills (planner, researcher, retriever, distiller, summariser, critic, formatter, coder, sandbox_executor, browser), each with prompt file, allowed tools, temperature, and max-tokens. One yaml-parameterised `Skill` class in `skills.py` instead of a class per skill.
+3. **The Planner** — `prompts/planner.md`: prompts the model to emit the next set of nodes as JSON (rationale + node list); the Executor reads it and extends the graph.
+4. **The Critic** — distiller is marked `critic: true`; a critic node is inserted on every outgoing edge. On fail, the blocked child is skipped and one Planner recovery node is queued, with a per-target cap to prevent fail loops.
+5. **The Persistence Layer** — `SessionStore` in `persistence.py`: writes `graph.json` (via `nx.node_link_data`) and one `NodeState` JSON per node, all atomic writes, with resume support.
+6. **The Gateway (V8)** — new gateway on port 8108 adding agent/session log columns, a `/v1/chat/batch` endpoint, a `/v1/cost/by_agent` endpoint, retry-on-5xx, and `agent_routing.yaml` for pinning agents to providers. V7 stays untouched on 8107.
+
+---
+
 ## DAG (Directed Acyclic Graph)
 
 ### What the letters mean
