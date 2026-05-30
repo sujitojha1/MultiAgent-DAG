@@ -28,7 +28,7 @@
 ### Project Nuance: DiGraph with Self-Loops
 The code utilizes a NetworkX **DiGraph** (Directed Graph). While a pure DAG does not permit loops, a DiGraph allows a node to call itself for recovery, critic-retries, or self-correction, enabling localized loops without polluting the entire orchestrator flow.
 
-<img src="../images/networkx-graph-types-cf81549883bb93cd4b558d22ceb8a27a.png" width="600" alt="NetworkX Graph Types" />
+<img src="../images/networkx-graph-types-cf81549883bb93cd4b558d22ceb8a27a.png" alt="NetworkX Graph Types" />
 
 ### Why a graph instead of a sequential loop
 
@@ -50,7 +50,7 @@ The code utilizes a NetworkX **DiGraph** (Directed Graph). While a pure DAG does
 
 > **Query:** "Find the populations of London, Paris, and Berlin and tell me which two are closest in size."
 
-<img src="../images/session%208%20flow.png" width="650" alt="Session 8 Flow Graph" />
+<img src="../images/session%208%20flow.png" alt="Session 8 Flow Graph" />
 
 ```text
 USER QUERY → n:1 planner
