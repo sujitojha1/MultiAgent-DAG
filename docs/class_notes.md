@@ -82,7 +82,7 @@ A **skill = prompt + MCP tools + temperature** (a triple). Instead of one mega-a
 
 > **The Trinity Analogy:** Like Trinity downloading the helicopter piloting skill in *The Matrix*, an agent instantly assumes a specific capability by loading a skill prompt and its associated tools.
 
-<img src="../images/1_TWsORgga5sI5glJnELWRmA.png" width="650" alt="Skills Architecture: LLM Orchestrator & SLM Experts" />
+<img src="../images/1_TWsORgga5sI5glJnELWRmA.png" alt="Skills Architecture: LLM Orchestrator & SLM Experts" />
 
 ### Real-World Specialized Skills
 * **LaTeX Compiling:** A specialized skill compiling complex layout, bibliography, and fonts (similar to building Linux kernels).
@@ -116,7 +116,7 @@ coder:                      # Student Assignment
 ### What it is
 An LLM running at temperature `0.0` that acts as a quality gate. It reads an upstream node's output, checks it against the initial constraints (e.g. Syllable count, JSON schema, currency formatting), and emits a binary `pass` or `fail` verdict with a short rationale.
 
-<img src="../images/critic_loop_diagram.png" alt="Multi-Agent Critic Loop" />
+<img src="../images/critic_loop_diagram.png" width="550" alt="Multi-Agent Critic Loop" />
 
 ### The Loop & Splicing
 * **Verdict = PASS:** Flow continues uninterrupted.
