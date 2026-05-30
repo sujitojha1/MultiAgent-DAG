@@ -264,7 +264,7 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 
 **CON-103** — `recovery.classify_failure` must preserve all existing label assignments for the 22 error-string test cases in `test_recovery.py`.
 
-**CON-104** — Gateway V7 (`gateway/` on port 8107) must remain untouched.
+**CON-104** — Gateway V8 (`gateway/` on port 8108) must remain untouched.
 
 **CON-105** — The `Graph` must remain acyclic: `Graph.add_node` only adds edges from a predecessor node to the new node; a node cannot reference itself or a descendant as an input.
 
@@ -274,39 +274,39 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 
 ## 8. Traceability Matrix
 
-| Req ID | Summary | Assignment Part | Primary File(s) | Test / Verification |
-|---|---|---|---|---|
-| FR-101 | hello ≤ 3 s, 2 nodes | Part 1 | `flow.py`, `prompts/planner.md` | demo / timing log |
-| FR-102 | Shannon bio query | Part 1 | `prompts/researcher.md`, `prompts/distiller.md` | demo / log |
-| FR-103 | Populations parallel, ≤ 90 s | Parts 1 & 2 | `flow.py` (asyncio.gather), `prompts/researcher.md` | demo / timing log |
-| FR-104 | Graceful fail on bad path | Part 1 | `prompts/planner.md` | demo / log |
-| FR-105 | SIGKILL + resume | Part 1 | `flow.py`, `persistence.py` | demo / log |
-| FR-201 | Planner emits ≥ 3 parallel nodes | Part 2 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log |
-| FR-202 | Wall-clock = max not sum | Part 2 | `flow.Executor.run` (gather) | demo / timing table |
-| FR-203 | Shared finish timestamp in log | Part 2 | `flow.Executor.run` stdout | demo / log |
-| FR-301 | Critic inserted for constraint queries | Part 3 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log |
-| FR-302 | Critic-fail → child skipped + recovery | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` lines 97–135 |
-| FR-303 | Pass + fail demonstrated across 2 runs | Part 3 | `prompts/critic.md` | demo / 2 × log |
-| FR-304 | Per-target cap = 1 re-plan | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` |
-| FR-401 | coder.md complete prompt | Part 4 | `prompts/coder.md` | code review / demo |
-| FR-402 | internal_successors auto-appends sandbox | Part 4 | `agent_config.yaml`, `flow.Graph.extend_from:133` | demo / log |
-| FR-403 | sandbox_executor runs code field | Part 4 | `skills.run_skill` (sandbox branch) | demo / stdout |
-| FR-404 | sandbox_executor fails on missing code | Part 4 | `skills.run_skill:257` | demo / log |
-| FR-405 | Coder on computation query | Part 4 | `prompts/coder.md`, `sandbox.py` | demo / sandbox stdout |
-| FR-501 | New skill in agent_config.yaml | Part 5 | `agent_config.yaml` | code review |
-| FR-502 | New skill prompt file | Part 5 | `prompts/<new>.md` | code review |
-| FR-503 | New skill dispatched, no Executor change | Part 5 | `flow.py` (unchanged), `skills.py` (unchanged) | demo / diff |
-| FR-504 | No Executor branch for new skill | Part 5 | `flow.py` | code review / `git diff` |
-| FR-601 | YouTube demo | Submission | — | instructor view |
-| FR-602 | README.md logs | Submission | `README.md` | instructor review |
-| NFR-101 | 22 tests pass before and after | All | `tests/test_recovery.py` | `uv run pytest` |
-| NFR-201 | Fewer tokens than S7 | Part 2 | Gateway `/v1/cost/by_agent` | log comparison |
-| NFR-301 | Atomic writes | All | `persistence.py` | architecture review |
-| NFR-401 | Sandbox 1 MB / 30 s cap | Part 4 | `sandbox.py` | code review |
-| NFR-501 | Node-boundary resume | Part 1 | `persistence.py`, `flow.Executor.run:172` | demo |
-| CON-101 | S7 modules byte-identical | All | 7 carry-over files | `git diff` |
-| CON-102 | No skill-name branch in Executor (Part 5) | Part 5 | `flow.py` | `git diff` |
-| CON-103 | Classifier labels stable | All | `recovery.classify_failure` | `test_recovery.py` |
-| CON-104 | Gateway V7 untouched | — | `gateway/` | `git diff` |
-| CON-105 | Graph acyclic by construction | All | `flow.Graph.add_node` | architecture review |
-| CON-106 | MAX_NODES not raised as workaround | All | `flow.py:32` | code review |
+| Req ID | Summary | Assignment Part | Primary File(s) | Test / Verification | Issue(s) |
+|---|---|---|---|---|---|
+| FR-101 | hello ≤ 3 s, 2 nodes | Part 1 | `flow.py`, `prompts/planner.md` | demo / timing log | #13, #20 |
+| FR-102 | Shannon bio query | Part 1 | `prompts/researcher.md`, `prompts/distiller.md` | demo / log | #21 |
+| FR-103 | Populations parallel, ≤ 90 s | Parts 1 & 2 | `flow.py` (asyncio.gather), `prompts/researcher.md` | demo / timing log | #22 |
+| FR-104 | Graceful fail on bad path | Part 1 | `prompts/planner.md` | demo / log | #23 |
+| FR-105 | SIGKILL + resume | Part 1 | `flow.py`, `persistence.py` | demo / log | #24 |
+| FR-201 | Planner emits ≥ 3 parallel nodes | Part 2 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log | #25 |
+| FR-202 | Wall-clock = max not sum | Part 2 | `flow.Executor.run` (gather) | demo / timing table | #27 |
+| FR-203 | Shared finish timestamp in log | Part 2 | `flow.Executor.run` stdout | demo / log | #26 |
+| FR-301 | Critic inserted for constraint queries | Part 3 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log | #28 |
+| FR-302 | Critic-fail → child skipped + recovery | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` lines 97–135 | #30 |
+| FR-303 | Pass + fail demonstrated across 2 runs | Part 3 | `prompts/critic.md` | demo / 2 × log | #29, #30 |
+| FR-304 | Per-target cap = 1 re-plan | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` | #31 |
+| FR-401 | coder.md complete prompt | Part 4 | `prompts/coder.md` | code review / demo | #33 |
+| FR-402 | internal_successors auto-appends sandbox | Part 4 | `agent_config.yaml`, `flow.Graph.extend_from:133` | demo / log | #34 |
+| FR-403 | sandbox_executor runs code field | Part 4 | `skills.run_skill` (sandbox branch) | demo / stdout | #34 |
+| FR-404 | sandbox_executor fails on missing code | Part 4 | `skills.run_skill:257` | demo / log | #45 |
+| FR-405 | Coder on computation query | Part 4 | `prompts/coder.md`, `sandbox.py` | demo / sandbox stdout | #35 |
+| FR-501 | New skill in agent_config.yaml | Part 5 | `agent_config.yaml` | code review | #36 |
+| FR-502 | New skill prompt file | Part 5 | `prompts/<new>.md` | code review | #37 |
+| FR-503 | New skill dispatched, no Executor change | Part 5 | `flow.py` (unchanged), `skills.py` (unchanged) | demo / diff | #38 |
+| FR-504 | No Executor branch for new skill | Part 5 | `flow.py` | code review / `git diff` | #39 |
+| FR-601 | YouTube demo | Submission | — | instructor view | #43 |
+| FR-602 | README.md logs | Submission | `README.md` | instructor review | #40, #41, #42 |
+| NFR-101 | 22 tests pass before and after | All | `tests/test_recovery.py` | `uv run pytest` | #14 |
+| NFR-201 | Fewer tokens than S7 | Part 2 | Gateway `/v1/cost/by_agent` | log comparison | #46 |
+| NFR-301 | Atomic writes | All | `persistence.py` | architecture review | #47 |
+| NFR-401 | Sandbox 1 MB / 30 s cap | Part 4 | `sandbox.py` | code review | #48 |
+| NFR-501 | Node-boundary resume | Part 1 | `persistence.py`, `flow.Executor.run:172` | demo | #24 |
+| CON-101 | S7 modules byte-identical | All | 7 carry-over files | `git diff` | — |
+| CON-102 | No skill-name branch in Executor (Part 5) | Part 5 | `flow.py` | `git diff` | #39 |
+| CON-103 | Classifier labels stable | All | `recovery.classify_failure` | `test_recovery.py` | — |
+| CON-104 | Gateway V8 untouched | — | `gateway/` | `git diff` | #12 |
+| CON-105 | Graph acyclic by construction | All | `flow.Graph.add_node` | architecture review | — |
+| CON-106 | MAX_NODES not raised as workaround | All | `flow.py:32` | code review | — |
