@@ -116,7 +116,7 @@ coder:                      # Student Assignment
 ### What it is
 An LLM running at temperature `0.0` that acts as a quality gate. It reads an upstream node's output, checks it against the initial constraints (e.g. Syllable count, JSON schema, currency formatting), and emits a binary `pass` or `fail` verdict with a short rationale.
 
-<img src="../images/critic_loop_diagram.png" width="550" alt="Multi-Agent Critic Loop" />
+<img src="../images/critic_loop_diagram.png" alt="Multi-Agent Critic Loop" />
 
 ### The Loop & Splicing
 * **Verdict = PASS:** Flow continues uninterrupted.
