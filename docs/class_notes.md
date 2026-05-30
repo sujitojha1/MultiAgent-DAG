@@ -19,7 +19,11 @@
 - NOT Claude-style lazy skills — whole prompt loads every time. → [gotchas](#-two-common-misunderstandings)
 - Catalog: `planner, retriever, researcher, distiller, summariser, critic, formatter, sandbox_executor, coder, browser`. **coder** is the stub assignment. → [catalog](#catalog-session-8)
 
-**Other mechanisms:** critic auto-insert · recovery classifier · sandbox (usability not security) · Gateway V8 · node-boundary resume. → [quick ref](#quick-reference-other-s8-mechanisms-from-session-md)
+**Critic** = LLM that reads a node's output and emits `pass`/`fail`. On fail → child skipped + **one** planner re-plan (per-target cap). Generic critic *rubber-stamps* precise constraints (can't count) — fix = give it a tool. → [details](#critic-loop)
+
+**Sandbox** = `subprocess.run` wrapper for Coder's Python. 30 s timeout, 1 MB out caps, fresh temp dir, **env whitelist** (only `PATH/HOME/LANG/LC_ALL/LC_CTYPE` pass — secrets dropped). Usability boundary, **not** security. → [details](#sandbox-environment)
+
+**Other mechanisms:** recovery classifier · Gateway V8 · node-boundary resume. → [quick ref](#quick-reference-other-s8-mechanisms-from-session-md)
 
 **Refs:** Wikipedia DAG · NetworkX topo-sort · asyncio docs. → [references](#references)
 
@@ -169,11 +173,87 @@ Gemini 3 docs now recommend keeping temperature at `1.0` for everything; vendors
 
 ---
 
+## Critic Loop
+
+### What it is
+An LLM that reads **one upstream node's output** and emits a binary **`pass` / `fail`** verdict with a one-line rationale. Validates work mid-flight without round-tripping everything through the planner. Temperature `0.0` (deterministic). **Makes no tool calls.**
+
+Output schema (`prompts/critic.md`):
+```json
+{ "verdict": "pass" | "fail", "rationale": "<one or two short sentences>" }
+```
+Procedure: read `UPSTREAM_OUTPUT` → check against the `INPUTS` that produced it → look for fabricated fields, unsupported claims, contradictions, missing fields → emit pass/fail. *"Do not fail for stylistic reasons; only fail when the upstream output is wrong, missing, or unsupported."*
+
+### How it enters the graph (two paths)
+1. **Auto-insert** — a skill flagged `critic: true` in `agent_config.yaml` (currently **`distiller`**). The orchestrator splices a critic node onto **every outgoing edge** of that node.
+2. **Planner-emitted** — planner inserts a critic when the user demands a strict, checkable constraint (`"exactly 5-7-5 syllables"`, `"valid JSON"`, `"≤280 chars"`). Critic's input = the writing node's id; `metadata.question` repeats the constraint.
+
+### The loop (on fail)
+```text
+producer ──→ critic
+               │ pass → flow continues, graph unchanged
+               │ fail → 1. blocked child marked  skipped
+                        2. ONE planner-recovery node queued (carries the rationale)
+                        3. per-target cap = max 1 re-plan per branch  → no infinite loop
+```
+Bounded by design: planner re-plans → corrected sub-graph → if it fails again the **per-target cap** stops it. Handled separately from node-*failure* recovery (`recovery.py`) because it needs the critic's target/child metadata + run-scoped cap state.
+
+### ⚠️ Rubber-stamp finding (key teaching point)
+Forcing query: *"write a haiku, exactly 4-6-4 syllables (not 5-7-5)."* Across 3 runs the coder emitted **5-7-5** and the critic returned **`pass`** ("follows the 4-6-4 structure"). **It never counted — it keyword-matched and approved**, because the critic can make no tool calls. LLM-as-judge is reliable for **fluency/tone/completeness**, unreliable for **precise structural constraints** (syllables, exact arithmetic, regex, char counts).
+
+**Separate the two problems — they live in different code:**
+| Problem | Fixed in |
+|---|---|
+| **Wiring** — does the critic splice in, skip the child, queue recovery? | the **orchestrator** (unit-tested, correct) |
+| **Policy** — is the verdict actually *right*? | the critic's **prompt**, or give it a **tool** |
+
+S9 fix = **critic-with-tools** (syllable counter / JSON-schema validator / arithmetic) so verdicts are grounded.
+
+### Assignment note (Issue #15, part 3)
+Must produce **both a pass and a fail** across two runs, and the fail must splice in a recovery that corrects the answer. Pick a property the LLM critic *can* check from text alone (e.g. "contains exactly these 3 fields", "JSON parses", "mentions X") — **avoid syllable-counting** (the rubber-stamp trap) unless you add a tool.
+
+---
+
+## Sandbox Environment
+
+### What it is
+A thin wrapper around `subprocess.run` (`code/sandbox.py`) that runs the **Coder** node's Python in a child process and returns `stdout / stderr / exit_code / files_written`. It's the "verify" branch of the populations diamond (alongside the formatter's "trust" branch).
+
+> The LLM **almost never sees it** — the orchestrator calls `sandbox.run_python(code)` directly and packs the result. `sandbox_executor.md` only runs for optional post-mortem explanations. Effectively pure-Python plumbing in a skill's clothing.
+
+### Actual boundaries (`sandbox.py`)
+| Control | Value | Why |
+|---|---|---|
+| Wall-clock timeout | `30 s` | kills runaway loops (`timed_out=True`, exit `-1`) |
+| stdout / stderr caps | `1 MB` each | a noisy `print` can't poison orchestrator output (truncated) |
+| cwd | fresh `tempfile.TemporaryDirectory("s8sandbox-")` | throwaway dir; written files listed in `files_written` |
+| **Env scrubbing** | **whitelist only** | the real security bit ↓ |
+
+### Env scrubbing = the key idea
+```python
+DEFAULT_ENV_WHITELIST = ("PATH", "HOME", "LANG", "LC_ALL", "LC_CTYPE")
+scrubbed = {k: os.environ[k] for k in env_whitelist if k in os.environ}
+# child gets env=scrubbed — everything else (API keys, git tokens…) is DROPPED
+```
+- **PATH** → find `python3`. **HOME** → libs that look for `~`. **LANG/LC_ALL/LC_CTYPE** → UTF-8 locale/encoding.
+- Protection = the child can't read `OPENAI_API_KEY` etc. because they aren't in its environment.
+
+> **Video correction:** `LC_ALL` does *not* "hide all env variables." The hiding is done by passing a fresh `env=` dict to `subprocess.run` (the whitelist). `LC_ALL`/`LC_CTYPE` are kept for *encoding*, not secret-hiding.
+
+### ⚠️ Usability boundary, NOT security
+Per the module docstring: *no chroot, no container, no syscall filter, no FS allowlist beyond cwd. A malicious script can read `/etc` and call the network.* It stops **mistakes** (infinite loops, runaway output, accidental secret leakage), not **attacks**. Real isolation → **Firejail** / container (out of S8 scope). One of the five named "honest design choices."
+
+### Returned dict
+`{exit_code, stdout, stdout_truncated, stderr, stderr_truncated, files_written:[{name,size_bytes}], timed_out, cwd}` — `cwd` kept so the artifact pipeline can collect generated files.
+
+### Assignment note (Issue #15, part 4)
+Fill `prompts/coder.md` so the coder emits Python that runs cleanly here: self-contained, prints the answer to stdout, no network/secret deps, finishes < 30 s. `coder` auto-routes to `sandbox_executor` via `internal_successors`.
+
+---
+
 ## Quick reference: other S8 mechanisms (from session MD)
 
-- **Critic auto-insert:** `critic: true` on a skill (e.g. `distiller`) makes the orchestrator splice a critic node on every outgoing edge. On **fail** → blocked child marked `skipped`, **one** planner-recovery node queued (per-target cap prevents fail-loops).
-- **Rubber-stamp finding:** the generic critic *keyword-matches* rather than truly verifies (approved a 5-7-5 haiku as "4-6-4"). Fix = give the critic a **tool** (e.g. syllable counter). Wiring vs. policy are separate problems in separate code.
-- **Recovery classifier** (`recovery.py`): `transient` (5xx/timeout → surface, no re-plan) · `validation_error` (→ surface, fix is a prompt) · `upstream_failure` (→ queue one recovery planner). Guards against the "503 → re-plan → 503" loop.
+- **Recovery classifier** (`recovery.py`): `transient` (5xx/timeout → skip, gateway already retried) · `validation_error` (→ skip, fix is a prompt) · `upstream_failure` (→ replan, but planner-own failures skip to avoid looping). Guards against the "503 → re-plan → 503" loop.
 - **Sandbox** is a **usability boundary, not security** — fresh temp dir, 1 MB stdout cap, 30 s timeout, locale env vars (`PATH/HOME/LANG/LC_ALL/LC_CTYPE`) scrubbed to hide secrets; a hostile script could still reach the network.
 - **Gateway V8** (port 8108; V7 stays on 8107): `agent`/`session` tags on every call, `/v1/cost/by_agent`, `/v1/chat/batch` (parallel dispatch), retry-on-5xx, `agent_routing.yaml` pins agent→provider (saves 200–400 ms router latency, loses auto-failover; not hot-reloaded).
 - **Resume guarantee is at the node boundary, not the tool-call boundary** — a researcher killed mid-tool-loop re-runs from the top (mid-tool resume deferred).
