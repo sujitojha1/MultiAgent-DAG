@@ -157,6 +157,28 @@ An LLM running at temperature `0.0` that acts as a quality gate. It reads an ups
   3. The branch is re-planned.
 * **Safety Boundary:** Bounded by a strict **per-target cap of 1 re-plan** per branch to prevent infinite recovery loops.
 
+### The Rubber-Stamp Finding
+
+**Forcing query:** *"Write a haiku about quantum entanglement. The haiku MUST be exactly 4-6-4 syllables (not the traditional 5-7-5) — count them."*
+
+Across **three runs**, the Coder emitted a normal **5-7-5** haiku and the Critic returned **`pass`** every time, with the rationale *"follows the specified 4-6-4 syllable structure."* The wrong output was waved through three times in a row.
+
+**Why it happened:** the Critic (`prompts/critic.md`) makes **no tool calls** — it is a pure-text LLM judge. When asked to "count syllables," the model doesn't count anything; LLMs operate on tokens, not phonemes. It **pattern-matched the keyword "4-6-4"** from the spec, saw a plausible-looking haiku, and approved. At `temperature 0.0` it does this *identically every time* — hence three identical false passes.
+
+**The key separation — mechanism vs. policy:**
+
+| | Wiring (mechanism) | Verdict quality (policy) |
+|---|---|---|
+| Question | Is the Critic node spliced, caps firing, recovery triggered? | Is the verdict actually *correct*? |
+| Status | **Correct & unit-tested** | **Broken** — rubber stamp |
+| Fixed by | The **orchestrator** | The Critic's **prompt** or a **tool** |
+
+> The wiring is mechanism; the verdict quality is policy. They are separate problems, fixed in separate places. Conflating them produces a debugging session that touches the wrong code.
+
+**Two clean fixes:**
+1. **Give the Critic a real tool** — e.g. a syllable-counting function in the MCP server, added to the Critic's `tools_allowed`, so the verdict is grounded in an actual count.
+2. **Only gate on LLM-verifiable properties** — LLM-as-judge is reliable for fluency, tone, and structural completeness, but unreliable for precise counting (syllables, characters, exact arithmetic, regex). Prefer constraints the model can actually check: "valid JSON," "≤ 280 characters," "mentions all three cities."
+
 ---
 
 ## Sandbox Environment
