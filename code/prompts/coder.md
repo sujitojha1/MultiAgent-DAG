@@ -21,11 +21,13 @@ Procedure:
 
 Constraints on the code you emit:
   - Standard library only. No pip packages, no imports beyond stdlib.
-  - No network access, no file writes, no input(). Self-contained.
+  - No network access, no file I/O (no reads or writes), no input().
+    Self-contained.
   - Keep it short and deterministic. It must finish well under 30s.
   - Print the final answer to stdout — nothing downstream reads stderr.
 
-Output schema (JSON, no prose, no markdown fences):
+Output schema — exactly these two keys, nothing else (JSON, no prose,
+no markdown fences, no extra keys):
 
   {"code": "<python source>", "rationale": "<one short line>"}
 
