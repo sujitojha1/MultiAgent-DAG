@@ -189,26 +189,71 @@ To prevent infinite execution loops (e.g., a looping Planner), two strict bounds
 
 ---
 
-## 🛠️ 5. Skill Execution (`skills.py:230–338`)
+## 🛠️ 5. Skill Execution (`skills.py`)
 
-`run_skill` contains two programmatic routing branches based on `skill.name`:
+### 5.1 The Catalogue (`SkillRegistry.__init__`, line 62)
+There is **no Python class per skill**. The registry loads `agent_config.yaml` once and turns every top-level key into a `Skill` object, so registering a new agent behaviour is a YAML edit, not a code change:
+```python
+class SkillRegistry:
+    def __init__(self):
+        cfg = yaml.safe_load(AGENT_CONFIG_PATH.read_text())
+        self._skills = {n: Skill(n, c) for n, c in cfg.items()}
+```
+Each `Skill` carries its prompt-file path, `tools_allowed`, `internal_successors`, `critic` flag, `provider_pin`, and per-skill `temperature` / `max_tokens` (line 38–53) — all read from the YAML, so tuning one skill never touches Python.
 
-### Path A — `sandbox_executor` (No LLM Call)
-Extracts Python source code from upstream and runs it inside a secure sandbox container:
+### 5.2 Input Resolution (`resolve_inputs`, line 77)
+Before a node runs, its declared `inputs` list is materialised into concrete data. Four input forms are recognised, each producing a typed dict:
+
+| Form | Resolved to | `kind` |
+|---|---|---|
+| `USER_QUERY` | the original query text | `query` |
+| `n:<id>` | the **`AgentResult.output` of that completed upstream node** (read from the graph node's `result` attr) | `upstream` |
+| `art:<sha>` | artifact bytes, utf-8 decoded, **truncated to 20 000 chars** | `artifact` |
+| anything else | passed through verbatim | `literal` |
+
+This is the heart of **token scoping**: a node receives *only its declared upstream outputs*, not the whole run history.
+
+### 5.3 Prompt Rendering (`render_prompt`, line 146) — the 5-section prompt
+The rendered prompt is assembled from up to five sections, in fixed order:
+1. **System** — `skill.prompt_template()` (the skill's `.md` file)
+2. **`USER_QUERY:`** — the original query, always present
+3. **`FAILURE:`** — the failure report, only on a recovery/critic re-run
+4. **`MEMORY HITS:`** — FAISS-ranked `MemoryItem`s, capped at **8 hits** with a **400-char chunk preview** each (`_format_memory_hits`, line 113)
+5. **`INPUTS:`** — `json.dumps(resolved, ...)`, **truncated to 20 000 chars** (line 158)
+
+### 5.4 Dispatch (`run_skill`, line 230) — two paths
+`run_skill` resolves inputs, renders the prompt, then branches on `skill.name`:
+
+**Path A — `sandbox_executor` (no LLM call).** Picks the `code` field out of its upstream coder's `output` dict and runs `sandbox.run_python` directly — bypassing the gateway entirely:
 ```python
 if skill.name == "sandbox_executor":
     code = ""
     for r in resolved:
-        if r.get("kind") == "upstream":
+        if r.get("kind") == "upstream" and isinstance(r.get("output"), dict):
             code = r["output"].get("code") or code
     if not code:
         return AgentResult(success=False, error="no code in upstream coder output")
-    out = run_python(code)              # sandbox.py subprocess
-    return AgentResult(success=(out["exit_code"] == 0), output=out)
+    out = run_python(code)                       # sandbox.py subprocess
+    return AgentResult(success=(out["exit_code"] == 0 and not out["timed_out"]), output=out)
 ```
 
-### Path B — All Other Skills (LLM Call via Gateway)
-Constructs the scoped system prompt injecting FAISS memory hits and upstream resolved output data before executing the model call via port `8108`.
+**Path B — all other skills (LLM via V8 gateway, `agent=<skill_name>`).** Splits again on whether the skill has tools:
+- **Tools present** → `mcp_runner.run_with_tools` runs a **multi-turn tool loop**: opens one MCP stdio session, dispatches each `tool_call` the model emits, feeds results back until the model returns final text.
+- **No tools** → a **single-turn** `LLM().chat` call (run via `asyncio.to_thread` so concurrent nodes don't block the event loop).
+
+Both paths pin `temperature` / `max_tokens` / `provider` from the skill's YAML, so routing (`agent_routing.yaml`) and cost-by-agent attribution work per skill.
+
+### 5.5 Reply Parsing (`parse_skill_json`, line 162)
+Skills must return a single top-level JSON object. The parser strips markdown fences the model may add despite instructions, then falls back to slicing from the first `{` to the last `}` if a direct `json.loads` fails — returning `{}` rather than throwing. `run_skill` then lifts orchestrator-recognised fields (`successors`, and `nodes` for the Planner) out, validating each as a `NodeSpec`; **malformed specs fail the node loudly** rather than being silently dropped (P0 #1 fix, line 298–329).
+
+### 5.6 Why token counts stay bounded per node (issue #18 "Done when")
+The **`INPUTS` block contains only the resolved outputs of a node's *declared* upstream parents** — each `n:<id>` becomes that one parent's `AgentResult.output`, never the cumulative conversation. Three hard caps keep any single node's prompt bounded regardless of how large the graph grows:
+
+- **Edge-scoped inputs** — a node sees its parents' outputs only (§5.2), not the whole run. A 40-node graph still feeds a leaf node just its 1–3 parents.
+- **20 000-char truncation** on both the `INPUTS` JSON and each `art:` blob (lines 105, 158).
+- **Memory capped** at 8 hits × 400-char previews (§5.3).
+
+This is the structural win over Session 7's sequential loop, where history grew cumulatively into every step. In S8 the per-node prompt size is a function of a node's **fan-in**, not the run's **length** — which is what produced the measured ~3× input-token reduction (54k → 17k) in §3's worked example.
 
 ---
 
