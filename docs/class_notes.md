@@ -74,6 +74,28 @@ USER QUERY → n:1 planner
           → ANSWER
 ```
 
+```mermaid
+graph TD
+    classDef default fill:#1e1e2e,stroke:#313244,stroke-width:1px,color:#cdd6f4;
+    classDef planner fill:#f9e2af,stroke:#fab387,stroke-width:1.5px,color:#11111b;
+    classDef parallel fill:#b4befe,stroke:#89b4fa,stroke-width:1.5px,color:#11111b;
+    classDef coder fill:#a6e3a1,stroke:#94e2d5,stroke-width:1.5px,color:#11111b;
+    classDef formatter fill:#cba6f7,stroke:#f5c2e7,stroke-width:1.5px,color:#11111b;
+
+    UQ[USER QUERY] --> P(n:1 planner):::planner
+    P --> R1(n:2 researcher: London):::parallel
+    P --> R2(n:3 researcher: Paris):::parallel
+    P --> R3(n:4 researcher: Berlin):::parallel
+    
+    R1 --> C(n:5 coder):::coder
+    R2 --> C
+    R3 --> C
+    
+    C --> SE(n:7 sandbox_executor):::coder
+    SE --> F(n:6 formatter):::formatter
+    F --> A[ANSWER]
+```
+
 ### Metrics Comparison (Session 7 vs Session 8)
 
 *Illustrative figures for the full 7-node example above (planner → 3 researchers → coder → sandbox → formatter):*

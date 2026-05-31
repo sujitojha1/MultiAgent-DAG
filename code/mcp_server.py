@@ -115,9 +115,31 @@ def _tavily_search(query: str, max_results: int) -> list[dict]:
     ]
 
 
+def _ddg_verify() -> bool | str:
+    """Resolve the TLS verify setting for DDGS.
+
+    A "self signed certificate in certificate chain" error means a proxy /
+    interception layer is injecting a root CA that Python's default bundle
+    doesn't trust. Honor the standard CA-bundle env vars so the corporate
+    root can be supplied, and allow an explicit escape hatch for setups where
+    that isn't practical. Defaults to certifi's bundle (secure).
+    """
+    if os.environ.get("DDG_VERIFY_SSL", "").lower() in ("0", "false", "no"):
+        return False
+    ca = os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("SSL_CERT_FILE")
+    if ca and os.path.exists(ca):
+        return ca
+    try:
+        import certifi
+
+        return certifi.where()
+    except Exception:
+        return True
+
+
 def _ddg_search(query: str, max_results: int) -> list[dict]:
     hits: list[dict] = []
-    with DDGS() as ddgs:
+    with DDGS(verify=_ddg_verify()) as ddgs:
         for backend in ("auto", "html", "lite"):
             try:
                 hits = list(ddgs.text(query, max_results=max_results, backend=backend))
