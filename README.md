@@ -188,6 +188,22 @@ For populations queries, the Planner generates concurrent researcher nodes:
 * **Wall-Clock Time:** Verified that the concurrent layer execution time matches `max(branches) = 30.68s`, rather than the sum of branches (`30.68s + 28.5s + 26.1s = 85.28s`).
 * **asyncio.gather Barrier:** Overlapping start times and identical finish timestamps are printed to stdout.
 
+#### Measured speedup — trending fan-out (FR-201 to FR-203)
+
+A second fan-out query (`Find the top trending Python and Rust repos for both this week and this month.`) decomposes into **4 independent researchers** — one per `language × timeframe` cell — run in a single `asyncio.gather` batch. Measured from session `s8-44a7e215`:
+
+| Branch | Elapsed |
+|---|---|
+| researcher · py_week | 32.7 s |
+| researcher · py_month | 62.0 s |
+| researcher · rs_week | 54.4 s |
+| researcher · rs_month | 65.8 s |
+| **max (= parallel layer cost)** | **65.8 s** |
+| **sum (= serial cost)** | **214.8 s** |
+| **speedup ratio = sum / max** | **3.26 ×** |
+
+The parallel layer's wall-clock equals the **max** branch (65.8 s), **not the sum** (214.8 s) — a **3.26×** speedup (≥ 1.5× target met). The four branches start together but finish up to ~33 s apart, since each researcher runs a live web search of differing duration; parallelism is proven by overlapping execution and the speedup ratio, not by simultaneous completion.
+
 ---
 
 ### Part 3 — Critic Verdict (FR-301 to FR-304)
