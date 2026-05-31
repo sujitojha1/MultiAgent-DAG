@@ -224,6 +224,7 @@ Producer Node ──▶ Critic Node (verdict: fail) ──▶ Skip Child & Spawn
 * **Prompt contract (FR-401):** Prompt in `prompts/coder.md` returns pure JSON with `code` (executable Python) and `rationale`.
 * **Internal Successors (FR-402):** Orchestrator automatically splices Coder → SandboxExecutor using the YAML config.
 * **Sandbox Security (FR-403/NFR-401):** Code is run inside a subprocess wrapper under a 30s timeout and 1MB memory limit. Environment variables like `OPENAI_API_KEY` are scrubbed, passing only a secure whitelist (`PATH`, `HOME`, `LANG`, `LC_ALL`, `LC_CTYPE`).
+* **Deep dive:** [docs/CODER.md](docs/CODER.md) maps the Coder output contract to the exact enforcing lines (`skills.py:251–268`) and documents the inline-literals subtlety. See [docs/LEARNING_NOTES.md](docs/LEARNING_NOTES.md) §Module 5 for the canonical walkthrough.
 
 ---
 
