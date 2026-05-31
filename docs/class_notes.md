@@ -57,6 +57,18 @@ The code utilizes a NetworkX **DiGraph** (Directed Graph). While a pure DAG does
 * **Edges = Context Flow & Dependencies:** Edges carry the context. If N5 has inputs from N2 and N3, its system prompt is injected only with N2 and N3's outputs.
 * **Concurrent Concurrency:** Nodes with no shared dependencies execute concurrently (via `asyncio.gather`). Concurrency cost equals the **slowest branch, not the sum**.
 
+### How the graph grows — `Graph.extend_from` (the 3-step splice)
+
+The graph is not static. Every time a node completes, the Executor calls `graph.extend_from(nid, result, registry=...)` (`code/flow.py:74–149`), which splices in new children in **three sequential steps, in this fixed order**:
+
+1. **Dynamic successors** (`flow.py:86–131`) — children the skill itself emitted at runtime (`result.successors`). Added in **two passes**: pass 1 creates each node bare and records its `metadata.label → assigned-id`; pass 2 resolves every child's `inputs`, translating symbolic refs (`n:<label>` → assigned id, `n:<int>` pass-through, `USER_QUERY`/`art:` literals, unknown → fall back to the parent). The label indirection lets the **Planner name nodes symbolically** without knowing the integer ids the orchestrator will hand out.
+2. **Static `internal_successors`** (`flow.py:133–135`) — YAML-driven, no runtime data. Every skill of this type gets its listed successors auto-appended off the parent. This is how a `coder` auto-grows a `sandbox_executor` (`internal_successors: [sandbox_executor]`) with **zero Planner or Executor code change**.
+3. **Critic auto-insertion** (`flow.py:137–147`) — only if the *source* skill is `critic: true` (e.g. `distiller`). For each child added in Steps 1–2 it **interposes a critic**: cut the `src → child` edge, add a `critic` node fed by `src`, rewire `critic → child`. The child can't become `ready` until the critic passes.
+
+**Why the order is load-bearing:** Step 3 iterates a **snapshot** (`list(added)`) of the children produced by Steps 1+2, taken *before* it appends any critics. So critics gate **every** newly-added child (dynamic *and* static), and critics never get critics of their own. If critic-insertion ran between Steps 1 and 2, the `internal_successors` children would slip through ungated — the ordering is what makes the critic a *complete* gate.
+
+> These are three of the **five growth actors** named in the `flow.py` module docstring; the other two are the Planner's seed plan and `recovery.plan_recovery` re-invocation on node failure.
+
 ---
 
 ## The Classic Example
