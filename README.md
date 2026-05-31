@@ -1,4 +1,4 @@
-# EAGV3 Session 8 — Student Scaffolding
+# Multi Agent - Directed Acyclic Graph
 
 > 📚 **[Interactive course: How a Multi-Agent DAG Agent Works →](https://sujitojha1.github.io/MultiAgent-DAG/)**
 > A beginner-friendly, single-page walkthrough of this codebase — the query lifecycle, the skill cast, the growing graph, the LLM gateway, failure recovery, and how to extend the agent. No coding background required.
