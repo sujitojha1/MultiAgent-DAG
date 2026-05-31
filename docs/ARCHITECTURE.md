@@ -279,15 +279,37 @@ graph TD
     U -->|Executor Action| RP[REPLAN - Spawn Recovery Planner]:::replan
 ```
 
-### 6.2 Critic Verdict Splicing (`handle_critic_verdict`)
-Spliced automatically on edges of nodes with `critic: true` in YAML.
+`classify_failure` is pure string-matching on the lowercased error text: transient markers (`503`/`502`/`504`, `timeout`, `connection`, `bad gateway`…) → `transient`; `malformed`/`validationerror` → `validation_error`; **empty or anything else → `upstream_failure`** (the conservative default — an unrecognised failure is treated as real).
+
+### 6.2 The Recovery Predicate (`plan_recovery`)
+The Executor never branches on the classifier directly — it calls `plan_recovery`, which returns a frozen `RecoveryDecision` (`action`, `reason`, `note`, optional `failure_report`). Concentrating the if/elif tree here keeps `Executor.run` focused on graph mechanics and lets the policy be unit-tested in isolation. The full decision table:
+
+| `reason` | `failed_skill` | Action | Why |
+|---|---|---|---|
+| `transient` | any | **skip** | the gateway already exhausted its own retries; re-planning a flaky endpoint just burns a node |
+| `validation_error` | any | **skip** | a malformed `NodeSpec` is a *prompt bug*, not a runtime miss — replanning re-runs the same broken prompt |
+| `upstream_failure` | `planner` | **skip** | **you cannot recover a planner with another planner** — a failing Planner would queue a recovery Planner that fails the same way, forever |
+| `upstream_failure` | anything else | **replan** | a genuine content failure (a skill produced unusable output); queue a recovery Planner with a `failure_report` |
+
+The third row is the **infinite-loop guard**: recovery *is* "spawn another Planner," so letting a Planner failure trigger recovery would be self-perpetuating. Skipping it lets the run terminate with partial data instead of looping.
+
+### 6.3 Critic Verdict Splicing (`handle_critic_verdict`)
+A separate path from `plan_recovery`, because it needs the critic node's `metadata` (`target`, `child`) and run-scoped state (the `recovered_branches` cap). Spliced automatically on edges of nodes with `critic: true` in YAML.
 
 <img src="../images/critic_loop_diagram.png" width="550" alt="Multi-Agent Critic Loop" />
 
-When a Critic node returns a `fail` verdict:
-1. The target child is marked `skipped` to bypass the broken branch.
-2. A new Planner node is dynamically queued, injected with the failure rationale.
-3. The branch is re-planned (limited by a strict per-target recovery cap of 1).
+- **`pass` → fast-path:** returns `False` immediately; the normal `extend_from` continues untouched.
+- **`fail` →** (1) mark the target **child `skipped`** to bypass the broken branch; (2) if this target hasn't been recovered yet, set `recovered_branches[target]` and **queue a recovery Planner** carrying the critic's `rationale`; (3) **per-target cap of 1** — a second fail on the same target hits the cap, is logged, and the branch is left missing rather than re-planned again. Returns `True` so the caller skips `extend_from`.
+
+For Planner-emitted Critics (no `target`/`child` in metadata), both are derived from graph structure — `target` from the first `n:` input, `child` from the first successor.
+
+### 6.4 Why a 503 skips but garbled data replans (issue #19 "Done when")
+Both failures land a node in `failed`, but they classify differently and `plan_recovery` routes them apart:
+
+- **Gateway 503** → `classify_failure` matches the `503` / `service unavailable` marker → `reason="transient"` → **skip**. Rationale: a 503 is a *transport* failure of a healthy plan. The V8 gateway already retried it (retry-on-5xx); the node's *intent* was fine. Re-planning would ask a fresh Planner to redesign a branch that was never wrong — wasted nodes against an endpoint that's simply down. The run proceeds with that branch skipped.
+- **Researcher returns garbled data** → the output isn't a transient/validation marker, so it falls through to `reason="upstream_failure"`, and `failed_skill="researcher"` (not `planner`) → **replan**. Rationale: this is a *content* failure — the plan executed but produced unusable results, exactly the case a recovery Planner exists for. It queues a Planner with a `failure_report` describing what went wrong so the branch can be re-approached differently (capped at one re-plan per target).
+
+In short: **transport faults skip (the plan was fine, the pipe broke); content faults replan (the plan ran but the result is unusable)** — and a Planner's *own* failure always skips, because recovering it would loop.
 
 ---
 
