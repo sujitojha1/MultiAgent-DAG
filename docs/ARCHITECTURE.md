@@ -120,6 +120,36 @@ def ready_nodes(self) -> list[str]:
     return out
 ```
 
+### 3.3 Growing the Graph (`Graph.extend_from`, lines 74–149)
+
+Called by the Executor each time a node completes. It splices in new children in **three sequential steps, in this fixed order**, and returns the list of new node ids:
+
+1. **Dynamic successors** (lines 86–131) — children the skill emitted at runtime (`result.successors`). Added in **two passes**: pass 1 creates each node bare and records its `metadata.label → assigned-id`; pass 2 resolves each child's `inputs`, translating `n:<label>` → assigned id, passing `n:<int>` / `USER_QUERY` / `art:` references through, and falling back to the parent for anything unknown. The label indirection lets the **Planner name nodes symbolically** without knowing the integer ids it will be handed.
+2. **Static `internal_successors`** (lines 133–135) — YAML-driven, no runtime data. Every skill of this type gets its listed successors auto-appended off the parent (e.g. `coder → sandbox_executor`), with zero Planner/Executor code change.
+3. **Critic auto-insertion** (lines 137–147) — only if the *source* skill is `critic: true`. For each child added in Steps 1–2, it interposes a Critic: cut the `src → child` edge, add a `critic` node fed by `src`, rewire `critic → child`. The child cannot become `ready` until the Critic passes.
+
+```python
+def extend_from(self, src_nid, result, *, registry) -> list[str]:
+    added = []
+    src_def = registry.get(self.g.nodes[src_nid]["skill"])
+    # Step 1 — dynamic successors (two-pass: add bare, then resolve label refs)
+    ...
+    # Step 2 — static internal_successors
+    for child_skill in src_def.internal_successors:
+        added.append(self.add_node(child_skill, inputs=[src_nid]))
+    # Step 3 — critic auto-insertion over a SNAPSHOT of Steps 1+2
+    if src_def.critic and added:
+        for child_nid in list(added):              # snapshot — no critic-on-critic
+            self.g.remove_edge(src_nid, child_nid)
+            critic_nid = self.add_node("critic", inputs=[src_nid],
+                                       metadata={"target": src_nid, "child": child_nid})
+            self.g.add_edge(critic_nid, child_nid)
+            added.append(critic_nid)
+    return added
+```
+
+**Why the order is load-bearing:** Step 3 iterates `list(added)` — a snapshot taken *before* any critics are appended — so it gates **every** child from Steps 1 and 2 (dynamic *and* static), and critics never receive critics of their own. Running critic-insertion between Steps 1 and 2 would let the `internal_successors` children slip through ungated; the ordering is what makes the Critic a *complete* gate. These are three of the **five growth actors** in the `flow.py` module docstring — the other two being the Planner's seed plan and `recovery.plan_recovery` re-invocation on node failure (§6).
+
 ---
 
 ## 🔄 4. The `Executor` Loop (`flow.py:154–291`)
