@@ -1,46 +1,66 @@
 # Architecture Reference — Session 8 Multi-Agent DAG Orchestrator
 
+> [!NOTE]
 > Code-focused walkthrough. Every claim is backed by a file:line reference.
 > Read alongside `code/flow.py` (300 lines — fits in your head).
 
 ---
 
-## 1. File Map
+## 📂 1. Directory File Map
 
-```
-code/
-├── flow.py          ← THE entry point. Graph + Executor + CLI. Read this first.
-├── skills.py        ← Skill loading, prompt rendering, gateway dispatch
-├── recovery.py      ← Failure classification + critic-fail splice
-├── persistence.py   ← Atomic session writes (graph.json + per-node JSON)
-├── schemas.py       ← Pydantic contracts: AgentResult, NodeSpec, NodeState
-├── sandbox.py       ← subprocess Python runner (usability boundary)
-├── mcp_runner.py    ← Multi-turn tool-use loop (tool-calling skills)
-├── agent_config.yaml← Skill catalogue — the ONLY file you edit to add a skill
-└── prompts/
-    ├── planner.md   ← Emits JSON DAG; the "program" the Executor runs
-    ├── coder.md     ← STUB — your Part 4 work goes here
-    ├── critic.md    ← Emits {"verdict":"pass"|"fail","rationale":"..."}
-    └── ...          ← one .md per skill
+Below is the visual map of the repository, highlighting where major agentic orchestration components reside:
+
+```text
+Root/
+├── code/
+│   ├── flow.py              ← THE entry point. Graph + Executor + CLI. Read this first.
+│   ├── skills.py            ← Skill loading, prompt rendering, gateway dispatch.
+│   ├── recovery.py          ← Failure classification + critic-fail splice.
+│   ├── persistence.py       ← Atomic session writes (graph.json + per-node JSON).
+│   ├── schemas.py           ← Pydantic contracts: AgentResult, NodeSpec, NodeState.
+│   ├── sandbox.py           ← subprocess Python runner (usability boundary).
+│   ├── mcp_runner.py        ← Multi-turn tool-use loop (tool-calling skills).
+│   ├── agent_config.yaml    ← Skill catalogue — the ONLY file you edit to add a skill.
+│   └── prompts/
+│       ├── planner.md       ← Emits JSON DAG; the "program" the Executor runs.
+│       ├── coder.md         ← STUB — your Part 4 work goes here.
+│       ├── critic.md        ← Emits {"verdict":"pass"|"fail","rationale":"..."}.
+│       └── ...              ← One markdown prompt per skill.
 ```
 
-**Rule of thumb:** to add a skill → edit `agent_config.yaml` + write `prompts/<name>.md`. Zero Python.
+> [!TIP]
+> **The Two-File Rule:** To add a new skill to the catalog, you only need to edit `agent_config.yaml` and create a prompt file under `prompts/<name>.md`. You do **not** need to touch any Python codebase file.
 
 ---
 
-## 2. The Three Core Types (`schemas.py`)
+## 📐 2. The Three Core Types (`schemas.py`)
 
-These three Pydantic models are the boundaries between every layer.
+These three Pydantic models are the strict, type-safe boundaries between every orchestration layer:
 
-### `NodeSpec` — what the Planner emits (one per node it wants created)
+```mermaid
+graph LR
+    classDef default fill:#1e1e2e,stroke:#313244,stroke-width:1px,color:#cdd6f4;
+    classDef type fill:#b4befe,stroke:#89b4fa,stroke-width:1.5px,color:#11111b;
+    classDef process fill:#a6e3a1,stroke:#94e2d5,stroke-width:1.5px,color:#11111b;
+    classDef file fill:#f9e2af,stroke:#fab387,stroke-width:1.5px,color:#11111b;
+
+    NS[NodeSpec]:::type -->|Planner Emits| G[flow.Graph.add_node]:::process
+    G -->|Dispatches Node| AR[AgentResult]:::type
+    AR -->|Executor Persists| NS2[NodeState]:::type
+    NS2 -->|Atomic Write| SS[(persistence.SessionStore)]:::file
+```
+
+### A. `NodeSpec` — Emitted by the Planner
+*Represents one node the Planner intends the orchestrator to create.*
 ```python
 class NodeSpec(BaseModel):
     skill: str              # matches a key in agent_config.yaml
     inputs: list[str]       # "USER_QUERY" | "n:<label>" | "art:<id>"
-    metadata: dict          # opaque bag — label, question, failure_report …
+    metadata: dict          # Opaque bag — label, question, failure_report …
 ```
 
-### `AgentResult` — what every skill returns
+### B. `AgentResult` — Returned by Every Skill
+*The boundary contract returned by `skills.run_skill`.*
 ```python
 class AgentResult(BaseModel):
     success: bool
@@ -51,7 +71,8 @@ class AgentResult(BaseModel):
     error: str | None
 ```
 
-### `NodeState` — what gets persisted to disk per node
+### C. `NodeState` — Persisted to Disk per Node
+*Represents the full history and execution footprint of a single graph vertex.*
 ```python
 class NodeState(BaseModel):
     node_id: str
@@ -64,32 +85,28 @@ class NodeState(BaseModel):
     completed_at: float | None
 ```
 
-**Data flow:** `NodeSpec` → Executor creates node → skill runs → `AgentResult` → Executor persists as `NodeState`.
-
 ---
 
-## 3. The `Graph` Class (`flow.py:37–149`)
+## 🕸️ 3. The `Graph` Class (`flow.py:37–149`)
 
-A thin wrapper around `networkx.DiGraph`. Nodes are strings `"n:1"`, `"n:2"`, …
+A thin wrapper around `networkx.DiGraph` representing the active execution DAG. Nodes are uniquely labeled string keys (`"n:1"`, `"n:2"`, …).
 
-### 3.1 How a node is created (`Graph.add_node`, line 45)
-
+### 3.1 Node Creation (`Graph.add_node`, line 45)
+Whenever a node is added, incoming edges are established automatically for any inputs referencing sibling nodes:
 ```python
 def add_node(self, skill, inputs, metadata=None) -> str:
     self._counter += 1
-    nid = f"n:{self._counter}"                      # always monotone — never gaps
+    nid = f"n:{self._counter}"                      # monotone counter key
     self.g.add_node(nid, skill=skill, inputs=list(inputs),
                     metadata=dict(metadata or {}), status="pending")
     for inp in inputs:
         if inp.startswith("n:") and inp in self.g.nodes:
-            self.g.add_edge(inp, nid)               # edge = dependency
+            self.g.add_edge(inp, nid)               # Directed Edge = Context dependency
     return nid
 ```
 
-**Key:** an edge `A → B` means "B cannot run until A is complete or skipped."
-
-### 3.2 How ready nodes are found (`Graph.ready_nodes`, line 58)
-
+### 3.2 Finding Ready Nodes (`Graph.ready_nodes`, line 58)
+Finds all nodes whose predecessors are either `complete` or `skipped`, enabling concurrent execution batches:
 ```python
 def ready_nodes(self) -> list[str]:
     out = []
@@ -97,88 +114,57 @@ def ready_nodes(self) -> list[str]:
         if d["status"] != "pending":
             continue
         preds = list(self.g.predecessors(nid))
-        # complete OR skipped — skipped unblocks the path so unrelated
-        # branches downstream don't stall on a critic-failed branch
+        # completed OR skipped predecessors unblock execution
         if all(self.g.nodes[p]["status"] in ("complete", "skipped") for p in preds):
             out.append(nid)
     return out
 ```
 
-**All returned nodes run concurrently.** `skipped` is as good as `complete` for unblocking.
+---
 
-### 3.3 How the graph grows (`Graph.extend_from`, line 74)
+## 🔄 4. The `Executor` Loop (`flow.py:154–291`)
 
-Called after every successful node. Does three things in order:
+The main runtime loop handles parallel node dispatching, state persistence boundaries, and dynamic graph growth.
 
+```mermaid
+graph TD
+    classDef default fill:#1e1e2e,stroke:#313244,color:#cdd6f4;
+    classDef start fill:#f9e2af,stroke:#fab387,stroke-width:1.5px,color:#11111b;
+    classDef check fill:#f5c2e7,stroke:#cba6f7,stroke-width:1.5px,color:#11111b;
+    classDef run fill:#b4befe,stroke:#89b4fa,stroke-width:1.5px,color:#11111b;
+    classDef recovery fill:#f38ba8,stroke:#eba0ac,stroke-width:1.5px,color:#11111b;
+
+    S([Start Executor Loop]):::start --> R{Get Ready Nodes}:::check
+    R -->|Empty & None Running| E([End Loop]):::start
+    R -->|Has Ready Nodes| M[Mark Nodes 'running']:::run
+    M --> P[Persist Graph]:::run
+    P --> G[asyncio.gather Dispatch]:::run
+    G --> O{Did Node Succeed?}:::check
+    
+    O -->|Yes| EX[Extend Graph successors]:::run
+    EX --> PE[Persist Node complete]:::run
+    PE --> R
+    
+    O -->|No| CL[Classify Failure]:::recovery
+    CL --> RE{Recovery Action?}:::check
+    RE -->|Skip| R
+    RE -->|Replan| SP[Splice Recovery Planner Node]:::recovery
+    SP --> R
 ```
-1. ADD DYNAMIC SUCCESSORS
-   result.successors (NodeSpec list) → new nodes
-   resolves n:<label> → n:<int> so the Planner can use human names
 
-2. ADD STATIC SUCCESSORS (internal_successors from yaml)
-   e.g. coder → [sandbox_executor] added automatically, no Planner needed
-
-3. CRITIC AUTO-INSERTION (if skill has critic: true)
-   For each new child:
-     - remove edge  src → child
-     - add critic node with inputs=[src]
-     - add edge     critic → child
-   Child now waits for Critic, not directly for src
-```
-
-**Example — Distiller (critic: true) with one child:**
-```
-Before extend_from:   distiller → formatter
-After extend_from:    distiller → critic → formatter
-```
+### 4.1 Loop Guards
+To prevent infinite execution loops (e.g., a looping Planner), two strict bounds are enforced:
+1. `MAX_NODES = 60` (`flow.py:32`): A hard maximum cap on the graph's node count.
+2. **Per-Target Cap:** The `recovered_branches` dictionary limits Critic-failed recovery planners to at most one re-plan per branch.
 
 ---
 
-## 4. The `Executor` Loop (`flow.py:154–291`)
+## 🛠️ 5. Skill Execution (`skills.py:230–338`)
 
-```python
-# Simplified pseudocode — actual loop is flow.py:206–271
-while True:
-    ready = graph.ready_nodes()
-    if not ready and not graph.has_running():
-        break                                    # done
+`run_skill` contains two programmatic routing branches based on `skill.name`:
 
-    for nid in ready:
-        graph.mark(nid, "running")
-    store.write_graph(graph.g)                   # persist before dispatch
-
-    outcomes = await asyncio.gather(             # ALL ready nodes fire at once
-        *[self._run_one(nid, ...) for nid in ready]
-    )
-
-    for nid, result, prompt in outcomes:
-        graph.g.nodes[nid]["result"] = result
-        graph.mark(nid, "complete" if result.success else "failed")
-        store.write_node(NodeState(...))         # persist node state
-
-        if result.success:
-            if skill == "critic":
-                handle_critic_verdict(...)       # may mark child skipped + queue recovery
-            graph.extend_from(nid, result, ...)  # grow the graph
-            if skill == "formatter":
-                formatter_answer = result.output["final_answer"]
-        else:
-            decision = plan_recovery(...)        # classify: skip or replan
-            if decision.action == "replan":
-                graph.add_node("planner", ...)   # splice recovery planner
-```
-
-**Two things keep this loop finite:**
-1. `MAX_NODES = 60` (hard cap, `flow.py:32`) — a looping Planner hits this
-2. Per-target cap in `recovered_branches` dict — Critic-fail can only trigger one recovery per branch
-
----
-
-## 5. Skill Execution (`skills.py:230–338`)
-
-`run_skill` has two dispatch paths based on `skill.name`:
-
-### Path A — `sandbox_executor` (no LLM call)
+### Path A — `sandbox_executor` (No LLM Call)
+Extracts Python source code from upstream and runs it inside a secure sandbox container:
 ```python
 if skill.name == "sandbox_executor":
     code = ""
@@ -191,138 +177,66 @@ if skill.name == "sandbox_executor":
     return AgentResult(success=(out["exit_code"] == 0), output=out)
 ```
 
-### Path B — All other skills (LLM call via gateway)
-```python
-tools = tool_payload(skill.tools_allowed)
-if tools:
-    reply = await run_with_tools(...)   # mcp_runner — multi-turn tool loop
-else:
-    reply = await asyncio.to_thread(LLM().chat, ...)  # single-turn
-parsed = parse_skill_json(reply["text"])
-```
-
-### How the prompt is built (`skills.render_prompt`, line 146)
-```
-[skill system prompt from prompts/<name>.md]
-USER_QUERY: <original query>
-[FAILURE: <failure_report> if this is a recovery run]
-MEMORY HITS (N from FAISS):
-  - [fact] descriptor  /  source  /  chunk preview …
-INPUTS:
-[JSON array of resolved upstream outputs]
-```
-
-**The INPUTS block** is what one node "sees" from its predecessors — not the full history. This is why S8 uses far fewer tokens than S7.
+### Path B — All Other Skills (LLM Call via Gateway)
+Constructs the scoped system prompt injecting FAISS memory hits and upstream resolved output data before executing the model call via port `8108`.
 
 ---
 
-## 6. Failure & Recovery (`recovery.py`)
+## 🚨 6. Failure & Recovery (`recovery.py`)
 
-### `classify_failure(error_text)` — three buckets
+### 6.1 Failure Classification (`classify_failure`)
+Classifies gateway error payloads into three categories, deciding whether to retry, skip, or trigger recovery:
 
-| Return value | Triggers | What the Executor does |
-|---|---|---|
-| `"transient"` | 503, 502, 504, timeout, connection | `skip` — gateway already retried |
-| `"validation_error"` | "malformed", "ValidationError" | `skip` — fix the prompt, not the run |
-| `"upstream_failure"` | everything else | `replan` — queue recovery Planner |
+```mermaid
+graph TD
+    classDef default fill:#1e1e2e,stroke:#313244,color:#cdd6f4;
+    classDef check fill:#f5c2e7,stroke:#cba6f7,stroke-width:1.5px,color:#11111b;
+    classDef action fill:#a6e3a1,stroke:#94e2d5,stroke-width:1.5px,color:#11111b;
+    classDef replan fill:#f38ba8,stroke:#eba0ac,stroke-width:1.5px,color:#11111b;
 
-**Why planner failures always skip:**
-```python
-if failed_skill == "planner":
-    return RecoveryDecision(action="skip", ...)  # no infinite Planner loop
+    E[Gateway Error String] --> C{Error Type?}:::check
+    C -->|5xx / Timeout / Conn| T[Transient Error]:::action
+    C -->|ValidationError / Malformed JSON| V[Validation Error]:::action
+    C -->|Other Error| U[Upstream Failure]:::replan
+    
+    T -->|Executor Action| S1[SKIP Node]:::action
+    V -->|Executor Action| S2[SKIP Node]:::action
+    U -->|Executor Action| RP[REPLAN - Spawn Recovery Planner]:::replan
 ```
 
-### `handle_critic_verdict` — critic-fail splice
+### 6.2 Critic Verdict Splicing (`handle_critic_verdict`)
+Spliced automatically on edges of nodes with `critic: true` in YAML.
 
-```
-Critic returns verdict="fail"
-    → mark child node "skipped"
-    → if target not in recovered_branches:
-          add new planner node with failure_report
-          set recovered_branches[target] = True
-      else:
-          cap hit → log warning, branch stays missing
-```
+<img src="../images/critic_loop_diagram.png" width="550" alt="Multi-Agent Critic Loop" />
+
+When a Critic node returns a `fail` verdict:
+1. The target child is marked `skipped` to bypass the broken branch.
+2. A new Planner node is dynamically queued, injected with the failure rationale.
+3. The branch is re-planned (limited by a strict per-target recovery cap of 1).
 
 ---
 
-## 7. Persistence (`persistence.py`)
+## 💾 7. Persistence Layer (`persistence.py`)
 
-Session directory layout:
-```
-state/sessions/<sid>/
-├── query.txt           # original query verbatim
-├── graph.json          # nx.node_link_data — the full graph
-└── nodes/
-    ├── n_001.json      # NodeState for n:1 (planner)
-    ├── n_002.json      # NodeState for n:2
-    └── …
-```
-
-**Atomic write pattern** (write-tmp, os.replace):
+### 7.1 Atomic Write Pattern
+To protect session records from data corruption if the system process is terminated mid-write, a strict **atomic swap** pattern is implemented:
 ```python
 tmp = path.with_suffix(".tmp")
 tmp.write_text(json.dumps(data))
-os.replace(tmp, path)              # atomic on POSIX — previous file safe on kill
+os.replace(tmp, path)              # POSIX-compliant atomic file system swap
 ```
 
-**Resume** (`flow.Executor.run`, line 163):
-```python
-if resume:
-    graph_obj = store.read_graph()
-    for _, d in graph.g.nodes(data=True):
-        if d["status"] == "running":
-            d["status"] = "pending"  # re-run any node that was in-flight
-```
+### 7.2 Resume Safety
+Upon resuming an interrupted session via `flow.py --resume <sid>`, any node that was left in the `running` state at crash time is reset to `pending` and re-executed cleanly from its boundary.
 
 ---
 
-## 8. How to Add a New Skill (Two-File Rule)
+## 📦 8. Coder → SandboxExecutor Chain
 
-1. **`agent_config.yaml`** — add an entry:
-```yaml
-my_skill:
-  prompt: prompts/my_skill.md
-  tools_allowed: []          # or [web_search, fetch_url, search_knowledge]
-  temperature: 0.3
-  max_tokens: 1200
-  description: One line.
-```
+The static execution chain is automatically declared using `internal_successors` in the skill YAML catalog:
 
-2. **`prompts/my_skill.md`** — write the system prompt. Must end with instructions to output JSON (all skills return JSON; `parse_skill_json` strips markdown fences).
+<img src="../images/sandbox_environment.png" width="550" alt="Secure Sandbox Environment for AI Code Execution" />
 
-3. **Nothing else.** `SkillRegistry.__init__` loads all yaml entries automatically. The Executor dispatches any skill through the same `run_skill` path.
-
-The only legitimate reason to touch `flow.py` for a new skill is if it needs a **new generic mechanism** (like `internal_successors` or `critic: true` were new mechanisms) — not a one-off `if skill.name == "..."` branch.
-
----
-
-## 9. The Coder → SandboxExecutor Chain
-
-This is the one pre-wired skill chain. It works through `internal_successors`:
-
-```yaml
-# agent_config.yaml
-coder:
-  internal_successors: [sandbox_executor]
-```
-
-```python
-# flow.Graph.extend_from (line 133)
-for child_skill in src_def.internal_successors:
-    nid = self.add_node(child_skill, inputs=[src_nid])
-    added.append(nid)
-```
-
-**What the Coder prompt must emit:**
-```json
-{"code": "populations = {'London': 9_541_000, ...}\n...", "rationale": "Compare pairwise distances"}
-```
-
-**What sandbox_executor does with it** (`skills.run_skill:252`):
-```python
-code = r["output"].get("code") or code   # extracted from coder AgentResult.output
-out  = run_python(code)                  # sandbox.py: subprocess, 30s timeout, 1MB cap
-```
-
-The `sandbox.py` result (`stdout`, `stderr`, `exit_code`) flows back into `AgentResult.output` and is available to the Formatter as an upstream input.
+1. **Coder** emits a JSON payload matching the contract: `{"code": "<python source>", "rationale": "..."}`.
+2. **`internal_successors`** appends `sandbox_executor` automatically.
+3. **`sandbox_executor`** runs the Python script in a throwaway directory with a **30-second timeout**, a **1 MB output cap**, and an **environment whitelist** (`PATH`, `HOME`, `LANG`, `LC_ALL`, `LC_CTYPE`) to scrub API keys and keep execution isolated.
