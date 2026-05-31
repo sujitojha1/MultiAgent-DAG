@@ -76,14 +76,32 @@ USER QUERY → n:1 planner
 
 ### Metrics Comparison (Session 7 vs Session 8)
 
+*Illustrative figures for the full 7-node example above (planner → 3 researchers → coder → sandbox → formatter):*
+
 | Metric | Session 7 (Sequential) | Session 8 (DAG) |
 |---|---|---|
 | Iterations / Nodes | 11 iterations | 7 nodes |
-| Wall-Clock Time | 125 s | **62 s** (2.11× speedup) |
+| Wall-Clock Time | 125 s | **62 s** (≈2× speedup) |
 | Gateway Calls | 60 | 15 |
 | Input Tokens | 54,000 | **17,000** (Token Scoping Win) |
 
-* **The asyncio.gather Barrier:** All three researcher nodes start concurrently and finish at the same instant (42.69s). Speedup is bounded by serial bottlenecks (Planner + Coder + Formatter).
+### Measured Trace (`s8-21f781b2`)
+
+The recorded run used the query *"Compare the populations of London, Paris, and Berlin"* — with no "which two are closest" clause, so the planner produced a simpler **5-node** graph (no coder/sandbox): `planner → 3 researchers (parallel) → formatter`. Per-skill `elapsed_s` from the trace:
+
+| Node | Skill | elapsed | runs as |
+|---|---|---:|---|
+| n:1 | planner | 2.70 s | serial (head) |
+| n:2 | researcher (London) | 49.33 s | **parallel** |
+| n:3 | researcher (Paris) | 52.77 s | **parallel** ← slowest branch |
+| n:4 | researcher (Berlin) | 41.11 s | **parallel** |
+| n:5 | formatter | 9.82 s | serial (tail) |
+
+* **Serial wall-clock** (sum of all nodes) = **155.73 s**
+* **Parallel wall-clock** (critical path = planner + slowest researcher + formatter) = 2.70 + 52.77 + 9.82 = **65.29 s**
+* **Speedup = 155.73 / 65.29 ≈ 2.39×**
+
+* **The asyncio.gather Barrier:** All three researcher nodes start concurrently; the formatter waits on the slowest (52.77 s), not the 143.21 s sum. Speedup is bounded by the serial bottlenecks (planner head + formatter tail = 12.52 s).
 * **Token Savings:** Derived from the **trace shape** where history is not carried forward.
 
 ---
