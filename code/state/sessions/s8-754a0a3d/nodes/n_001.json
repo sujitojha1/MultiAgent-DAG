@@ -1,0 +1,66 @@
+{
+  "node_id": "n:1",
+  "skill": "planner",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "planner",
+    "output": {
+      "rationale": "The user wants the top Python repository from last week; since the memory hits contain the specific data for the week of May 19-25, 2024, I will use the retriever to extract that information and format it.",
+      "nodes": [
+        {
+          "skill": "retriever",
+          "inputs": [
+            "USER_QUERY"
+          ],
+          "metadata": {
+            "label": "fetch_data",
+            "question": "What was the top Python repository on GitHub for the week of May 19-25, 2024?"
+          }
+        },
+        {
+          "skill": "formatter",
+          "inputs": [
+            "n:fetch_data"
+          ],
+          "metadata": {
+            "label": "out"
+          }
+        }
+      ]
+    },
+    "artifacts": [],
+    "successors": [
+      {
+        "skill": "retriever",
+        "inputs": [
+          "USER_QUERY"
+        ],
+        "metadata": {
+          "label": "fetch_data",
+          "question": "What was the top Python repository on GitHub for the week of May 19-25, 2024?"
+        }
+      },
+      {
+        "skill": "formatter",
+        "inputs": [
+          "n:fetch_data"
+        ],
+        "metadata": {
+          "label": "out"
+        }
+      }
+    ],
+    "cost": 0.0,
+    "elapsed_s": 8.707572221755981,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Planner. Emit the next set of nodes for the orchestrator.\n\nAvailable skills:\n  retriever          search the agent's indexed knowledge base\n  researcher         fetch fresh content from the web (URLs, search)\n  distiller          extract structured fields from raw text\n  summariser         condense long content\n  critic             pass/fail evaluation of an upstream node\n  formatter          render the final user-facing answer (TERMINAL)\n  coder              emit Python (stub; routes to sandbox_executor)\n  sandbox_executor   run Python from coder\n  (browser           reserved for Session 9)\n\nOutput (JSON, no markdown):\n{\n  \"rationale\": \"<one sentence>\",\n  \"nodes\": [\n    {\"skill\": \"<name>\",\n     \"inputs\": [\"USER_QUERY\" or \"n:<label>\" or \"art:<id>\"],\n     \"metadata\": {\"label\": \"<short_id>\", \"question\": \"<optional hint>\"}}\n  ]\n}\n\nReference upstream nodes as \"n:<label>\" where label matches a\nsibling's metadata.label. The final node must be a formatter.\n\nWhen the user asks to compare or process N concrete items\n(\"compare A, B, C\" / \"top 3 results\"), emit one node per item so\nthe orchestrator can run them in parallel. Do NOT consolidate.\n\nWhen the user demands a strict format constraint the writer might\nmiss (\"exactly 5-7-5 syllables\", \"valid JSON\", \"≤ 280 characters\"),\ninsert a `critic` node between the writing node and the formatter.\nIts input is the writing node id. Its metadata.question repeats\nthe constraint. If the critic fails, the orchestrator re-plans.\n\nIf MEMORY HITS appear in the prompt, the agent already has indexed\nmaterial relevant to this query (FAISS-ranked vector hits with\nchunks). Prefer routing the answer through the existing knowledge\nbase: emit a `retriever` or, when the hits clearly answer the query\nalready, go straight to a `formatter` that synthesises from MEMORY\nHITS — do NOT emit a `researcher` to re-fetch material the agent\nhas already indexed.\n\nIf FAILURE appears in the prompt, do not re-emit the failing step\non the same inputs.\n\nExample:\n{\"rationale\": \"Look it up and answer.\",\n \"nodes\": [\n   {\"skill\":\"researcher\",\"inputs\":[\"USER_QUERY\"],\n    \"metadata\":{\"label\":\"r1\",\"question\":\"...\"}},\n   {\"skill\":\"formatter\",\"inputs\":[\"n:r1\"],\"metadata\":{\"label\":\"out\"}}]}\n\nUSER_QUERY: last week top python repo in github - review https://github.com/trending/python\n\nMEMORY HITS (3 from FAISS):\n  - [fact] GitHub trending Python repositories for the week of May 19 to May 25, 2024\n      source: user_query\n      raw: last week top python repo in github\n  - [tool_outcome] Compare population statistics for London, Paris, and Berlin\n      source: user_query\n      raw: Compare the populations of London, Paris, and Berlin\n  - [tool_outcome] Compare population statistics for London, Paris, and Berlin\n      source: user_query\n      raw: Compare the populations of London, Paris, and Berlin\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"last week top python repo in github - review https://github.com/trending/python\"\n  }\n]",
+  "started_at": 1780173507.1124518,
+  "completed_at": 1780173515.8200252,
+  "retries": 0
+}

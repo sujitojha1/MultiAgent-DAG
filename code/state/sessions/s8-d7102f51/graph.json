@@ -1,0 +1,130 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "The query asks for the inventor of the electric bulb, which is a factual question that can be answered using the retriever to access indexed knowledge.",
+          "nodes": [
+            {
+              "skill": "retriever",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "search_bulb",
+                "question": "Who is credited with the invention of the electric bulb?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:search_bulb"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "retriever",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "search_bulb",
+              "question": "Who is credited with the invention of the electric bulb?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:search_bulb"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 1.956667184829712,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "retriever",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "search_bulb",
+        "question": "Who is credited with the invention of the electric bulb?"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "retriever",
+        "output": {
+          "found": false,
+          "chunks": [],
+          "summary": "No relevant information about who invented the electric bulb was found in the existing knowledge base."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 8.77369499206543,
+        "provider": "github",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "I am sorry, but I could not find information regarding the inventor of the electric bulb in the available knowledge base."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 1.104694128036499,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}

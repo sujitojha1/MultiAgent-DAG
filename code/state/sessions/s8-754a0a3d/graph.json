@@ -1,0 +1,130 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "The user wants the top Python repository from last week; since the memory hits contain the specific data for the week of May 19-25, 2024, I will use the retriever to extract that information and format it.",
+          "nodes": [
+            {
+              "skill": "retriever",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "fetch_data",
+                "question": "What was the top Python repository on GitHub for the week of May 19-25, 2024?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:fetch_data"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "retriever",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "fetch_data",
+              "question": "What was the top Python repository on GitHub for the week of May 19-25, 2024?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:fetch_data"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 8.707572221755981,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "retriever",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "fetch_data",
+        "question": "What was the top Python repository on GitHub for the week of May 19-25, 2024?"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "retriever",
+        "output": {
+          "found": false,
+          "chunks": [],
+          "summary": "No specific information or details about the top Python repositories on GitHub for last week were found in the existing knowledge base. The search returned references to the query but no actual data or reviews of the repositories."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 8.760063886642456,
+        "provider": "github",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "I am unable to provide the top Python repositories on GitHub for last week. The search process did not return any specific data or repository details from the provided source."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 7.219742298126221,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}

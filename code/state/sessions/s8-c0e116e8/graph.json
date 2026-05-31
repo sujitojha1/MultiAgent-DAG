@@ -1,0 +1,214 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "The user query requires a mathematical calculation, which is best handled by the coder skill followed by execution.",
+          "nodes": [
+            {
+              "skill": "coder",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "calc"
+              }
+            },
+            {
+              "skill": "sandbox_executor",
+              "inputs": [
+                "n:calc"
+              ],
+              "metadata": {
+                "label": "exec"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:exec"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "coder",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "calc"
+            }
+          },
+          {
+            "skill": "sandbox_executor",
+            "inputs": [
+              "n:calc"
+            ],
+            "metadata": {
+              "label": "exec"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:exec"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.5752949714660645,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "coder",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "calc"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "coder",
+        "output": {
+          "code": "print(23456 * 13425)",
+          "rationale": "Calculating the product of 23456 and 13425 using Python."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.4956748485565186,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "sandbox_executor",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "exec"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "sandbox_executor",
+        "output": {
+          "exit_code": 0,
+          "stdout": "314896800\n",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "files_written": [],
+          "timed_out": false,
+          "cwd": "/var/folders/nl/z5xjbkys6qj6skq0b2ss_ytw0000gn/T/s8sandbox-25vdd26u"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 0.04464983940124512,
+        "provider": "",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "The result of 23456 * 13425 is 314,896,800."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 2.8409488201141357,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:4"
+    },
+    {
+      "skill": "sandbox_executor",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "sandbox_executor",
+        "output": {
+          "exit_code": 0,
+          "stdout": "314896800\n",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "files_written": [],
+          "timed_out": false,
+          "cwd": "/var/folders/nl/z5xjbkys6qj6skq0b2ss_ytw0000gn/T/s8sandbox-e1d5typx"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 0.02555394172668457,
+        "provider": "",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:5"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    },
+    {
+      "source": "n:2",
+      "target": "n:5"
+    },
+    {
+      "source": "n:3",
+      "target": "n:4"
+    }
+  ]
+}
