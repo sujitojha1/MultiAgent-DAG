@@ -1,0 +1,43 @@
+[
+  {
+    "id": "mem:13714fce",
+    "kind": "scratchpad",
+    "keywords": [
+      "greeting",
+      "hello"
+    ],
+    "descriptor": "Greeting message saying hello",
+    "value": {
+      "raw": "hello"
+    },
+    "artifact_id": null,
+    "embedding": null,
+    "source": "user_query",
+    "run_id": "s8-62a8a2c1",
+    "goal_id": null,
+    "confidence": 1.0,
+    "created_at": "2026-05-31T16:34:16.987039"
+  },
+  {
+    "id": "mem:21dd6f82",
+    "kind": "scratchpad",
+    "keywords": [
+      "python",
+      "code",
+      "factorial",
+      "10",
+      "math"
+    ],
+    "descriptor": "Python code to calculate 10 factorial",
+    "value": {
+      "raw": "write python code to find 10 factorial and get the answer"
+    },
+    "artifact_id": null,
+    "embedding": null,
+    "source": "user_query",
+    "run_id": "s8-9039a23c",
+    "goal_id": null,
+    "confidence": 1.0,
+    "created_at": "2026-05-31T16:35:45.953187"
+  }
+]
