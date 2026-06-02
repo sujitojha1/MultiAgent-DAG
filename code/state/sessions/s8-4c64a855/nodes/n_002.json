@@ -1,0 +1,36 @@
+{
+  "node_id": "n:2",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "trending python repos this week"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=weekly",
+          "title": "Trending Python repositories this week"
+        },
+        {
+          "url": "https://github.com/trending/rust?since=weekly",
+          "title": "Trending Rust repositories this week"
+        }
+      ],
+      "findings": "The following repositories are trending this week and are highly relevant to the agentic, MCP, and developer tooling ecosystem, ranked by their weekly momentum (stars gained).\n\nPython:\n1. microsoft/markitdown (11,962 stars): A versatile tool for converting diverse file formats into Markdown, essential for RAG and agent data ingestion.\n2. chopratejas/headroom (1,868 stars): Optimizes LLM interactions by compressing inputs/logs, supporting MCP and reducing token costs.\n3. microsoft/agent-governance-toolkit (1,529 stars): Provides critical infrastructure for AI agent security, policy enforcement, and reliability.\n4. dograh-hq/dograh (1,259 stars): An open-source, MCP-native voice AI platform for building self-hosted agentic telephony workflows.\n5. anthropics/knowledge-work-plugins (3,981 stars): A collection of plugins designed to extend the capabilities of agentic systems like Claude Cowork.\n\nRust:\n1. farion1231/cc-switch (7,357 stars): A cross-platform desktop assistant that unifies access to various coding agents like Claude Code and Gemini CLI.\n2. run-llama/liteparse (3,381 stars): A high-performance document parser, critical for building efficient data pipelines for agents.\n3. openai/codex (2,173 stars): A lightweight, terminal-based coding agent that streamlines developer workflows.\n4. iii-hq/iii (1,461 stars): A tool for real-time observation and extension of services, useful for monitoring agentic system behavior.\n5. ogulcancelik/herdr (1,206 stars): A terminal-based agent multiplexer that helps manage multiple agentic sessions efficiently."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 81.70062136650085,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the specific sub-question/task from the INPUTS list (look at the first literal value). If no specific task is in the INPUTS, read the overall USER_QUERY. Infer the time window (`daily`/`weekly`/`monthly`, default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, total stars, stars gained (or weekly/monthly stars depending on the window), and URL. In your `findings`, list each repo clearly with its description, total stars, and stars gained so that downstream nodes can extract these fields.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"trending python repos this week\",\n    \"kind\": \"literal\",\n    \"value\": \"trending python repos this week\"\n  }\n]",
+  "started_at": 1780424327.1170657,
+  "completed_at": 1780424408.817687,
+  "retries": 0
+}

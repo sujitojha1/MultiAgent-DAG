@@ -1,0 +1,13 @@
+{
+  "node_id": "n:3",
+  "skill": "github_research",
+  "status": "running",
+  "inputs": [
+    "trending python monthly"
+  ],
+  "result": null,
+  "prompt_sent": null,
+  "started_at": 1780424351.5332563,
+  "completed_at": null,
+  "retries": 0
+}
