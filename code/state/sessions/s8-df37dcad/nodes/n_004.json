@@ -1,0 +1,40 @@
+{
+  "node_id": "n:4",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "n:1"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=weekly",
+          "title": "Trending Python Repositories (Weekly)"
+        },
+        {
+          "url": "https://github.com/trending/python?since=monthly",
+          "title": "Trending Python Repositories (Monthly)"
+        },
+        {
+          "url": "https://github.com/trending/rust?since=weekly",
+          "title": "Trending Rust Repositories (Weekly)"
+        }
+      ],
+      "findings": "The current GitHub landscape is heavily dominated by agentic tooling and developer productivity enhancements. In Python, Microsoft's 'markitdown' and 'agent-governance-toolkit' are leading, alongside Anthropic's 'claude-code' and 'knowledge-work-plugins', signaling a strong focus on enterprise-grade agent integration and document processing. 'Headroom' is a notable emerging tool for optimizing LLM context windows via compression.\n\nIn the Rust ecosystem, developer-focused tooling is the primary trend. 'cc-switch' provides a unified interface for various coding agents, while 'ryoppippi/ccusage' offers critical cost-tracking for CLI-based agents. 'ogulcancelik/herdr' serves as an agent multiplexer, and 'run-llama/liteparse' provides high-performance document parsing, essential for RAG-heavy agentic workflows.\n\nThese repositories represent a shift toward 'production-ready' agentic development, moving beyond simple prototypes to focus on governance, cost-efficiency, and standardized interfaces (like MCP). The momentum is clearly behind tools that bridge the gap between raw LLM capabilities and reliable, observable, and secure developer workflows."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 32.663421630859375,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the QUESTION. Infer the time window (`daily`/`weekly`/`monthly`,\n     default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, stars, URL.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:1\",\n    \"kind\": \"upstream\",\n    \"skill\": \"planner\",\n    \"output\": {\n      \"rationale\": \"Fetch trending Python and Rust repositories from GitHub, distill them for relevance to agentic/MCP/dev-tooling with impact analysis, and validate the alignment before formatting.\",\n      \"nodes\": [\n        {\n          \"skill\": \"github_research\",\n          \"inputs\": [\n            \"trending python repos this week\"\n          ],\n          \"metadata\": {\n            \"label\": \"py_week\",\n            \"question\": \"trending python repos this week\"\n          }\n        },\n        {\n          \"skill\": \"github_research\",\n          \"inputs\": [\n            \"trending python repos this month\"\n          ],\n          \"metadata\": {\n            \"label\": \"py_month\",\n            \"question\": \"trending python repos this month\"\n          }\n        },\n        {\n          \"skill\": \"github_research\",\n          \"inputs\": [\n            \"trending rust repos this week\"\n          ],\n          \"metadata\": {\n            \"label\": \"rs_week\",\n            \"question\": \"trending rust repos this week\"\n          }\n        },\n        {\n          \"skill\": \"github_research\",\n          \"inputs\": [\n            \"trending rust repos this month\"\n          ],\n          \"metadata\": {\n            \"label\": \"rs_month\",\n            \"question\": \"trending rust repos this month\"\n          }\n        },\n        {\n          \"skill\": \"distiller\",\n          \"inputs\": [\n            \"n:py_week\",\n            \"n:py_month\",\n            \"n:rs_week\",\n            \"n:rs_month\"\n          ],\n          \"metadata\": {\n            \"label\": \"distilled\",\n            \"question\": \"Filter for agentic/MCP/dev-tooling and add why-it-matters.\"\n          }\n        },\n        {\n          \"skill\": \"critic\",\n          \"inputs\": [\n            \"n:distilled\"\n          ],\n          \"metadata\": {\n            \"label\": \"alignment\",\n            \"question\": \"Is each kept repo relevant to agentic/MCP/dev-tooling and supported by the description?\"\n          }\n        },\n        {\n          \"skill\": \"formatter\",\n          \"inputs\": [\n            \"n:alignment\"\n          ],\n          \"metadata\": {\n            \"label\": \"out\"\n          }\n        }\n      ]\n    }\n  }\n]",
+  "started_at": 1780423459.7249436,
+  "completed_at": 1780423492.3883653,
+  "retries": 0
+}
