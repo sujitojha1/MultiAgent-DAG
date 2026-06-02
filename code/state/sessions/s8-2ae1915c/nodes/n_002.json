@@ -1,0 +1,32 @@
+{
+  "node_id": "n:2",
+  "skill": "researcher",
+  "status": "complete",
+  "inputs": [
+    "n:1"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "researcher",
+    "output": {
+      "question": "What are the most trending Python repositories on GitHub from the past week?",
+      "sources": [
+        {
+          "url": "https://github.com/zengzzzzz/golang-trending-archive/blob/main/README.md",
+          "title": "golang-trending-archive/README.md at main - GitHub"
+        }
+      ],
+      "findings": "Based on recent trending data, several notable Python repositories have gained significant traction. These include 'Kludex/starlette', a popular ASGI framework; 'HKUDS/ViMax', an agentic video generation framework; and 'astral-sh/ty', a fast Python type checker and language server written in Rust.\n\nOther active repositories include '666ghj/BettaFish' for agent-based sentiment analysis, 'thinking-machines-lab/tinker-cookbook' for post-training LLMs, and 'PrimeIntellect-ai/verifiers', which provides environments for LLM reinforcement learning. Additionally, 'TNTwise/REAL-Video-Enhancer' has been trending for its video processing capabilities."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 34.1237268447876,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Researcher skill. You go to the web for a specific question\nand bring back normalised text the rest of the DAG can work from.\n\nYour tool surface is two MCP tools: `web_search(query, max_results)` and\n`fetch_url(url)`. Use them. Do not narrate; do not invent other tools.\n\nProcedure:\n  1. Read the QUESTION in the prompt.\n  2. Issue ONE `web_search` with a focused query derived from the QUESTION.\n  3. Pick the 1–2 most authoritative-looking URLs and fetch them with\n     `fetch_url` in sequence. Avoid clearly low-signal results (aggregator\n     spam, ad redirects).\n  4. If the fetched pages return very little usable text (empty body,\n     JS-rendered shell, paywall, redirect) OR the text does not contain\n     the concrete data the question asks for (e.g. a list of repos, names,\n     numbers), do NOT give up yet. Use your remaining tool budget to issue\n     ONE refined `web_search` with different terms — for example:\n       - For GitHub trending repos: search \"github trending python weekly\n         site:github.com\" or try fetching the GitHub search API directly:\n         fetch_url(\"https://api.github.com/search/repositories?q=language:python+pushed:>LAST_WEEK_DATE&sort=stars&order=desc&per_page=10\")\n         where LAST_WEEK_DATE is today's date minus 7 days (YYYY-MM-DD).\n       - Otherwise append words like \"API\", \"JSON\", \"raw data\", \"list\", or\n         \"dataset\" to steer toward machine-readable sources.\n     Then fetch the best result from that second search.\n  5. Extract and list the ACTUAL DATA from whatever usable pages you\n     obtained: names, titles, URLs, numbers, dates — whatever the question\n     asks for. Do NOT describe what the page is or how to find the data;\n     GIVE the data. If the question asks \"what are the trending repos\",\n     your findings must list the actual repo names and star counts you\n     found, not a description of where to look.\n\nCRITICAL: Never answer with meta-commentary like \"you can visit X to see the\ndata\" or \"the list is dynamic\". That is a non-answer. Extract and report the\nactual data from the pages you fetched.\n\nTime budget: keep tool calls to 5 max per invocation (1–2 web_search +\nup to 3 fetch_url). Distribute them: spend 2 fetches on the first search,\nreserve 1 fetch for a refined search if the first round yields nothing.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer. The downstream\ndistiller or formatter does that. If the question cannot be answered\nfrom the web within your budget, return `\"findings\": \"(not found)\"`\nand let the next node decide.\n\nUSER_QUERY: last week, find the most tending python lanuage repo in github\n\nMEMORY HITS (3 from FAISS):\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n\nINPUTS:\n[\n  {\n    \"id\": \"n:1\",\n    \"kind\": \"upstream\",\n    \"skill\": \"planner\",\n    \"output\": {\n      \"rationale\": \"Since the memory hits indicate the system has context for finding trending Python repositories, I will use the researcher to fetch the most current data for the last week and then format the result.\",\n      \"nodes\": [\n        {\n          \"skill\": \"researcher\",\n          \"inputs\": [\n            \"last week's most trending Python repositories on GitHub\"\n          ],\n          \"metadata\": {\n            \"label\": \"r1\",\n            \"question\": \"What are the most trending Python repositories on GitHub from the past week?\"\n          }\n        },\n        {\n          \"skill\": \"formatter\",\n          \"inputs\": [\n            \"n:r1\"\n          ],\n          \"metadata\": {\n            \"label\": \"out\"\n          }\n        }\n      ]\n    }\n  }\n]",
+  "started_at": 1780407740.2835073,
+  "completed_at": 1780407774.4072342,
+  "retries": 0
+}

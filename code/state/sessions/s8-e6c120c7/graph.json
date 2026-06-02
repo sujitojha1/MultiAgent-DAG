@@ -1,0 +1,135 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Since the memory hits indicate the agent has previously processed trending GitHub repository searches, I will use the researcher to fetch the most current data for the last week to ensure accuracy.",
+          "nodes": [
+            {
+              "skill": "researcher",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "r1",
+                "question": "Find the most trending Python language repository on GitHub from the last week."
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:r1"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "researcher",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "r1",
+              "question": "Find the most trending Python language repository on GitHub from the last week."
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:r1"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.445467948913574,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "researcher",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "r1",
+        "question": "Find the most trending Python language repository on GitHub from the last week."
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "researcher",
+        "output": {
+          "question": "last week, find the most tending python lanuage repo in github",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python",
+              "title": "Trending Python repositories on GitHub today"
+            }
+          ],
+          "findings": "GitHub maintains a dedicated section for trending repositories, which can be filtered by language (Python) and time range (Weekly). Users can access the current weekly trending list for Python directly via the official GitHub trending page by appending the parameter 'since=weekly' to the URL (github.com/trending/python?since=weekly).\n\nBecause trending lists on GitHub are dynamic and update daily, there is no single static 'most trending' repository for the previous week that remains valid over time. The list changes based on recent star accumulation, fork activity, and community interest during that specific 7-day window."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 23.693188190460205,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "GitHub's trending repositories are dynamic and update daily based on recent activity, so there is no single static repository that holds the title for 'most trending' over a past week. You can view the most recent weekly trends for Python by visiting the official GitHub trending page at https://github.com/trending/python?since=weekly."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.931405782699585,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}

@@ -459,7 +459,7 @@ class GeminiProvider(BaseProvider):
             mode = "AUTO"
             if tool_choice == "none":
                 mode = "NONE"
-            elif isinstance(tool_choice, dict):
+            elif tool_choice in ("required", "any") or isinstance(tool_choice, dict):
                 mode = "ANY"
             body["toolConfig"] = {"function_calling_config": {"mode": mode}}
 
