@@ -1,0 +1,136 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Use the github_research skill to fetch the current trending Python repositories from GitHub to answer the user's request for the past week.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "last week trending python repositories"
+              ],
+              "metadata": {
+                "label": "gh_trend"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:gh_trend"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "last week trending python repositories"
+            ],
+            "metadata": {
+              "label": "gh_trend"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:gh_trend"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.5774688720703125,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "gh_trend"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "last week, find the most tending python lanuage repo in github",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python repositories on GitHub this week"
+            }
+          ],
+          "findings": "(not found)"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 33.658284187316895,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "I was unable to retrieve the specific trending Python repositories for the last week. The search tool returned (not found) for this request. You can view the current list directly on GitHub at: https://github.com/trending/python?since=weekly"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.567188262939453,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:1",
+      "target": "n:2"
+    },
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}
