@@ -15,6 +15,7 @@
 
 planner: gemini
 researcher: gemini
+github_research: gemini    # tool-using (fetch_url) + JSON; needs a real tool-caller, not ollama
 distiller: gemini
 summariser: gemini
 critic: groq

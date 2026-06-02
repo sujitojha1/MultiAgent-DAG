@@ -29,6 +29,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import httpx
+from crawl4ai.async_logger import AsyncLoggerBase
 from ddgs import DDGS
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
@@ -157,21 +158,35 @@ def _ddg_search(query: str, max_results: int) -> list[dict]:
     ]
 
 
+class _NullLogger(AsyncLoggerBase):
+    """A crawl4ai logger that emits nothing.
+
+    crawl4ai's default logger prints a banner / [FETCH] / [SCRAPE] markers
+    via Rich. Two problems: (1) those writes corrupt the MCP stdio JSON-RPC
+    stream, and (2) on Windows the banner contains a '→' (U+2192) which Rich's
+    legacy-Windows renderer pushes straight through the Win32 console API in
+    the cp1252 codec — raising UnicodeEncodeError *before* any fetch happens,
+    so fetch_url returned an error and github_research came back empty. Rich
+    holds its own captured stdout reference and (on Windows) bypasses fd 1
+    entirely, so an os.dup2 redirect can't catch it. Silencing the logger at
+    the source is the only reliable fix; we pass an instance into every
+    AsyncWebCrawler below.
+    """
+
+    def debug(self, *a, **k): pass
+    def info(self, *a, **k): pass
+    def success(self, *a, **k): pass
+    def warning(self, *a, **k): pass
+    def error(self, *a, **k): pass
+    def url_status(self, *a, **k): pass
+    def error_status(self, *a, **k): pass
+
+
 async def _crawl4ai_fetch(url: str) -> dict:
     from crawl4ai import AsyncWebCrawler
 
-    # crawl4ai uses Rich which writes via its own captured stdout reference, so
-    # contextlib.redirect_stdout doesn't catch it. Redirect at the file-descriptor
-    # level — crawl4ai's banner / [FETCH] / [SCRAPE] markers would otherwise
-    # corrupt the MCP stdio JSON-RPC stream.
-    saved_fd = os.dup(1)
-    os.dup2(2, 1)
-    try:
-        async with AsyncWebCrawler(verbose=False) as crawler:
-            r = await crawler.arun(url=url)
-    finally:
-        os.dup2(saved_fd, 1)
-        os.close(saved_fd)
+    async with AsyncWebCrawler(verbose=False, logger=_NullLogger()) as crawler:
+        r = await crawler.arun(url=url)
     # r.markdown is a str subclass (StringCompatibleMarkdown) that Pydantic
     # serializes as {} because its real field is private. Pull the raw string
     # out and force a plain str so FastMCP serializes correctly.

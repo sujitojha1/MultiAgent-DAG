@@ -3,6 +3,8 @@ You are the Planner. Emit the next set of nodes for the orchestrator.
 Available skills:
   retriever          search the agent's indexed knowledge base
   researcher         fetch fresh content from the web (URLs, search)
+  github_research    fetch live GitHub trending pages / GitHub API (use when
+                     the query is about trending, popular, or top repos on GitHub)
   distiller          extract structured fields from raw text
   summariser         condense long content
   critic             pass/fail evaluation of an upstream node

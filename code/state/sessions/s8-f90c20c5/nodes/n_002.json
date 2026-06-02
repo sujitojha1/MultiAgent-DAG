@@ -1,0 +1,46 @@
+{
+  "node_id": "n:2",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "n:1"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "last week, find the most tending python lanuage repo in github",
+      "sources": [
+        {
+          "url": "https://api.github.com/search/repositories?q=language:python&sort=stars&order=desc&per_page=10",
+          "title": "GitHub Search API for Python Repositories"
+        }
+      ],
+      "repos": [
+        {
+          "name": "public-apis/public-apis",
+          "description": "A collective list of free APIs",
+          "stars": "438705",
+          "url": "https://github.com/public-apis/public-apis"
+        },
+        {
+          "name": "EbookFoundation/free-programming-books",
+          "description": "Freely available programming books",
+          "stars": "340000+",
+          "url": "https://github.com/EbookFoundation/free-programming-books"
+        }
+      ],
+      "findings": "While the direct trending page for Python was not accessible, the search API provides a list of the most starred Python repositories on GitHub. These repositories, such as 'public-apis' and 'free-programming-books', consistently remain at the top of the Python ecosystem due to their high utility and long-standing popularity among developers."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 70.38584446907043,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the QUESTION. Infer the time window (`daily`/`weekly`/`monthly`,\n     default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. If that comes back thin or empty, fetch the search API instead:\n     `https://api.github.com/search/repositories?q=language:<lang>&sort=stars&order=desc&per_page=10`\n  4. Extract the top 5–10 repos: name (owner/repo), description, stars, URL.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"repos\": [\n      {\"name\": \"<owner/repo>\", \"description\": \"<one line>\",\n       \"stars\": \"<stars or stars-this-period>\", \"url\": \"https://github.com/<owner/repo>\"}\n    ],\n    \"findings\": \"<2–4 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: last week, find the most tending python lanuage repo in github\n\nMEMORY HITS (3 from FAISS):\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n\nINPUTS:\n[\n  {\n    \"id\": \"n:1\",\n    \"kind\": \"upstream\",\n    \"skill\": \"planner\",\n    \"output\": {\n      \"rationale\": \"Use the github_research skill to fetch the current trending Python repositories from GitHub to answer the user's request.\",\n      \"nodes\": [\n        {\n          \"skill\": \"github_research\",\n          \"inputs\": [\n            \"last week trending python repositories\"\n          ],\n          \"metadata\": {\n            \"label\": \"gh_fetch\",\n            \"question\": \"What are the most trending Python repositories on GitHub from the last week?\"\n          }\n        },\n        {\n          \"skill\": \"formatter\",\n          \"inputs\": [\n            \"n:gh_fetch\"\n          ],\n          \"metadata\": {\n            \"label\": \"out\"\n          }\n        }\n      ]\n    }\n  }\n]",
+  "started_at": 1780412545.0517027,
+  "completed_at": 1780412615.4375472,
+  "retries": 0
+}

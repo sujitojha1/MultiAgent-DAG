@@ -1,0 +1,153 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Use the github_research skill to fetch the current trending Python repositories from GitHub to answer the user's request.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "last week trending python repositories"
+              ],
+              "metadata": {
+                "label": "gh_fetch",
+                "question": "What are the most trending Python repositories on GitHub from the last week?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:gh_fetch"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "last week trending python repositories"
+            ],
+            "metadata": {
+              "label": "gh_fetch",
+              "question": "What are the most trending Python repositories on GitHub from the last week?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:gh_fetch"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 45.783687114715576,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "gh_fetch",
+        "question": "What are the most trending Python repositories on GitHub from the last week?"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "last week, find the most tending python lanuage repo in github",
+          "sources": [
+            {
+              "url": "https://api.github.com/search/repositories?q=language:python&sort=stars&order=desc&per_page=10",
+              "title": "GitHub Search API for Python Repositories"
+            }
+          ],
+          "repos": [
+            {
+              "name": "public-apis/public-apis",
+              "description": "A collective list of free APIs",
+              "stars": "438705",
+              "url": "https://github.com/public-apis/public-apis"
+            },
+            {
+              "name": "EbookFoundation/free-programming-books",
+              "description": "Freely available programming books",
+              "stars": "340000+",
+              "url": "https://github.com/EbookFoundation/free-programming-books"
+            }
+          ],
+          "findings": "While the direct trending page for Python was not accessible, the search API provides a list of the most starred Python repositories on GitHub. These repositories, such as 'public-apis' and 'free-programming-books', consistently remain at the top of the Python ecosystem due to their high utility and long-standing popularity among developers."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 70.38584446907043,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "Based on the latest GitHub data, the most prominent Python repositories remain 'public-apis/public-apis' (with over 438,705 stars) and 'EbookFoundation/free-programming-books' (with over 340,000 stars). While a specific 'trending' list for the past week was not directly accessible, these repositories consistently lead the Python ecosystem due to their high utility and sustained popularity among developers. Source: GitHub Search API for Python Repositories (https://api.github.com/search/repositories?q=language:python&sort=stars&order=desc&per_page=10)."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.9812793731689453,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:1",
+      "target": "n:2"
+    },
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}

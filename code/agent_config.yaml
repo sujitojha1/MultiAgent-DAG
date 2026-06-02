@@ -7,9 +7,12 @@
 # Fields:
 #   prompt              path to the system prompt, relative to S8/code/
 #   description         one-line summary (shown in dashboards / replay)
-#   provider_pin        OPTIONAL preferred provider; overridden by
-#                       agent_routing.yaml in the gateway if set there.
-#                       Most pins live in the gateway side, not here.
+#   provider_pin        OPTIONAL hard provider override. Sent to the gateway
+#                       as `provider=`, which WINS over agent_routing.yaml's
+#                       per-agent pin: gateway/main.py applies the routing pin
+#                       only when no explicit provider is sent. Leave this
+#                       unset to let agent_routing.yaml (gateway side) decide;
+#                       set it to force one provider regardless of routing.
 #   tools_allowed       which MCP tools this skill may call. Empty list
 #                       means the skill is text-only and never calls a
 #                       tool through the gateway's tool-use channel.
@@ -45,6 +48,15 @@ researcher:
   temperature: 0.7         # exploratory; let the model choose phrasings
   max_tokens: 2500
   description: Performs multi-step web research and produces normalised text outputs.
+
+github_research:
+  prompt: prompts/github_research.md
+  provider_pin: gemini     # drive fetch_url tool-loop + JSON on gemini; ollama
+                           # returned empty {} after 91s (couldn't tool-call)
+  tools_allowed: [fetch_url]
+  temperature: 0.2         # structured extraction; keep it deterministic
+  max_tokens: 2000
+  description: Fetches live data from GitHub trending pages and the GitHub API to list popular or trending repositories.
 
 distiller:
   prompt: prompts/distiller.md

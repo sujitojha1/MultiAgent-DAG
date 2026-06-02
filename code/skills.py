@@ -328,6 +328,28 @@ async def run_skill(skill: Skill, node_id: str, graph_nodes,
             error=err,
         ), rendered
 
+    # An empty parse with no successors means the node produced nothing
+    # usable — the model returned prose (or nothing) instead of the JSON
+    # object every skill prompt asks for. This used to pass as success with
+    # output={}: the node went "complete" and the only symptom was a hollow
+    # final answer (e.g. ollama emitting prose instead of driving the
+    # fetch_url tool-loop). Fail it so plan_recovery replans instead of
+    # propagating an empty payload downstream. The raw reply head is folded
+    # into the error so the next person sees WHAT the model said, not just
+    # that it was empty.
+    if not parsed and not successors:
+        raw_head = (reply.get("text", "") or "").strip()[:300]
+        err = (f"{skill.name}: model returned no parseable JSON object "
+               f"(empty output, no successors); provider="
+               f"{reply.get('provider', '?')}. Raw reply head: {raw_head!r}")
+        print(f"[skills] {err}")
+        return AgentResult(
+            success=False, agent_name=skill.name, output={},
+            elapsed_s=time.time() - started,
+            provider=reply.get("provider", ""),
+            error=err,
+        ), rendered
+
     return AgentResult(
         success=True,
         agent_name=skill.name,
