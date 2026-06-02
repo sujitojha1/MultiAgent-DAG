@@ -25,6 +25,7 @@ Executor level, not a more clever client here.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import sys
 from pathlib import Path
@@ -64,38 +65,49 @@ async def run_with_tools(*, prompt: str, tools_payload: list[dict],
     last_reply: dict = {}
 
     server_params = StdioServerParameters(command=sys.executable, args=[str(MCP_SERVER)])
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as mcp:
-            await mcp.initialize()
-            for _ in range(MAX_TOOL_HOPS + 1):
-                reply = await _chat(messages=messages, tools=tools_payload,
-                                    agent=agent, session_id=session_id,
-                                    provider_pin=provider_pin,
-                                    max_tokens=max_tokens, temperature=temperature)
-                last_reply = reply
-                tool_calls = reply.get("tool_calls") or []
-                if not tool_calls:
-                    return reply
-                # Carry the assistant's tool-call turn back through.
-                messages.append({
-                    "role": "assistant",
-                    "content": reply.get("text", "") or "",
-                    "tool_calls": tool_calls,
-                })
-                for tc in tool_calls:
-                    result_text = await _dispatch_tool(mcp, tc["name"],
-                                                      tc.get("arguments") or {})
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": tc.get("id", ""),
-                        # Cap per-tool reply. 8 KB was too tight for page
-                        # fetches: a fetch_url of GitHub trending (repos
-                        # ~18 KB even after css selection) was sliced down to
-                        # nav chrome, so the model saw no repos and answered
-                        # "(not found)". 24 KB clears a selected trending list
-                        # while still bounding a runaway fetch.
-                        "content": result_text[:24_000],
-                    })
+    for attempt in range(3):
+        try:
+            async with stdio_client(server_params) as (read, write):
+                async with ClientSession(read, write) as mcp:
+                    await mcp.initialize()
+                    for _ in range(MAX_TOOL_HOPS + 1):
+                        reply = await _chat(messages=messages, tools=tools_payload,
+                                            agent=agent, session_id=session_id,
+                                            provider_pin=provider_pin,
+                                            max_tokens=max_tokens, temperature=temperature)
+                        last_reply = reply
+                        tool_calls = reply.get("tool_calls") or []
+                        if not tool_calls:
+                            return reply
+                        # Carry the assistant's tool-call turn back through.
+                        messages.append({
+                            "role": "assistant",
+                            "content": reply.get("text", "") or "",
+                            "tool_calls": tool_calls,
+                        })
+                        for tc in tool_calls:
+                            result_text = await _dispatch_tool(mcp, tc["name"],
+                                                              tc.get("arguments") or {})
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": tc.get("id", ""),
+                                # Cap per-tool reply. 8 KB was too tight for page
+                                # fetches: a fetch_url of GitHub trending (repos
+                                # ~18 KB even after css selection) was sliced down to
+                                # nav chrome, so the model saw no repos and answered
+                                # "(not found)". 24 KB clears a selected trending list
+                                # while still bounding a runaway fetch.
+                                "content": result_text[:24_000],
+                            })
+            break
+        except Exception as e:
+            print(f"[mcp_runner] Subprocess spawning/initialization attempt {attempt + 1} failed: {type(e).__name__}: {e}")
+            if attempt == 2:
+                raise
+            await asyncio.sleep(0.5 * (attempt + 1))
+            # Reset messages and reply state for retry
+            messages = [{"role": "user", "content": prompt}]
+            last_reply = {}
     # Hit the hop cap. Return whatever the gateway last said.
     return last_reply
 

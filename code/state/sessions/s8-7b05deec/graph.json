@@ -1,0 +1,296 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Fetch trending Python and Rust repositories from GitHub, distill them for relevance to agentic/MCP/dev-tooling with impact rationales, validate the alignment, and format the results.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python repos this week"
+              ],
+              "metadata": {
+                "label": "py_week",
+                "question": "Fetch trending Python repos for this week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python repos this month"
+              ],
+              "metadata": {
+                "label": "py_month",
+                "question": "Fetch trending Python repos for this month"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust repos this week"
+              ],
+              "metadata": {
+                "label": "rs_week",
+                "question": "Fetch trending Rust repos for this week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust repos this month"
+              ],
+              "metadata": {
+                "label": "rs_month",
+                "question": "Fetch trending Rust repos for this month"
+              }
+            },
+            {
+              "skill": "distiller",
+              "inputs": [
+                "n:py_week",
+                "n:py_month",
+                "n:rs_week",
+                "n:rs_month"
+              ],
+              "metadata": {
+                "label": "distilled",
+                "question": "Extract repos relevant to agentic/MCP/dev-tooling and provide a one-line why-it-matters for each."
+              }
+            },
+            {
+              "skill": "critic",
+              "inputs": [
+                "n:distilled"
+              ],
+              "metadata": {
+                "label": "alignment_check",
+                "question": "Is each kept repo's why_it_matters supported by its description and relevant to agentic / MCP / dev-tooling?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:alignment_check"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python repos this week"
+            ],
+            "metadata": {
+              "label": "py_week",
+              "question": "Fetch trending Python repos for this week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python repos this month"
+            ],
+            "metadata": {
+              "label": "py_month",
+              "question": "Fetch trending Python repos for this month"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust repos this week"
+            ],
+            "metadata": {
+              "label": "rs_week",
+              "question": "Fetch trending Rust repos for this week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust repos this month"
+            ],
+            "metadata": {
+              "label": "rs_month",
+              "question": "Fetch trending Rust repos for this month"
+            }
+          },
+          {
+            "skill": "distiller",
+            "inputs": [
+              "n:py_week",
+              "n:py_month",
+              "n:rs_week",
+              "n:rs_month"
+            ],
+            "metadata": {
+              "label": "distilled",
+              "question": "Extract repos relevant to agentic/MCP/dev-tooling and provide a one-line why-it-matters for each."
+            }
+          },
+          {
+            "skill": "critic",
+            "inputs": [
+              "n:distilled"
+            ],
+            "metadata": {
+              "label": "alignment_check",
+              "question": "Is each kept repo's why_it_matters supported by its description and relevant to agentic / MCP / dev-tooling?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:alignment_check"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 5.042389869689941,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending python repos this week"
+      ],
+      "metadata": {
+        "label": "py_week",
+        "question": "Fetch trending Python repos for this week",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:2"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending python repos this month"
+      ],
+      "metadata": {
+        "label": "py_month",
+        "question": "Fetch trending Python repos for this month",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:3"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending rust repos this week"
+      ],
+      "metadata": {
+        "label": "rs_week",
+        "question": "Fetch trending Rust repos for this week",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:4"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending rust repos this month"
+      ],
+      "metadata": {
+        "label": "rs_month",
+        "question": "Fetch trending Rust repos for this month",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:5"
+    },
+    {
+      "skill": "distiller",
+      "inputs": [
+        "n:2",
+        "n:3",
+        "n:4",
+        "n:5"
+      ],
+      "metadata": {
+        "label": "distilled",
+        "question": "Extract repos relevant to agentic/MCP/dev-tooling and provide a one-line why-it-matters for each.",
+        "creator": "n:1"
+      },
+      "status": "pending",
+      "id": "n:6"
+    },
+    {
+      "skill": "critic",
+      "inputs": [
+        "n:6"
+      ],
+      "metadata": {
+        "label": "alignment_check",
+        "question": "Is each kept repo's why_it_matters supported by its description and relevant to agentic / MCP / dev-tooling?",
+        "creator": "n:1"
+      },
+      "status": "pending",
+      "id": "n:7"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:7"
+      ],
+      "metadata": {
+        "label": "out",
+        "creator": "n:1"
+      },
+      "status": "pending",
+      "id": "n:8"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:6"
+    },
+    {
+      "source": "n:3",
+      "target": "n:6"
+    },
+    {
+      "source": "n:4",
+      "target": "n:6"
+    },
+    {
+      "source": "n:5",
+      "target": "n:6"
+    },
+    {
+      "source": "n:6",
+      "target": "n:7"
+    },
+    {
+      "source": "n:7",
+      "target": "n:8"
+    }
+  ]
+}

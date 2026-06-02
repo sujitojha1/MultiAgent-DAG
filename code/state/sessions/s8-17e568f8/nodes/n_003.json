@@ -1,0 +1,23 @@
+{
+  "node_id": "n:3",
+  "skill": "github_research",
+  "status": "failed",
+  "inputs": [
+    "trending python repos this month"
+  ],
+  "result": {
+    "success": false,
+    "agent_name": "github_research",
+    "output": {},
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 0.0,
+    "provider": "",
+    "error": "exception: ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)"
+  },
+  "prompt_sent": "(exception before prompt-render)",
+  "started_at": 1780423834.5665543,
+  "completed_at": 1780423834.5665543,
+  "retries": 0
+}
