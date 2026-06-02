@@ -7,6 +7,13 @@ const STORE_KEY = "pulsedag.prefs";
 
 const $ = (sel) => document.querySelector(sel);
 
+// ── Status note ──────────────────────────────────────────────────────
+// kind: "ok" | "down" | "busy" | "unknown"
+function setStatus(html, kind = "unknown") {
+  $("#status-dot").className = "dot dot-" + kind;
+  $("#status-text").innerHTML = html;
+}
+
 // ── State / preferences ──────────────────────────────────────────────
 const prefs = loadPrefs();
 
@@ -46,21 +53,29 @@ function renderChips() {
   }
 }
 
-// ── Health check → status dot ────────────────────────────────────────
+// ── Health check → status note ───────────────────────────────────────
 async function checkHealth() {
-  const dot = $("#status-dot");
   try {
     const r = await fetch(`${BRIDGE}/health`, { method: "GET" });
     const ok = r.ok && (await r.json()).status === "ok";
-    dot.className = "dot " + (ok ? "dot-ok" : "dot-down");
-    dot.title = ok ? "bridge online :8109" : "bridge responded with an error";
+    if (ok) setStatus("Bridge <strong>online</strong> on :8109", "ok");
+    else setStatus("Bridge responded with an error", "down");
   } catch {
-    dot.className = "dot dot-down";
-    dot.title = "bridge offline — start bridge_server.py on :8109";
+    setStatus("Bridge <strong>offline</strong> — start it on :8109", "down");
   }
 }
 
 // ── Run ──────────────────────────────────────────────────────────────
+const PHASES = [
+  "Connecting to the bridge…",
+  "Spinning up the DAG…",
+  "Scanning GitHub trending…",
+  "Ranking repos by momentum…",
+  "Distilling the digest…",
+];
+let runTimers = [];
+function clearRunTimers() { runTimers.forEach(clearInterval); runTimers.forEach(clearTimeout); runTimers = []; }
+
 async function run() {
   const runBtn = $("#run");
   const result = $("#result");
@@ -69,9 +84,25 @@ async function run() {
   $("#empty").classList.add("hidden");
   result.classList.remove("hidden");
   $("#result-meta").textContent = "";
-  digest.innerHTML = '<div class="spinner"></div>';
+  digest.innerHTML =
+    '<div class="loader"><div class="spinner"></div><div class="loader-text" id="loader-text">Spinning up the DAG…</div></div>';
   runBtn.disabled = true;
   runBtn.textContent = "Running…";
+
+  // Live status note: busy dot + elapsed timer + cycling phase labels.
+  const t0 = performance.now();
+  setStatus("<strong>Running</strong> PulseDAG…", "busy");
+  clearRunTimers();
+  runTimers.push(setInterval(() => {
+    $("#status-elapsed").textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s";
+  }, 100));
+  let phase = 0;
+  const loaderText = () => $("#loader-text");
+  if (loaderText()) loaderText().textContent = PHASES[0];
+  runTimers.push(setInterval(() => {
+    phase = Math.min(phase + 1, PHASES.length - 1);
+    if (loaderText()) loaderText().textContent = PHASES[phase];
+  }, 1400));
 
   const body = {
     languages: [...selectedLangs].map((l) => l.toLowerCase()),
@@ -79,7 +110,6 @@ async function run() {
     mode: $("#mode").value.trim() || undefined,
   };
 
-  const t0 = performance.now();
   try {
     const r = await fetch(`${BRIDGE}/run`, {
       method: "POST",
@@ -90,13 +120,18 @@ async function run() {
     if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
 
     const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    clearRunTimers();
+    $("#status-elapsed").textContent = "";
+    setStatus(`Done · <strong>${escapeHtml(data.session_id || "session")}</strong>`, "ok");
     $("#result-meta").textContent = `${data.session_id} · ${secs}s`;
     renderDigest(data.answer || "(empty digest)");
   } catch (e) {
+    clearRunTimers();
+    $("#status-elapsed").textContent = "";
     const offline = String(e).includes("Failed to fetch");
+    setStatus(offline ? "Bridge <strong>offline</strong> — start it on :8109" : "Run failed", "down");
     digest.innerHTML =
-      `<p class="err">⚠ ${escapeHtml(offline ? "Could not reach the bridge on :8109. Is bridge_server.py running?" : e.message)}</p>`;
-    checkHealth();
+      `<p class="err">⚠ <span>${escapeHtml(offline ? "Could not reach the bridge on :8109. Is bridge_server.py running?" : e.message)}</span></p>`;
   } finally {
     runBtn.disabled = false;
     runBtn.textContent = "▶ Run PulseDAG";

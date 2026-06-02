@@ -5,54 +5,62 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <header class="hdr">
-    <img src="icons/icon48.png" alt="" class="logo" />
-    <div class="hdr-text">
-      <h1>PulseDAG</h1>
-      <p>GitHub Repo Radar</p>
-    </div>
-    <span id="status-dot" class="dot dot-unknown" title="bridge status"></span>
-  </header>
+  <div class="wrap">
+    <section class="glass">
+      <header class="hdr">
+        <img src="icons/icon48.png" alt="" class="logo" />
+        <div class="hdr-text">
+          <h1>PulseDAG</h1>
+          <p>GitHub Repo Radar</p>
+        </div>
+      </header>
+      <div class="status-note">
+        <span id="status-dot" class="dot dot-unknown"></span>
+        <span id="status-text">Checking bridge…</span>
+        <span id="status-elapsed"></span>
+      </div>
+    </section>
 
-  <section class="controls">
-    <label class="field">
-      <span class="field-label">Languages</span>
-      <div id="lang-chips" class="chips"></div>
-    </label>
-
-    <div class="row">
-      <label class="field grow">
-        <span class="field-label">Window</span>
-        <select id="window">
-          <option value="daily">Daily</option>
-          <option value="weekly" selected>Weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
+    <section class="glass controls">
+      <label class="field">
+        <span class="field-label">Languages</span>
+        <div id="lang-chips" class="chips"></div>
       </label>
 
-      <label class="field grow">
-        <span class="field-label">Topic / mode</span>
-        <input id="mode" type="text" placeholder="agentic / MCP / dev-tooling" />
-      </label>
-    </div>
+      <div class="row">
+        <label class="field grow">
+          <span class="field-label">Window</span>
+          <select id="window">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </label>
 
-    <button id="run" class="btn-run">▶ Run PulseDAG</button>
-  </section>
+        <label class="field grow">
+          <span class="field-label">Topic / mode</span>
+          <input id="mode" type="text" placeholder="agentic / MCP / dev-tooling" />
+        </label>
+      </div>
 
-  <section id="result" class="result hidden">
-    <div class="result-bar">
-      <span id="result-meta" class="result-meta"></span>
-      <button id="dice" class="btn-dice" title="Random pick from the digest">🎲 Random pick</button>
-    </div>
-    <div id="digest" class="digest"></div>
-  </section>
+      <button id="run" class="btn-run">▶ Run PulseDAG</button>
+    </section>
 
-  <section id="empty" class="empty">
-    <p>Pick your languages and window, then hit <strong>Run</strong>.</p>
-    <p class="hint">Needs the bridge running: <code>uv run python bridge_server.py</code> on <code>:8109</code>.</p>
-  </section>
+    <section id="result" class="glass result hidden">
+      <div class="result-bar">
+        <span id="result-meta" class="result-meta"></span>
+        <button id="dice" class="btn-dice" title="Random pick from the digest">🎲 Random pick</button>
+      </div>
+      <div id="digest" class="digest"></div>
+    </section>
 
-  <footer class="ftr">FR-701 / FR-703 · CON-107 bridge :8109</footer>
+    <section id="empty" class="glass empty">
+      <p class="lead">Pick your languages and window, then hit <strong>Run</strong>.</p>
+      <p class="hint">Needs the bridge: <code>uv run python bridge_server.py</code> on <code>:8109</code></p>
+    </section>
+
+    <footer class="ftr">FR-701 / FR-703 · CON-107 bridge :8109</footer>
+  </div>
 
   <script src="popup.js"></script>
 </body>
