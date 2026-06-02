@@ -1,0 +1,32 @@
+{
+  "node_id": "n:12",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=weekly",
+          "title": "GitHub Trending Python Repositories (Weekly)"
+        }
+      ],
+      "findings": "The trending Python landscape this week is heavily dominated by AI agent infrastructure, tooling, and governance. Key projects include Microsoft's 'markitdown', which simplifies data ingestion for LLMs by converting various file formats to Markdown, and 'claude-code', an agentic terminal tool for coding tasks. These reflect a broader industry shift toward making LLMs more practical and integrated into daily developer workflows.\n\nGovernance and safety are also emerging as critical themes. The 'agent-governance-toolkit' from Microsoft and 'Anthropic-Cybersecurity-Skills' highlight the growing need for frameworks that ensure AI agents operate reliably, securely, and within defined policy boundaries, addressing concerns like the OWASP Agentic Top 10.\n\nFinally, there is significant interest in specialized AI applications, such as 'MoneyPrinterTurbo' for automated video generation and 'dograh' for self-hosted voice AI. These projects demonstrate a move toward 'agentic' systems that can perform complex, multi-step tasks—like voice interaction or content creation—with minimal human intervention, often leveraging open-source alternatives to proprietary platforms."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 12.758493423461914,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the QUESTION. Infer the time window (`daily`/`weekly`/`monthly`,\n     default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5â€“10 repos: name (owner/repo), description, stars, URL.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2â€“6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` â€” do not fabricate entries.\n\nUSER_QUERY: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nMEMORY HITS (5 from FAISS):\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\"\n  }\n]",
+  "started_at": 1780418978.0807526,
+  "completed_at": 1780418990.839246,
+  "retries": 0
+}

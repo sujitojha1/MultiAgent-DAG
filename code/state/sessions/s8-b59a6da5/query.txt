@@ -1,0 +1,1 @@
+find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.
