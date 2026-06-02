@@ -1,0 +1,281 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Fetch trending Python and Rust repositories from GitHub, filter for relevance to agentic/MCP/dev-tooling, and provide impact analysis with an alignment check.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python this week"
+              ],
+              "metadata": {
+                "label": "gh_py_week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python this month"
+              ],
+              "metadata": {
+                "label": "gh_py_month"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust this week"
+              ],
+              "metadata": {
+                "label": "gh_rs_week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust this month"
+              ],
+              "metadata": {
+                "label": "gh_rs_month"
+              }
+            },
+            {
+              "skill": "distiller",
+              "inputs": [
+                "n:gh_py_week",
+                "n:gh_py_month",
+                "n:gh_rs_week",
+                "n:gh_rs_month"
+              ],
+              "metadata": {
+                "label": "distilled_repos"
+              }
+            },
+            {
+              "skill": "critic",
+              "inputs": [
+                "n:distilled_repos"
+              ],
+              "metadata": {
+                "label": "alignment_check",
+                "question": "Is each kept repo relevant to agentic, MCP, or dev-tooling, and is the 'why it matters' rationale supported by the repo description?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:alignment_check"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python this week"
+            ],
+            "metadata": {
+              "label": "gh_py_week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python this month"
+            ],
+            "metadata": {
+              "label": "gh_py_month"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust this week"
+            ],
+            "metadata": {
+              "label": "gh_rs_week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust this month"
+            ],
+            "metadata": {
+              "label": "gh_rs_month"
+            }
+          },
+          {
+            "skill": "distiller",
+            "inputs": [
+              "n:gh_py_week",
+              "n:gh_py_month",
+              "n:gh_rs_week",
+              "n:gh_rs_month"
+            ],
+            "metadata": {
+              "label": "distilled_repos"
+            }
+          },
+          {
+            "skill": "critic",
+            "inputs": [
+              "n:distilled_repos"
+            ],
+            "metadata": {
+              "label": "alignment_check",
+              "question": "Is each kept repo relevant to agentic, MCP, or dev-tooling, and is the 'why it matters' rationale supported by the repo description?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:alignment_check"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.589403867721558,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending python this week"
+      ],
+      "metadata": {
+        "label": "gh_py_week",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:2"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending python this month"
+      ],
+      "metadata": {
+        "label": "gh_py_month",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:3"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending rust this week"
+      ],
+      "metadata": {
+        "label": "gh_rs_week",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:4"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "trending rust this month"
+      ],
+      "metadata": {
+        "label": "gh_rs_month",
+        "creator": "n:1"
+      },
+      "status": "running",
+      "id": "n:5"
+    },
+    {
+      "skill": "distiller",
+      "inputs": [
+        "n:2",
+        "n:3",
+        "n:4",
+        "n:5"
+      ],
+      "metadata": {
+        "label": "distilled_repos",
+        "creator": "n:1"
+      },
+      "status": "pending",
+      "id": "n:6"
+    },
+    {
+      "skill": "critic",
+      "inputs": [
+        "n:6"
+      ],
+      "metadata": {
+        "label": "alignment_check",
+        "question": "Is each kept repo relevant to agentic, MCP, or dev-tooling, and is the 'why it matters' rationale supported by the repo description?",
+        "creator": "n:1"
+      },
+      "status": "pending",
+      "id": "n:7"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:7"
+      ],
+      "metadata": {
+        "label": "out",
+        "creator": "n:1"
+      },
+      "status": "pending",
+      "id": "n:8"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:6"
+    },
+    {
+      "source": "n:3",
+      "target": "n:6"
+    },
+    {
+      "source": "n:4",
+      "target": "n:6"
+    },
+    {
+      "source": "n:5",
+      "target": "n:6"
+    },
+    {
+      "source": "n:6",
+      "target": "n:7"
+    },
+    {
+      "source": "n:7",
+      "target": "n:8"
+    }
+  ]
+}

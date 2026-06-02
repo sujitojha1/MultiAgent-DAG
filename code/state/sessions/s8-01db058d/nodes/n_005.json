@@ -1,0 +1,13 @@
+{
+  "node_id": "n:5",
+  "skill": "github_research",
+  "status": "running",
+  "inputs": [
+    "trending rust this month"
+  ],
+  "result": null,
+  "prompt_sent": null,
+  "started_at": 1780423725.2001348,
+  "completed_at": null,
+  "retries": 0
+}

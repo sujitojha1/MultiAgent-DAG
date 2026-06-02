@@ -124,9 +124,12 @@ class Graph:
                 if inp.startswith("art:"):
                     resolved.append(inp)
                     continue
-                # Unknown — fall back to the parent so the child has at
-                # least one upstream dependency to wait on.
-                resolved.append(src_nid)
+                # Unknown label starting with n: -> fall back to parent.
+                # Otherwise, it's a literal string input -> keep it.
+                if inp.startswith("n:"):
+                    resolved.append(src_nid)
+                else:
+                    resolved.append(inp)
             self.g.nodes[new_id]["inputs"] = resolved
             for inp in resolved:
                 if inp.startswith("n:") and inp in self.g.nodes:
