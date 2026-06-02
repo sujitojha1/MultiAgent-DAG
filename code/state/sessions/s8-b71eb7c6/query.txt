@@ -1,0 +1,1 @@
+Find the top trending Python and Rust repos this week and this month. Deduplicate them, compute their velocity (stars_gained / total_stars * 100), and rank them by momentum using a python script in the coder sandbox.
