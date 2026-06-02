@@ -1,0 +1,1004 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Fetch trending Python and Rust repositories from GitHub, distill them for relevance to agentic/MCP/dev-tooling with impact analysis, and validate the alignment before formatting.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python repos this week"
+              ],
+              "metadata": {
+                "label": "py_week",
+                "question": "Get trending Python repos for this week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python repos this month"
+              ],
+              "metadata": {
+                "label": "py_month",
+                "question": "Get trending Python repos for this month"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust repos this week"
+              ],
+              "metadata": {
+                "label": "rs_week",
+                "question": "Get trending Rust repos for this week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust repos this month"
+              ],
+              "metadata": {
+                "label": "rs_month",
+                "question": "Get trending Rust repos for this month"
+              }
+            },
+            {
+              "skill": "distiller",
+              "inputs": [
+                "n:py_week",
+                "n:py_month",
+                "n:rs_week",
+                "n:rs_month"
+              ],
+              "metadata": {
+                "label": "distilled",
+                "question": "Filter for agentic/MCP/dev-tooling and provide why-it-matters"
+              }
+            },
+            {
+              "skill": "critic",
+              "inputs": [
+                "n:distilled"
+              ],
+              "metadata": {
+                "label": "alignment",
+                "question": "Is each repo relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:alignment"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python repos this week"
+            ],
+            "metadata": {
+              "label": "py_week",
+              "question": "Get trending Python repos for this week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python repos this month"
+            ],
+            "metadata": {
+              "label": "py_month",
+              "question": "Get trending Python repos for this month"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust repos this week"
+            ],
+            "metadata": {
+              "label": "rs_week",
+              "question": "Get trending Rust repos for this week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust repos this month"
+            ],
+            "metadata": {
+              "label": "rs_month",
+              "question": "Get trending Rust repos for this month"
+            }
+          },
+          {
+            "skill": "distiller",
+            "inputs": [
+              "n:py_week",
+              "n:py_month",
+              "n:rs_week",
+              "n:rs_month"
+            ],
+            "metadata": {
+              "label": "distilled",
+              "question": "Filter for agentic/MCP/dev-tooling and provide why-it-matters"
+            }
+          },
+          {
+            "skill": "critic",
+            "inputs": [
+              "n:distilled"
+            ],
+            "metadata": {
+              "label": "alignment",
+              "question": "Is each repo relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:alignment"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.687519311904907,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "py_week",
+        "question": "Get trending Python repos for this week",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            }
+          ],
+          "findings": "The current landscape is dominated by agentic tooling, specifically focused on developer productivity and MCP (Model Context Protocol) integration. In Python, Microsoft's 'markitdown' and Anthropic's 'claude-code' are leading the momentum, providing essential infrastructure for file conversion and agentic coding workflows. Other notable Python projects include 'headroom' for token optimization and 'agent-governance-toolkit' for security, both critical for production-grade agent deployments.\n\nIn the Rust ecosystem, momentum is concentrated on high-performance infrastructure for agents. 'cc-switch' has emerged as a major tool for managing multiple agentic CLI interfaces, while 'herdr' provides a terminal-based agent multiplexer. 'liteparse' and 'fff' are gaining traction as high-performance utilities for document parsing and file searching, respectively, which are foundational for building efficient RAG and agentic systems.\n\nKey trends indicate a shift toward 'agent-native' tooling, where projects are explicitly designed to be MCP-compatible or to serve as specialized skills for LLM-based agents. The high velocity of these projects suggests that developers are rapidly building out the 'plumbing' layer for agentic applications, focusing on token efficiency, security, and cross-platform terminal integration."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 29.089903354644775,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "py_month",
+        "question": "Get trending Python repos for this month",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            }
+          ],
+          "findings": "The current trend in developer tooling is heavily focused on agentic workflows and LLM integration. In Python, Microsoft's 'markitdown' is seeing massive momentum for its utility in converting documents for LLM ingestion, while 'claude-code' and 'agent-governance-toolkit' highlight the shift toward production-grade agentic coding and safety frameworks. Specialized agent skills repositories (from Anthropic, Google, and others) are also trending, indicating a move toward standardized agent capabilities.\n\nIn the Rust ecosystem, momentum is driven by high-performance infrastructure for agents. 'cc-switch' is gaining significant traction as a unified interface for various coding agents, and 'herdr' is emerging as a terminal-based agent multiplexer. Additionally, tools like 'liteparse' and 'fff' are being adopted for their speed in preparing data for AI agents, reflecting a broader trend of using Rust to optimize the performance-critical paths of agentic pipelines."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 24.868471384048462,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "rs_week",
+        "question": "Get trending Rust repos for this week",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            }
+          ],
+          "findings": "The current landscape is dominated by agentic tooling, specifically focused on developer productivity, governance, and specialized agent skills. Python remains the primary language for high-level agent orchestration and skill definition, while Rust is increasingly used for performance-critical agent infrastructure and local-first tooling.\n\nKey Python projects include 'microsoft/markitdown' (file-to-markdown conversion for RAG), 'anthropics/claude-code' (terminal-based agentic coding), 'microsoft/agent-governance-toolkit' (security/compliance for agents), and 'chopratejas/headroom' (token optimization for LLMs). These tools address critical gaps in the agentic stack: data ingestion, developer workflow integration, safety, and cost management.\n\nIn the Rust ecosystem, momentum is concentrated in high-performance agent utilities. 'farion1231/cc-switch' provides a unified interface for various coding agents, 'ogulcancelik/herdr' acts as an agent multiplexer, and 'ryoppippi/ccusage' offers precise token/cost tracking. These projects highlight a shift toward building robust, low-latency infrastructure to support the next generation of autonomous agents."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 36.67123818397522,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:4"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "rs_month",
+        "question": "Get trending Rust repos for this month",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            }
+          ],
+          "findings": "The current landscape is dominated by agentic tooling, specifically focused on developer productivity and MCP (Model Context Protocol) integration. In Python, Microsoft's 'markitdown' and Anthropic's 'claude-code' are seeing massive momentum, reflecting a shift toward agentic file handling and terminal-based coding assistance. Other notable Python projects like 'headroom' and 'agent-governance-toolkit' highlight the growing need for token optimization and security in agentic workflows.\n\nIn the Rust ecosystem, momentum is concentrated on high-performance infrastructure for agents. 'cc-switch' has emerged as a major cross-platform assistant for various coding agents, while 'herdr' provides a terminal-based agent multiplexer. Additionally, tools like 'ryoppippi/ccusage' for tracking agent token costs and 'dmtrKovalenko/fff' for AI-optimized file searching demonstrate that Rust is becoming the preferred language for building the low-latency, resource-efficient backends required for modern AI agents.\n\nKey trends include: 1) A move toward 'agent-native' infrastructure (governance, cost tracking, and multiplexing); 2) Deep integration with Claude/MCP standards; and 3) A focus on local, private, and high-performance execution environments. These tools collectively signal a maturation of the agentic stack, moving from experimental prototypes to production-ready developer tooling."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 33.08861422538757,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:5"
+    },
+    {
+      "skill": "distiller",
+      "inputs": [
+        "n:2",
+        "n:3",
+        "n:4",
+        "n:5"
+      ],
+      "metadata": {
+        "label": "distilled",
+        "question": "Filter for agentic/MCP/dev-tooling and provide why-it-matters",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "distiller",
+        "output": {
+          "repos": [
+            {
+              "owner/repo": "microsoft/markitdown",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "file-to-markdown conversion for RAG",
+              "why_it_matters": "Provides essential infrastructure for converting diverse file formats into markdown for LLM ingestion and RAG workflows."
+            },
+            {
+              "owner/repo": "anthropics/claude-code",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "terminal-based agentic coding",
+              "why_it_matters": "Enables terminal-based agentic coding workflows, directly supporting the interest in agentic developer tooling."
+            },
+            {
+              "owner/repo": "microsoft/agent-governance-toolkit",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "security/compliance for agents",
+              "why_it_matters": "Addresses critical production-grade security and compliance requirements for deploying autonomous agents."
+            },
+            {
+              "owner/repo": "farion1231/cc-switch",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "unified interface for various coding agents",
+              "why_it_matters": "Acts as a cross-platform assistant and unified interface for managing multiple coding agents."
+            },
+            {
+              "owner/repo": "ogulcancelik/herdr",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "terminal-based agent multiplexer",
+              "why_it_matters": "Provides high-performance terminal-based multiplexing for managing multiple agentic sessions."
+            },
+            {
+              "owner/repo": "ryoppippi/ccusage",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "precise token/cost tracking",
+              "why_it_matters": "Offers critical infrastructure for monitoring token usage and costs in agentic pipelines."
+            }
+          ],
+          "rationale": "The repositories were identified across multiple research nodes as high-momentum projects directly relevant to agentic coding and developer tooling infrastructure."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 5.331289529800415,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:6"
+    },
+    {
+      "skill": "critic",
+      "inputs": [
+        "n:6"
+      ],
+      "metadata": {
+        "label": "alignment",
+        "question": "Is each repo relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported?",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "critic",
+        "output": {
+          "verdict": "fail",
+          "rationale": "The output only includes Python repositories and does not provide any information about Rust repositories, which were also requested in the user query."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.3916873931884766,
+        "provider": "groq",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:7"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:7"
+      ],
+      "metadata": {
+        "label": "out",
+        "creator": "n:1"
+      },
+      "status": "skipped",
+      "id": "n:8"
+    },
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "failure_report": "critic failed target=n:6 child=n:8 rationale=The output only includes Python repositories and does not provide any information about Rust repositories, which were also requested in the user query.",
+        "recovers": "n:6",
+        "recovery_reason": "critic_fail"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Fetch trending Python and Rust repositories for the requested timeframes, filter for relevance to agentic/MCP/dev-tooling, and validate the alignment of the 'why it matters' rationale.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python repos this week"
+              ],
+              "metadata": {
+                "label": "py_week",
+                "question": "Find trending Python repos this week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust repos this week"
+              ],
+              "metadata": {
+                "label": "rs_week",
+                "question": "Find trending Rust repos this week"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending python repos this month"
+              ],
+              "metadata": {
+                "label": "py_month",
+                "question": "Find trending Python repos this month"
+              }
+            },
+            {
+              "skill": "github_research",
+              "inputs": [
+                "trending rust repos this month"
+              ],
+              "metadata": {
+                "label": "rs_month",
+                "question": "Find trending Rust repos this month"
+              }
+            },
+            {
+              "skill": "distiller",
+              "inputs": [
+                "n:py_week",
+                "n:rs_week",
+                "n:py_month",
+                "n:rs_month"
+              ],
+              "metadata": {
+                "label": "distill",
+                "question": "Filter for agentic/MCP/dev-tooling and add why-it-matters"
+              }
+            },
+            {
+              "skill": "critic",
+              "inputs": [
+                "n:distill"
+              ],
+              "metadata": {
+                "label": "align",
+                "question": "Is each kept repo relevant to agentic/MCP/dev-tooling and is the why_it_matters supported by the description?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:align"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python repos this week"
+            ],
+            "metadata": {
+              "label": "py_week",
+              "question": "Find trending Python repos this week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust repos this week"
+            ],
+            "metadata": {
+              "label": "rs_week",
+              "question": "Find trending Rust repos this week"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending python repos this month"
+            ],
+            "metadata": {
+              "label": "py_month",
+              "question": "Find trending Python repos this month"
+            }
+          },
+          {
+            "skill": "github_research",
+            "inputs": [
+              "trending rust repos this month"
+            ],
+            "metadata": {
+              "label": "rs_month",
+              "question": "Find trending Rust repos this month"
+            }
+          },
+          {
+            "skill": "distiller",
+            "inputs": [
+              "n:py_week",
+              "n:rs_week",
+              "n:py_month",
+              "n:rs_month"
+            ],
+            "metadata": {
+              "label": "distill",
+              "question": "Filter for agentic/MCP/dev-tooling and add why-it-matters"
+            }
+          },
+          {
+            "skill": "critic",
+            "inputs": [
+              "n:distill"
+            ],
+            "metadata": {
+              "label": "align",
+              "question": "Is each kept repo relevant to agentic/MCP/dev-tooling and is the why_it_matters supported by the description?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:align"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.95976710319519,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:9"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:9"
+      ],
+      "metadata": {
+        "label": "py_week",
+        "question": "Find trending Python repos this week",
+        "creator": "n:9"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            }
+          ],
+          "findings": "The current landscape is dominated by agentic tooling and infrastructure. Key Python projects include 'microsoft/markitdown' for file-to-markdown conversion (essential for RAG pipelines), 'anthropics/claude-code' for terminal-based agentic coding, and 'microsoft/agent-governance-toolkit' for securing autonomous agents. 'chopratejas/headroom' is particularly notable for its focus on token optimization and MCP server support.\n\nIn the Rust ecosystem, momentum is concentrated on high-performance agentic infrastructure. 'farion1231/cc-switch' provides a unified interface for various coding agents, 'screenpipe/screenpipe' offers local, privacy-first activity recording for AI context, and 'run-llama/liteparse' delivers high-speed document parsing. These tools reflect a shift toward local, secure, and efficient agentic workflows.\n\nRepositories like 'mukul975/Anthropic-Cybersecurity-Skills' and 'dograh-hq/dograh' highlight the growing importance of standardized skills and MCP-native voice AI platforms. These projects are critical for developers building reliable, interoperable, and secure agentic systems."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 32.28286027908325,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:10"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:9"
+      ],
+      "metadata": {
+        "label": "rs_week",
+        "question": "Find trending Rust repos this week",
+        "creator": "n:9"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            }
+          ],
+          "findings": "The current trend in developer tooling is heavily focused on 'agentic' workflows, specifically tools that integrate with LLMs for coding, file processing, and security governance. Python remains the dominant language for high-level agent orchestration, while Rust is increasingly used for performance-critical agent infrastructure and local-first tools.\n\nKey Python repositories include: 'microsoft/markitdown' (converts files to Markdown for LLM ingestion), 'anthropics/claude-code' (an agentic terminal coding tool), 'microsoft/agent-governance-toolkit' (provides security and reliability frameworks for agents), and 'dograh-hq/dograh' (an open-source, MCP-native voice AI platform).\n\nKey Rust repositories include: 'farion1231/cc-switch' (a cross-platform assistant for various coding agents), 'run-llama/liteparse' (a high-performance document parser for RAG), 'ogulcancelik/herdr' (a terminal-based agent multiplexer), and 'ryoppippi/ccusage' (a tool for tracking token usage and costs of coding agents).\n\nThese tools reflect a shift toward 'agent-native' development, where the focus is on improving the reliability, observability, and cost-efficiency of autonomous agents through standardized interfaces like MCP and specialized infrastructure."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 24.88085412979126,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:11"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:9"
+      ],
+      "metadata": {
+        "label": "py_month",
+        "question": "Find trending Python repos this month",
+        "creator": "n:9"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            }
+          ],
+          "findings": "The current landscape is dominated by agentic tooling, specifically focused on coding assistants, agent governance, and specialized skill sets for LLMs. Key Python projects include 'microsoft/markitdown' for data ingestion, 'anthropics/claude-code' for terminal-based agentic workflows, and 'microsoft/agent-governance-toolkit' for security and reliability. These tools are critical for building production-ready, secure, and efficient AI agents.\n\nIn the Rust ecosystem, momentum is concentrated on high-performance infrastructure for agents. 'farion1231/cc-switch' provides a unified interface for various coding agents, 'screenpipe/screenpipe' offers local, privacy-focused activity recording for AI, and 'run-llama/liteparse' delivers high-speed document parsing. These projects highlight a shift toward Rust for performance-critical agent components.\n\n'chopratejas/headroom' stands out as a cross-language utility (Python/MCP) for token optimization, demonstrating the growing importance of cost-efficiency in agentic pipelines. Similarly, 'mukul975/Anthropic-Cybersecurity-Skills' and 'awslabs/aidlc-workflows' represent the trend toward standardizing agent capabilities and operational lifecycles, essential for enterprise-grade agent deployment."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 36.37995624542236,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:12"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:9"
+      ],
+      "metadata": {
+        "label": "rs_month",
+        "question": "Find trending Rust repos this month",
+        "creator": "n:9"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust Repositories (Weekly)"
+            },
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python Repositories (Monthly)"
+            }
+          ],
+          "findings": "The current GitHub landscape is dominated by agentic tooling and developer-experience enhancements. In Python, repositories like `anthropics/claude-code` and `microsoft/agent-governance-toolkit` highlight a shift toward production-grade agentic workflows and security. `microsoft/markitdown` has emerged as a critical utility for preparing data for LLMs, while `chopratejas/headroom` provides essential token-optimization for agentic pipelines.\n\nIn the Rust ecosystem, momentum is focused on high-performance infrastructure for agents. `farion1231/cc-switch` and `ogulcancelik/herdr` are gaining significant traction as terminal-based multiplexers and assistants for managing multiple agentic tools. `screenpipe/screenpipe` continues to lead in local, privacy-first AI context-awareness, and `dmtrKovalenko/fff` provides high-speed file searching specifically optimized for AI agent workflows.\n\nWhy it matters: These tools represent the maturation of the 'AI Agent' stack. We are moving beyond simple chat interfaces toward specialized, high-performance infrastructure (Rust) and standardized, governance-aware frameworks (Python) that allow agents to interact reliably with local filesystems, terminal environments, and complex document formats."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 28.631374835968018,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:13"
+    },
+    {
+      "skill": "distiller",
+      "inputs": [
+        "n:10",
+        "n:11",
+        "n:12",
+        "n:13"
+      ],
+      "metadata": {
+        "label": "distill",
+        "question": "Filter for agentic/MCP/dev-tooling and add why-it-matters",
+        "creator": "n:9"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "distiller",
+        "output": {
+          "repos": [
+            {
+              "owner/repo": "anthropics/claude-code",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "Terminal-based agentic coding tool.",
+              "why_it_matters": "Provides a terminal-based interface for agentic coding workflows, directly supporting agentic development."
+            },
+            {
+              "owner/repo": "microsoft/markitdown",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "File-to-markdown conversion tool for LLM ingestion.",
+              "why_it_matters": "Essential for RAG pipelines by enabling efficient file-to-markdown conversion for LLM data ingestion."
+            },
+            {
+              "owner/repo": "microsoft/agent-governance-toolkit",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "Security and reliability framework for autonomous agents.",
+              "why_it_matters": "Provides critical security and reliability frameworks necessary for deploying production-grade autonomous agents."
+            },
+            {
+              "owner/repo": "farion1231/cc-switch",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "Unified interface for various coding agents.",
+              "why_it_matters": "Acts as a cross-platform assistant that unifies multiple coding agents, improving developer tooling efficiency."
+            },
+            {
+              "owner/repo": "run-llama/liteparse",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "High-speed document parsing for RAG.",
+              "why_it_matters": "Delivers high-performance document parsing, which is a critical infrastructure component for agentic RAG workflows."
+            },
+            {
+              "owner/repo": "screenpipe/screenpipe",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "Local, privacy-first activity recording for AI context.",
+              "why_it_matters": "Enables local, privacy-focused AI context-awareness, fitting the need for secure agentic infrastructure."
+            },
+            {
+              "owner/repo": "chopratejas/headroom",
+              "total_stars": 0,
+              "stars_gained": 0,
+              "description": "Token optimization and MCP server support tool.",
+              "why_it_matters": "Supports MCP and token optimization, directly addressing the need for cost-efficient agentic pipelines."
+            }
+          ],
+          "rationale": "The repositories were identified from the research findings as high-momentum projects relevant to agentic workflows, MCP, and developer tooling; note that specific star counts were not provided in the source text."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 5.531508207321167,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:14"
+    },
+    {
+      "skill": "critic",
+      "inputs": [
+        "n:14"
+      ],
+      "metadata": {
+        "label": "align",
+        "question": "Is each kept repo relevant to agentic/MCP/dev-tooling and is the why_it_matters supported by the description?",
+        "creator": "n:9"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "critic",
+        "output": {
+          "verdict": "fail",
+          "rationale": "The output only includes Python repositories and lacks Rust repositories as requested, and also does not provide ranking by momentum."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.3615024089813232,
+        "provider": "groq",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:15"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:15"
+      ],
+      "metadata": {
+        "label": "out",
+        "creator": "n:9"
+      },
+      "status": "skipped",
+      "id": "n:16"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:1",
+      "target": "n:2"
+    },
+    {
+      "source": "n:1",
+      "target": "n:3"
+    },
+    {
+      "source": "n:1",
+      "target": "n:4"
+    },
+    {
+      "source": "n:1",
+      "target": "n:5"
+    },
+    {
+      "source": "n:2",
+      "target": "n:6"
+    },
+    {
+      "source": "n:3",
+      "target": "n:6"
+    },
+    {
+      "source": "n:4",
+      "target": "n:6"
+    },
+    {
+      "source": "n:5",
+      "target": "n:6"
+    },
+    {
+      "source": "n:6",
+      "target": "n:7"
+    },
+    {
+      "source": "n:7",
+      "target": "n:8"
+    },
+    {
+      "source": "n:9",
+      "target": "n:10"
+    },
+    {
+      "source": "n:9",
+      "target": "n:11"
+    },
+    {
+      "source": "n:9",
+      "target": "n:12"
+    },
+    {
+      "source": "n:9",
+      "target": "n:13"
+    },
+    {
+      "source": "n:10",
+      "target": "n:14"
+    },
+    {
+      "source": "n:11",
+      "target": "n:14"
+    },
+    {
+      "source": "n:12",
+      "target": "n:14"
+    },
+    {
+      "source": "n:13",
+      "target": "n:14"
+    },
+    {
+      "source": "n:14",
+      "target": "n:15"
+    },
+    {
+      "source": "n:15",
+      "target": "n:16"
+    }
+  ]
+}
