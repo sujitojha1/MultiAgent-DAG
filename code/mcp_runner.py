@@ -67,13 +67,8 @@ async def run_with_tools(*, prompt: str, tools_payload: list[dict],
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as mcp:
             await mcp.initialize()
-            for hop in range(MAX_TOOL_HOPS + 1):
-                # Force at least one tool call on the first hop so providers
-                # with tool_choice="auto" (e.g. Gemini) can't silently skip
-                # tools and synthesise from training data instead.
-                tc_mode = "required" if hop == 0 else "auto"
+            for _ in range(MAX_TOOL_HOPS + 1):
                 reply = await _chat(messages=messages, tools=tools_payload,
-                                    tool_choice=tc_mode,
                                     agent=agent, session_id=session_id,
                                     provider_pin=provider_pin,
                                     max_tokens=max_tokens, temperature=temperature)
@@ -93,23 +88,20 @@ async def run_with_tools(*, prompt: str, tools_payload: list[dict],
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.get("id", ""),
-                        # Include name so Gemini can match function_response.name
-                        # to the original functionCall.name (required by its API).
-                        "name": tc["name"],
                         "content": result_text[:8_000],  # cap per-tool reply
                     })
     # Hit the hop cap. Return whatever the gateway last said.
     return last_reply
 
 
-async def _chat(*, messages, tools, tool_choice="auto", agent, session_id,
-                provider_pin, max_tokens, temperature) -> dict:
+async def _chat(*, messages, tools, agent, session_id, provider_pin,
+                max_tokens, temperature) -> dict:
     import asyncio as _a
     return await _a.to_thread(
         LLM().chat,
         messages=messages,
         tools=tools,
-        tool_choice=tool_choice,
+        tool_choice="auto",
         agent=agent,
         session=session_id,
         provider=provider_pin,

@@ -6,36 +6,14 @@ Your tool surface is two MCP tools: `web_search(query, max_results)` and
 
 Procedure:
   1. Read the QUESTION in the prompt.
-  2. Issue ONE `web_search` with a focused query derived from the QUESTION.
-  3. Pick the 1–2 most authoritative-looking URLs and fetch them with
+  2. Issue ONE `web_search` to get candidate URLs.
+  3. Pick the 1–3 most authoritative-looking URLs and fetch them with
      `fetch_url` in sequence. Avoid clearly low-signal results (aggregator
      spam, ad redirects).
-  4. If the fetched pages return very little usable text (empty body,
-     JS-rendered shell, paywall, redirect) OR the text does not contain
-     the concrete data the question asks for (e.g. a list of repos, names,
-     numbers), do NOT give up yet. Use your remaining tool budget to issue
-     ONE refined `web_search` with different terms — for example:
-       - For GitHub trending repos: search "github trending python weekly
-         site:github.com" or try fetching the GitHub search API directly:
-         fetch_url("https://api.github.com/search/repositories?q=language:python+pushed:>LAST_WEEK_DATE&sort=stars&order=desc&per_page=10")
-         where LAST_WEEK_DATE is today's date minus 7 days (YYYY-MM-DD).
-       - Otherwise append words like "API", "JSON", "raw data", "list", or
-         "dataset" to steer toward machine-readable sources.
-     Then fetch the best result from that second search.
-  5. Extract and list the ACTUAL DATA from whatever usable pages you
-     obtained: names, titles, URLs, numbers, dates — whatever the question
-     asks for. Do NOT describe what the page is or how to find the data;
-     GIVE the data. If the question asks "what are the trending repos",
-     your findings must list the actual repo names and star counts you
-     found, not a description of where to look.
+  4. Synthesise the relevant content from the fetched pages.
 
-CRITICAL: Never answer with meta-commentary like "you can visit X to see the
-data" or "the list is dynamic". That is a non-answer. Extract and report the
-actual data from the pages you fetched.
-
-Time budget: keep tool calls to 5 max per invocation (1–2 web_search +
-up to 3 fetch_url). Distribute them: spend 2 fetches on the first search,
-reserve 1 fetch for a refined search if the first round yields nothing.
+Time budget: keep tool calls to 4 max per invocation. If a `fetch_url`
+returns very little usable text, do not retry; move on.
 
 Output schema (JSON, no prose, no markdown fences):
 
