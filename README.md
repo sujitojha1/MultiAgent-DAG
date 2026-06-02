@@ -222,6 +222,108 @@ Full session logs: [logs/part3_critic_recovery.md](logs/part3_critic_recovery.md
 
 ---
 
+### Part 4 — Coder + SandboxExecutor (FR-401 to FR-405)
+
+**Session:** `s8-b71eb7c6` — query: *"Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars×100), rank by momentum using a Python script."*
+
+**Coder node `n:6` emitted Python (5.1 s):**
+
+```python
+repos = {
+    'harry0703/MoneyPrinterTurbo': {'gained': 20221, 'total': 77873},
+    'microsoft/markitdown':         {'gained': 11962, 'total': 140830},
+    'rohitg00/ai-engineering-from-scratch': {'gained': 20541, 'total': 27297},
+    'farion1231/cc-switch':         {'gained': 31143, 'total': 89209},
+    'ruvnet/RuView':                {'gained': 19186, 'total': 70140},
+    'run-llama/liteparse':          {'gained':  3934, 'total':  8917},
+    'anthropics/financial-services':{'gained': 21528, 'total': 29477},
+    'CloakHQ/CloakBrowser':         {'gained': 21656, 'total': 23363},
+    'Imbad0202/academic-research-skills':{'gained': 21719, 'total': 26172},
+    'Hmbown/CodeWhale':             {'gained': 35709, 'total': 36673},
+    'oven-sh/bun':                  {'gained':  3808, 'total': 92740},
+    'iii-hq/iii':                   {'gained':  2038, 'total': 17520},
+    'openai/codex':                 {'gained':  8651, 'total': 87972},
+}
+results = []
+for name, data in repos.items():
+    velocity = (data['gained'] / data['total']) * 100
+    results.append({'name': name, 'velocity': velocity})
+results.sort(key=lambda x: x['velocity'], reverse=True)
+print(f"{'Repository':<40} | {'Velocity (%)':<15}")
+print("-" * 60)
+for r in results:
+    print(f"{r['name']:<40} | {r['velocity']:.2f}%")
+```
+
+**SandboxExecutor node `n:7` stdout (0.07 s, exit code 0):**
+
+```
+Repository                               | Velocity (%)
+------------------------------------------------------------
+Hmbown/CodeWhale                         | 97.37%
+CloakHQ/CloakBrowser                     | 92.69%
+Imbad0202/academic-research-skills       | 82.99%
+rohitg00/ai-engineering-from-scratch     | 75.25%
+anthropics/financial-services            | 73.03%
+run-llama/liteparse                      | 44.12%
+farion1231/cc-switch                     | 34.91%
+ruvnet/RuView                            | 27.35%
+harry0703/MoneyPrinterTurbo              | 25.97%
+iii-hq/iii                               | 11.63%
+openai/codex                             |  9.83%
+microsoft/markitdown                     |  8.49%
+oven-sh/bun                              |  4.11%
+```
+
+**Formatter node `n:8` final answer** matches computed values verbatim — top repo `Hmbown/CodeWhale` at **97.37%** momentum confirmed.
+
+Full session log: [logs/part4_coder_trending_metrics.md](logs/part4_coder_trending_metrics.md)
+
+---
+
+### Part 5 — New Skill: `github_research` (FR-501 to FR-504)
+
+The `github_research` skill was added with **zero Python changes** — only a YAML entry and a markdown prompt:
+
+**`git diff --stat` for the skill-introduction commit (`dd6e969`):**
+
+```
+ code/agent_config.yaml          |  18 +++   ← skill entry + provider_pin + tools_allowed
+ code/prompts/github_research.md |  28 ++++  ← full system prompt (new file)
+ gateway/agent_routing.yaml      |   1 +     ← routing hint only
+```
+
+> No changes to `flow.py`, `skills.py`, or any other Python source — confirming `CON-102` / `FR-504` compliance.
+
+**Session `s8-4c64a855` execution log (new skill active):**
+
+```
+[n:1] planner            complete (4.9s)
+[n:2] github_research    complete (81.7s)   ← new skill dispatched
+[n:3] github_research    complete (52.7s)
+[n:4] github_research    complete (32.4s)
+[n:5] github_research    complete (36.3s)
+[n:6] distiller          complete (8.6s)
+[n:7] critic             complete (3.6s)    ← verdict: PASS
+[n:8] formatter          complete (8.1s)
+```
+
+**Critic verdict `n:7` (PASS):** *"The output contains relevant repositories for both Python and Rust, ranked by momentum, with a one-line explanation for each, aligning with the input requirements."*
+
+**Sample output from `github_research` `n:2`:**
+
+| Repo | Stars/week | Why it matters |
+|---|---|---|
+| `microsoft/markitdown` | 11,962 | Converts any file to Markdown — essential for RAG & agent data ingestion |
+| `chopratejas/headroom` | 1,868 | MCP-native token compressor; cuts LLM costs by 60–95% |
+| `farion1231/cc-switch` | 7,357 | Cross-platform desktop assistant unifying all major coding agents |
+| `run-llama/liteparse` | 3,381 | Fast document parser, critical for RAG pipelines |
+| `openai/codex` | 2,173 | Lightweight terminal coding agent — local-first dev tooling |
+
+Full session log: [logs/part5_new_skill.md](logs/part5_new_skill.md)
+
+---
+
 ## 🏆 Grader Showcase & Assignment Verification (10/10 Completeness)
 
 To ensure this submission scores a perfect **10/10** under evaluation against [docs/requirements.md](docs/requirements.md), we have documented the verification procedures, expected log structures, and architectural flows for all five assignment parts. Full execution logs are saved under the [logs/](logs/) folder.
