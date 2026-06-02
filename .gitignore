@@ -8,3 +8,6 @@ gateway/__pycache__/*
 # graphify knowledge-graph artifacts
 graphify-out/
 env
+
+# Execution logs folder
+logs/
