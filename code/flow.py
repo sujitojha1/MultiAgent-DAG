@@ -88,8 +88,10 @@ class Graph:
         pending: list[tuple[str, list[str]]] = []
         for spec in result.successors:
             label = (spec.metadata or {}).get("label")
+            meta = dict(spec.metadata or {})
+            meta["creator"] = src_nid
             new_id = self.add_node(spec.skill, inputs=[],
-                                   metadata=spec.metadata)
+                                   metadata=meta)
             added.append(new_id)
             if isinstance(label, str) and label:
                 label_to_id[label] = new_id

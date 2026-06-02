@@ -30,8 +30,7 @@ Notes:
 Repository lists (PulseDAG trending queries):
   When the inputs are a list of GitHub repositories, emit a `repos`
   array instead of a flat `fields` dict. Each entry MUST carry
-  `owner/repo`, `total_stars`, `stars_gained`, and `description`
-  (the completeness critic checks for exactly these). Then apply a
+  only `owner/repo`, `stars_gained`, and `description` (do not output total_stars at all, as this field is deprecated). Then apply a
   relevance pass against the interest profile and add one more field
   per kept repo:
 
@@ -39,7 +38,6 @@ Repository lists (PulseDAG trending queries):
       "repos": [
         {
           "owner/repo": "<owner>/<name>",
-          "total_stars": <int>,
           "stars_gained": <int>,
           "description": "<verbatim from the input>",
           "why_it_matters": "<one sentence, grounded ONLY in this repo's description, saying how it fits the interest profile>"

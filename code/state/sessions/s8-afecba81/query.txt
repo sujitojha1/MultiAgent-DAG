@@ -1,0 +1,1 @@
+find the trending python repositories from last week, filter them by relevance, provide a 'why it matters' explanation for each one, but do not output the total_stars field for any repository.

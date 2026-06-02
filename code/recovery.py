@@ -94,6 +94,23 @@ def plan_recovery(
     )
 
 
+def _get_original_target(graph, nid: str) -> str:
+    curr = nid
+    visited = {curr}
+    while True:
+        md = graph.g.nodes[curr].get("metadata") or {}
+        creator = md.get("creator")
+        if creator and creator in graph.g.nodes:
+            creator_md = graph.g.nodes[creator].get("metadata") or {}
+            recovers = creator_md.get("recovers")
+            if recovers and recovers in graph.g.nodes and recovers not in visited:
+                curr = recovers
+                visited.add(curr)
+                continue
+        break
+    return curr
+
+
 def handle_critic_verdict(nid: str, result, graph, recovered_branches: dict,
                           cap_hit: list) -> bool:
     """Critic-fail policy (P1 #5). Returns True when the caller should skip
@@ -119,8 +136,11 @@ def handle_critic_verdict(nid: str, result, graph, recovered_branches: dict,
         child_nid = succs[0] if succs else None
     if child_nid and child_nid in graph.g.nodes:
         graph.mark(child_nid, "skipped")
-    if target_nid and not recovered_branches.get(target_nid):
-        recovered_branches[target_nid] = True
+
+    original_target_nid = _get_original_target(graph, target_nid) if target_nid else target_nid
+
+    if target_nid and not recovered_branches.get(original_target_nid):
+        recovered_branches[original_target_nid] = True
         rationale = (result.output or {}).get("rationale", "(no rationale)")
         fr = f"critic failed target={target_nid} child={child_nid} rationale={rationale}"
         rec_nid = graph.add_node("planner", inputs=["USER_QUERY"],
