@@ -1,0 +1,26 @@
+{
+  "node_id": "n:7",
+  "skill": "critic",
+  "status": "complete",
+  "inputs": [
+    "n:6"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "critic",
+    "output": {
+      "verdict": "fail",
+      "rationale": "The output is missing velocity calculations and cross-source delta for repositories, and the momentum calculation only considers weekly velocity."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 3.4201197624206543,
+    "provider": "groq",
+    "error": null
+  },
+  "prompt_sent": "You are the Critic skill. You evaluate one upstream node's output and\nreturn pass-or-fail with a short rationale.\n\nYou make no tool calls. The upstream output and (when the orchestrator\nhas it) the inputs that node received both appear in the prompt.\n\nProcedure:\n  1. Read the UPSTREAM_OUTPUT.\n  2. Check it against the INPUTS that produced it.\n  3. Look for: fabricated fields, claims unsupported by the input,\n     contradictions, missing fields the input clearly contained.\n  4. Emit pass or fail.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"verdict\": \"pass\" | \"fail\",\n    \"rationale\": \"<one or two short sentences>\"\n  }\n\nWhen you emit `fail`, the orchestrator may invoke the Planner to\nrecover. Be specific in your rationale so the recovery plan can be\ntargeted. Do not fail for stylistic reasons; only fail when the\nupstream output is wrong, missing, or unsupported.\n\nUSER_QUERY: Find the top trending Python and Rust repositories for both this week and this month. Deduplicate them, compute their velocity (gained / total * 100) and cross-source delta for repositories appearing in both weekly and monthly lists, rank them by momentum, and format the final answer with a deterministic templated fact-line for each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from the last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:6\",\n    \"kind\": \"upstream\",\n    \"skill\": \"coder\",\n    \"output\": {\n      \"code\": \"repos = [\\n    {'name': 'harry0703/MoneyPrinterTurbo', 'lang': 'Python', 'weekly_v': 24.3, 'monthly_v': 26.0},\\n    {'name': 'microsoft/markitdown', 'lang': 'Python', 'weekly_v': 8.5, 'monthly_v': 13.3},\\n    {'name': 'farion1231/cc-switch', 'lang': 'Rust', 'weekly_v': 8.2, 'monthly_v': 8.2},\\n    {'name': 'ruvnet/RuView', 'lang': 'Rust', 'weekly_v': 6.1, 'monthly_v': 6.1},\\n    {'name': 'microsoft/agent-governance-toolkit', 'lang': 'Python', 'weekly_v': 5.0, 'monthly_v': 5.0},\\n    {'name': 'openai/codex', 'lang': 'Rust', 'weekly_v': 4.5, 'monthly_v': 4.5},\\n    {'name': 'ryoppippi/ccusage', 'lang': 'Rust', 'weekly_v': 4.2, 'monthly_v': 4.2},\\n    {'name': 'run-llama/liteparse', 'lang': 'Rust', 'weekly_v': 3.8, 'monthly_v': 3.8},\\n    {'name': 'ogulcancelik/herdr', 'lang': 'Rust', 'weekly_v': 3.5, 'monthly_v': 3.5}\\n]\\n\\nfor r in repos:\\n    r['momentum'] = r['weekly_v']\\n    r['delta'] = r['monthly_v'] - r['weekly_v']\\n\\nrepos.sort(key=lambda x: x['momentum'], reverse=True)\\n\\nprint(\\\"Top Trending Repositories by Momentum:\\\")\\nfor r in repos:\\n    print(f\\\"[{r['lang']}] {r['name']} | Velocity: {r['weekly_v']:.1f}% | Delta: {r['delta']:.1f}% | Momentum Rank: {repos.index(r)+1}\\\")\",\n      \"rationale\": \"Aggregated repository data, calculated momentum and delta, and formatted the ranked list.\"\n    }\n  }\n]",
+  "started_at": 1780422379.5103023,
+  "completed_at": 1780422382.930422,
+  "retries": 0
+}

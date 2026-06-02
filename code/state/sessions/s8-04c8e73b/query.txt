@@ -1,0 +1,1 @@
+Find the top trending Python and Rust repositories for both this week and this month. Deduplicate them, compute their velocity (gained / total * 100) and cross-source delta for repositories appearing in both weekly and monthly lists, rank them by momentum, and format the final answer with a deterministic templated fact-line for each.

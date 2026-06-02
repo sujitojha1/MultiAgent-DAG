@@ -1,0 +1,32 @@
+{
+  "node_id": "n:2",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=weekly",
+          "title": "GitHub Trending Python Repositories (Weekly)"
+        }
+      ],
+      "findings": "The past week on GitHub has been dominated by tools and frameworks that enhance AI agent capabilities, streamline data processing for LLMs, and provide infrastructure for voice AI. \n\nMicrosoft's 'markitdown' (11,962 stars this week) is highly relevant as it simplifies the conversion of various file formats into Markdown, a critical step for preparing data for RAG (Retrieval-Augmented Generation) pipelines. Similarly, 'headroom' (1,868 stars) addresses the growing concern of token efficiency by compressing data before it reaches an LLM, offering a practical solution for cost and performance optimization.\n\nIn the agentic space, 'claude-code' (3,004 stars) and 'agent-governance-toolkit' (1,529 stars) highlight a shift toward production-ready AI. The former provides a terminal-based coding assistant, while the latter addresses the urgent need for security and policy enforcement in autonomous agent deployments. Additionally, 'Anthropic-Cybersecurity-Skills' (4,330 stars) provides a standardized framework for integrating security expertise into AI agents, reflecting the industry's focus on building safer, more capable systems.\n\nFinally, the voice AI sector remains active with projects like 'dograh' (1,259 stars) and 'MOSS-TTS' (933 stars). These repositories offer open-source, self-hosted alternatives to proprietary voice platforms, democratizing access to high-fidelity speech generation and real-time streaming capabilities."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 13.480385303497314,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the QUESTION. Infer the time window (`daily`/`weekly`/`monthly`,\n     default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, stars, URL.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Trending Python repositories from the last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\"\n  }\n]",
+  "started_at": 1780422454.1475222,
+  "completed_at": 1780422467.6279075,
+  "retries": 0
+}

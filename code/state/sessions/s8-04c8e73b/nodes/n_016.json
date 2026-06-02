@@ -1,0 +1,26 @@
+{
+  "node_id": "n:16",
+  "skill": "critic",
+  "status": "complete",
+  "inputs": [
+    "n:15"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "critic",
+    "output": {
+      "verdict": "fail",
+      "rationale": "The output only contains repositories for Python and Rust, but does not specify which ones are trending for this week and this month, and does not provide a clear distinction between the two time frames."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 3.2676680088043213,
+    "provider": "groq",
+    "error": null
+  },
+  "prompt_sent": "You are the Critic skill. You evaluate one upstream node's output and\nreturn pass-or-fail with a short rationale.\n\nYou make no tool calls. The upstream output and (when the orchestrator\nhas it) the inputs that node received both appear in the prompt.\n\nProcedure:\n  1. Read the UPSTREAM_OUTPUT.\n  2. Check it against the INPUTS that produced it.\n  3. Look for: fabricated fields, claims unsupported by the input,\n     contradictions, missing fields the input clearly contained.\n  4. Emit pass or fail.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"verdict\": \"pass\" | \"fail\",\n    \"rationale\": \"<one or two short sentences>\"\n  }\n\nWhen you emit `fail`, the orchestrator may invoke the Planner to\nrecover. Be specific in your rationale so the recovery plan can be\ntargeted. Do not fail for stylistic reasons; only fail when the\nupstream output is wrong, missing, or unsupported.\n\nUSER_QUERY: Find the top trending Python and Rust repositories for both this week and this month. Deduplicate them, compute their velocity (gained / total * 100) and cross-source delta for repositories appearing in both weekly and monthly lists, rank them by momentum, and format the final answer with a deterministic templated fact-line for each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from the last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:15\",\n    \"kind\": \"upstream\",\n    \"skill\": \"coder\",\n    \"output\": {\n      \"code\": \"repos = [\\n    {\\\"name\\\": \\\"microsoft/markitdown\\\", \\\"lang\\\": \\\"Python\\\", \\\"velocity\\\": 88.5, \\\"delta\\\": 12.4},\\n    {\\\"name\\\": \\\"farion1231/cc-switch\\\", \\\"lang\\\": \\\"Rust\\\", \\\"velocity\\\": 82.1, \\\"delta\\\": 8.9},\\n    {\\\"name\\\": \\\"harry0703/MoneyPrinterTurbo\\\", \\\"lang\\\": \\\"Python\\\", \\\"velocity\\\": 75.4, \\\"delta\\\": 15.2},\\n    {\\\"name\\\": \\\"rohitg00/ai-engineering-from-scratch\\\", \\\"lang\\\": \\\"Python\\\", \\\"velocity\\\": 68.9, \\\"delta\\\": 5.1},\\n    {\\\"name\\\": \\\"AIDC-AI/Pixelle-Video\\\", \\\"lang\\\": \\\"Python\\\", \\\"velocity\\\": 65.2, \\\"delta\\\": 4.8},\\n    {\\\"name\\\": \\\"screenpipe/screenpipe\\\", \\\"lang\\\": \\\"Rust\\\", \\\"velocity\\\": 62.5, \\\"delta\\\": 9.3},\\n    {\\\"name\\\": \\\"chopratejas/headroom\\\", \\\"lang\\\": \\\"Python\\\", \\\"velocity\\\": 59.8, \\\"delta\\\": 11.7}\\n]\\n\\n# Sort by momentum (velocity + delta)\\nranked = sorted(repos, key=lambda x: x['velocity'] + x['delta'], reverse=True)\\n\\nprint(\\\"Top Trending Repositories by Momentum:\\\")\\nfor i, r in enumerate(ranked, 1):\\n    print(f\\\"{i}. {r['name']} ({r['lang']}) | Velocity: {r['velocity']}% | Cross-Source Delta: {r['delta']} | Momentum Score: {r['velocity'] + r['delta']:.1f}\\\")\",\n      \"rationale\": \"Aggregated findings from research nodes to rank trending Python and Rust repositories by momentum (velocity + delta).\"\n    }\n  }\n]",
+  "started_at": 1780422439.5124927,
+  "completed_at": 1780422442.7801607,
+  "retries": 0
+}
