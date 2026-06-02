@@ -1,0 +1,13 @@
+{
+  "node_id": "n:9",
+  "skill": "critic",
+  "status": "running",
+  "inputs": [
+    "n:8"
+  ],
+  "result": null,
+  "prompt_sent": null,
+  "started_at": 1780422135.7045157,
+  "completed_at": null,
+  "retries": 0
+}
