@@ -1,0 +1,1 @@
+Find the top trending Python and Rust repos this week and this month; dedupe across lists, compute each repo's velocity %, and rank by momentum.

@@ -1,0 +1,139 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "The user is requesting trending GitHub repositories for a specific timeframe, which requires live data from GitHub rather than relying on existing memory hits.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "last month trending python repositories on github"
+              ],
+              "metadata": {
+                "label": "gh_data",
+                "question": "What are the most trending Python repositories on GitHub from the last month?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:gh_data"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "last month trending python repositories on github"
+            ],
+            "metadata": {
+              "label": "gh_data",
+              "question": "What are the most trending Python repositories on GitHub from the last month?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:gh_data"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.151435375213623,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "gh_data",
+        "question": "What are the most trending Python repositories on GitHub from the last month?"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "What are the most trending Python repositories on GitHub from the last month?",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=monthly",
+              "title": "Trending Python repositories on GitHub (last month)"
+            }
+          ],
+          "findings": "The most trending Python repositories on GitHub over the last month are heavily focused on AI agents, automation, and developer tooling. Leading the list is 'Imbad0202/academic-research-skills' with 21,719 new stars, followed closely by 'CloakHQ/CloakBrowser' (21,656 stars) and 'anthropics/financial-services' (21,528 stars).\n\nOther notable trending repositories include 'rohitg00/ai-engineering-from-scratch' (20,541 stars) and 'harry0703/MoneyPrinterTurbo' (20,221 stars). These projects highlight a strong community interest in AI-driven workflows, automated video generation, and specialized agentic frameworks."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 13.451112270355225,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "The most trending Python repositories on GitHub over the last month are primarily focused on AI agents, automation, and developer tools. The top repositories are:\n\n1. Imbad0202/academic-research-skills (21,719 new stars)\n2. CloakHQ/CloakBrowser (21,656 new stars)\n3. anthropics/financial-services (21,528 new stars)\n4. rohitg00/ai-engineering-from-scratch (20,541 new stars)\n5. harry0703/MoneyPrinterTurbo (20,221 new stars)\n\nThese projects reflect a significant community interest in AI-driven workflows and automated frameworks. Source: https://github.com/trending/python?since=monthly"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.179136514663696,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:1",
+      "target": "n:2"
+    },
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}

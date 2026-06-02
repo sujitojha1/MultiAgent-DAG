@@ -1,0 +1,32 @@
+{
+  "node_id": "n:2",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "n:1"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "What are the most trending Python repositories on GitHub from the last month?",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=monthly",
+          "title": "Trending Python repositories on GitHub (last month)"
+        }
+      ],
+      "findings": "The most trending Python repositories on GitHub over the last month are heavily focused on AI agents, automation, and developer tooling. Leading the list is 'Imbad0202/academic-research-skills' with 21,719 new stars, followed closely by 'CloakHQ/CloakBrowser' (21,656 stars) and 'anthropics/financial-services' (21,528 stars).\n\nOther notable trending repositories include 'rohitg00/ai-engineering-from-scratch' (20,541 stars) and 'harry0703/MoneyPrinterTurbo' (20,221 stars). These projects highlight a strong community interest in AI-driven workflows, automated video generation, and specialized agentic frameworks."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 13.451112270355225,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the QUESTION. Infer the time window (`daily`/`weekly`/`monthly`,\n     default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, stars, URL.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: last month, find the most tending python lanuage repo in github\n\nMEMORY HITS (3 from FAISS):\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n\nINPUTS:\n[\n  {\n    \"id\": \"n:1\",\n    \"kind\": \"upstream\",\n    \"skill\": \"planner\",\n    \"output\": {\n      \"rationale\": \"The user is requesting trending GitHub repositories for a specific timeframe, which requires live data from GitHub rather than relying on existing memory hits.\",\n      \"nodes\": [\n        {\n          \"skill\": \"github_research\",\n          \"inputs\": [\n            \"last month trending python repositories on github\"\n          ],\n          \"metadata\": {\n            \"label\": \"gh_data\",\n            \"question\": \"What are the most trending Python repositories on GitHub from the last month?\"\n          }\n        },\n        {\n          \"skill\": \"formatter\",\n          \"inputs\": [\n            \"n:gh_data\"\n          ],\n          \"metadata\": {\n            \"label\": \"out\"\n          }\n        }\n      ]\n    }\n  }\n]",
+  "started_at": 1780415380.5571392,
+  "completed_at": 1780415394.0082514,
+  "retries": 0
+}
