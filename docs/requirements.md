@@ -367,7 +367,7 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 | NFR-101 | 22 tests pass before and after | All | `tests/test_recovery.py` | `uv run pytest` | #14 |
 | NFR-201 | Fewer tokens than S7 | Part 2 | Gateway `/v1/cost/by_agent` | log comparison | #46 |
 | NFR-301 | Atomic writes | All | `persistence.py` · `_atomic_write` + `os.replace` | [architecture review](ATOMIC_PERSISTENCE.md) ✅ | #47 |
-| NFR-401 | Sandbox 1 MB / 30 s cap | Part 4 | `sandbox.py` | code review | #48 |
+| NFR-401 | Sandbox 1 MB / 30 s cap | Part 4 | `sandbox.py` · `DEFAULT_TIMEOUT_S=30`, `DEFAULT_STDOUT/ERR_CAP=1_000_000` | [code review](../docs/SANDBOX_CONSTRAINTS.md) ✅ + 12 probe tests | #48 |
 | NFR-501 | Node-boundary resume | Part 1 | `persistence.py`, `flow.Executor.run:172` | demo | #24 |
 | CON-101 | S7 modules byte-identical | All | 7 carry-over files | `git diff` | — |
 | CON-102 | No skill-name branch in Executor (Part 5) | Part 5 | `flow.py` | `git diff` | #39 |
