@@ -11,3 +11,4 @@ env
 
 # Execution logs folder
 logs/
+code/tests/__pycache__/*
