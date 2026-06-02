@@ -27,5 +27,42 @@ Notes:
   - When the question's evidence is missing, set `fields: {}` and put
     the gap in `rationale`. Do not invent.
 
-A Critic node may run after you. Its evaluation will fail if you
-invented fields or made claims unsupported by the inputs.
+Repository lists (PulseDAG trending queries):
+  When the inputs are a list of GitHub repositories, emit a `repos`
+  array instead of a flat `fields` dict. Each entry MUST carry
+  `owner/repo`, `total_stars`, `stars_gained`, and `description`
+  (the completeness critic checks for exactly these). Then apply a
+  relevance pass against the interest profile and add one more field
+  per kept repo:
+
+    {
+      "repos": [
+        {
+          "owner/repo": "<owner>/<name>",
+          "total_stars": <int>,
+          "stars_gained": <int>,
+          "description": "<verbatim from the input>",
+          "why_it_matters": "<one sentence, grounded ONLY in this repo's description, saying how it fits the interest profile>"
+        }
+      ],
+      "rationale": "<one short sentence>"
+    }
+
+  Interest profile (default, override only if the query states one):
+  agentic coding, MCP servers, dev tooling, web frameworks.
+
+  Keep/drop: drop repos whose description does not plausibly fit the
+  interest profile, and drop anomalies (e.g. velocity-looking spikes
+  on micro-repos). Do NOT keep a repo just because it trended.
+
+  `why_it_matters` is the load-bearing field for the alignment critic:
+  it must be entailed by the repo's own `description`. Never assert a
+  feature, capability, or framing the description does not support —
+  a hallucinated rationale will fail the critic and trigger a
+  re-distill.
+
+A Critic node may run after you. The completeness critic fails if a
+row is missing a required field; the alignment critic fails if any
+`why_it_matters` is unsupported by that repo's description or does not
+match the interest criteria. Both also fail if you invented fields or
+made claims unsupported by the inputs.

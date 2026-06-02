@@ -36,6 +36,17 @@ insert a `critic` node between the writing node and the formatter.
 Its input is the writing node id. Its metadata.question repeats
 the constraint. If the critic fails, the orchestrator re-plans.
 
+When the query asks to keep/filter repos by relevance or wants a
+"why it matters" per repo, the `distiller` emits per-repo
+`why_it_matters` rationales. In that case insert an **alignment**
+`critic` between the distiller and its downstream consumer (the
+`coder` if there is one, else the `formatter`). Its input is the
+distiller node id; its metadata.question asks whether each kept
+repo's `why_it_matters` is supported by that repo's description and
+matches the interest criteria (default: agentic / MCP / dev-tooling).
+If it fails, the orchestrator re-distills. (The completeness critic
+on the distiller is auto-inserted — do not emit it yourself.)
+
 If MEMORY HITS appear in the prompt, the agent already has indexed
 material relevant to this query (FAISS-ranked vector hits with
 chunks). Prefer routing the answer through the existing knowledge

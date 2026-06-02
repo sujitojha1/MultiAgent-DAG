@@ -2,11 +2,13 @@
 
 **Project:** EAG V3 — Session 8: Multi-Agent DAG Orchestration Assignment — **PulseDAG-GithubRepo**  
 **Document ID:** SRS-EAG3-S8-001  
-**Version:** 1.1  
-**Date:** 2026-05-31  
+**Version:** 1.2  
+**Date:** 2026-06-02  
 **Standard:** IEEE 29148:2018 + EARS (Easy Approach to Requirements Syntax, Mavin et al.)
 
-> **v1.1 change:** aligned to the chosen problem — **PulseDAG-GithubRepo** (a trending-repo scout). Graded new skill is `relevance_filter` (was a generic `course_generator` placeholder, now retired from assignment scope). Adds the alignment critic (FR-305), the trending-data-source requirement (FR-106/RSK-1), the relevance-criteria input (FR-505), and the non-graded Chrome-extension trigger (§5.7, CON-107). See `docs/idea.md`.
+> **v1.1 change:** aligned to the chosen problem — **PulseDAG-GithubRepo** (a trending-repo scout). Adds the alignment critic (FR-305), the trending-data-source requirement (FR-106/RSK-1), the relevance-criteria input (FR-505), and the non-graded Chrome-extension trigger (§5.7, CON-107). See `docs/idea.md`.
+
+> **v1.2 change:** `relevance_filter` is **retired** and replaced by **`github_research`** as the graded Part-5 new skill (FR-501–505) — `github_research` is the capability actually built (live GitHub trending fetch via `fetch_url`; not prompt-only). The semantic keep/drop + per-repo `why_it_matters` rationale (formerly the relevance_filter's job) folds into the **`distiller`**, and the alignment critic (FR-305) is now planner-emitted between `distiller` and `formatter`. No `relevance_filter` skill or prompt file exists.
 
 ---
 
@@ -28,7 +30,7 @@ The system extends the Session 7 cognitive architecture by replacing the single-
 2. Demonstrate a parallel fan-out query — 4 trending researchers (Python/Rust × weekly/monthly).
 3. Demonstrate a Critic verdict cycle (pass + fail + recovery) — **two critics**: completeness and alignment.
 4. Implement the stub Coder skill prompt — trending metrics + a deterministic per-repo fact-line.
-5. Add one new skill to the catalogue — **`relevance_filter`**.
+5. Add one new skill to the catalogue — **`github_research`**.
 
 A non-graded **Chrome-extension trigger** (§5.7) wraps the existing `Executor` for a usable UI; it is shown in the demo video but is not one of the five graded parts.
 
@@ -199,7 +201,7 @@ The per-node timing printed to stdout shall show parallel-layer nodes with overl
 PulseDAG-GithubRepo demonstrates the Critic in **two distinct roles**, both with recoverable fails:
 
 - **Completeness critic** (FR-301) — auto-inserted (`critic: true`) on `distiller`; checks each repo row has all required fields.
-- **Alignment critic** (FR-305) — planner-emitted between `relevance_filter` and `formatter`; checks each "why it matters" is faithful to the repo's real description and the interest criteria.
+- **Alignment critic** (FR-305) — planner-emitted between `distiller` and `formatter`; checks each repo's `why_it_matters` (produced by the `distiller`) is faithful to the repo's real description and matches the interest criteria.
 
 **FR-301** [E, M, Part 3]  
 When the `distiller` (marked `critic: true`) produces normalised repo rows, the orchestrator shall auto-insert a `critic` node on its outgoing edge that verifies every row contains `owner/repo`, `total_stars`, `stars_gained`, and `description`. (Completeness only — de-duplication is the Coder's responsibility, not the Critic's.)
@@ -214,7 +216,7 @@ The student shall demonstrate each Critic across two runs: one producing `{"verd
 If a Critic-fail recovery has already been triggered for a given target node within the same session, the system shall not queue a second recovery Planner for that target (per-target cap = 1).
 
 **FR-305** [E, M, Part 3]  
-When the Planner builds a graph containing a `relevance_filter` node, it shall emit an alignment `critic` node between that node and the `formatter`, whose `metadata.question` asks whether each kept repo's "why it matters" is supported by the repo's description and matches the interest criteria. A planted hallucinated rationale shall produce `{"verdict": "fail"}` and trigger a re-filter that corrects it. This requires no `Executor` change (planner-emitted critics are already supported).
+When the Planner builds a graph in which the `distiller` produces per-repo `why_it_matters` rationales, it shall emit an alignment `critic` node between the `distiller` and the `formatter`, whose `metadata.question` asks whether each kept repo's `why_it_matters` is supported by the repo's description and matches the interest criteria. A planted hallucinated rationale shall produce `{"verdict": "fail"}` and trigger a re-distill that corrects it. This requires no `Executor` change (planner-emitted critics are already supported).
 
 ---
 
@@ -243,19 +245,19 @@ When the Coder runs, it shall additionally emit a **deterministic templated fact
 ### 5.5 Part 5 — New Skill
 
 **FR-501** [U, M, Part 5]  
-The student shall add one new entry — **`relevance_filter`** — to `agent_config.yaml`, a capability not covered by the existing catalogue (`planner`, `retriever`, `researcher`, `distiller`, `summariser`, `critic`, `formatter`, `sandbox_executor`, `coder`, `browser`). It is prompt-only (`tools_allowed: []`): it consumes the Coder's computed table and applies semantic relevance judgment (keep/drop) plus a one-line "why it matters" per kept repo.
+The student shall add one new entry — **`github_research`** — to `agent_config.yaml`, a capability not covered by the existing catalogue (`planner`, `retriever`, `researcher`, `distiller`, `summariser`, `critic`, `formatter`, `sandbox_executor`, `coder`, `browser`). It is a tool-using skill (`tools_allowed: [fetch_url]`, `provider_pin: gemini`): it fetches live GitHub trending pages and feeds normalised findings to the downstream `distiller`.
 
 **FR-502** [U, M, Part 5]  
-The new skill shall have a corresponding prompt file at `prompts/relevance_filter.md` following the same structural conventions as existing prompt files.
+The new skill shall have a corresponding prompt file at `prompts/github_research.md` following the same structural conventions as existing prompt files.
 
 **FR-503** [E, M, Part 5]  
-When a query requiring `relevance_filter` is submitted, the Planner shall emit it as a node in the DAG, and the Executor shall dispatch it through the standard `run_skill` path without any `flow.py` or `skills.py` modification.
+When a query requiring `github_research` is submitted, the Planner shall emit it as a node in the DAG, and the Executor shall dispatch it through the standard `run_skill` path without any `flow.py` or `skills.py` modification.
 
 **FR-504** [UB, M, Part 5]  
-If the new skill implementation requires adding a skill-name branch (`if skill.name == "relevance_filter"`) to `flow.Executor`, the implementation shall be considered non-conformant to the architectural rule: adding a skill is a YAML edit and a prompt file only.
+If the new skill implementation requires adding a skill-name branch (`if skill.name == "github_research"`) to `flow.Executor`, the implementation shall be considered non-conformant to the architectural rule: adding a skill is a YAML edit and a prompt file only.
 
 **FR-505** [E, S, Part 5]  
-When `relevance_filter` runs, the interest criteria shall be available to it — either hard-coded in `relevance_filter.md` or supplied via the query / the extension's profile field — so its keep/drop judgment is grounded in a stated interest profile (default: agentic / MCP / dev-tooling).
+When the `distiller` applies its keep/drop relevance judgment, the interest criteria shall be available to it — either hard-coded in `distiller.md` or supplied via the query / the extension's profile field — so its judgment is grounded in a stated interest profile (default: agentic / MCP / dev-tooling).
 
 ---
 
@@ -345,18 +347,18 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 | FR-302 | Critic-fail → child skipped + recovery | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` lines 97–135 | #30 |
 | FR-303 | Pass + recoverable fail across 2 runs (both critics) | Part 3 | `prompts/critic.md` | demo / 2 × log | #29, #30 |
 | FR-304 | Per-target cap = 1 re-plan | Part 3 | `recovery.handle_critic_verdict` | `test_recovery.py` | #31 |
-| FR-305 | Alignment critic (planner-emitted) on relevance_filter | Part 3 | `prompts/planner.md`, `prompts/critic.md` | demo / log | #28, #30 |
+| FR-305 | Alignment critic (planner-emitted) on distiller `why_it_matters` | Part 3 | `prompts/planner.md`, `prompts/critic.md`, `prompts/distiller.md` | demo / log | #28, #30, #50 |
 | FR-401 | coder.md complete prompt | Part 4 | `prompts/coder.md` | code review / demo | #33 |
 | FR-402 | internal_successors auto-appends sandbox | Part 4 | `agent_config.yaml`, `flow.Graph.extend_from:133` | demo / log | #34 |
 | FR-403 | sandbox_executor runs code field | Part 4 | `skills.run_skill` (sandbox branch) | demo / stdout | #34 |
 | FR-404 | sandbox_executor fails on missing code | Part 4 | `skills.run_skill:257` | demo / log | #45 |
 | FR-405 | Coder on trending metrics (velocity, delta, dedup, rank) | Part 4 | `prompts/coder.md`, `sandbox.py` | demo / sandbox stdout | #35 |
 | FR-406 | Coder emits deterministic per-repo fact-line | Part 4 | `prompts/coder.md` | demo / stdout | #35 |
-| FR-501 | `relevance_filter` in agent_config.yaml | Part 5 | `agent_config.yaml` | code review | #36 |
-| FR-502 | `prompts/relevance_filter.md` prompt file | Part 5 | `prompts/relevance_filter.md` | code review | #37 |
-| FR-503 | relevance_filter dispatched, no Executor change | Part 5 | `flow.py` (unchanged), `skills.py` (unchanged) | demo / diff | #38 |
-| FR-504 | No Executor branch for relevance_filter | Part 5 | `flow.py` | code review / `git diff` | #39 |
-| FR-505 | Relevance criteria available to the skill | Part 5 | `prompts/relevance_filter.md` | code review / demo | #36, #38 |
+| FR-501 | `github_research` in agent_config.yaml | Part 5 | `agent_config.yaml` | code review | #36 |
+| FR-502 | `prompts/github_research.md` prompt file | Part 5 | `prompts/github_research.md` | code review | #37 |
+| FR-503 | github_research dispatched, no Executor change | Part 5 | `flow.py` (unchanged), `skills.py` (unchanged) | demo / diff | #38 |
+| FR-504 | No Executor branch for github_research | Part 5 | `flow.py` | code review / `git diff` | #39 |
+| FR-505 | Relevance criteria available to the distiller | Part 5 | `prompts/distiller.md` | code review / demo | #36, #38 |
 | FR-701..703 | Chrome extension trigger (non-graded) | Extension | extension/, HTTP bridge module | demo video | (new) |
 | FR-601 | YouTube demo | Submission | — | instructor view | #43 |
 | FR-602 | README.md logs | Submission | `README.md` | instructor review | #40, #41, #42 |

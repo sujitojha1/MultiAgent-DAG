@@ -33,11 +33,12 @@ To build the trending repo scout, you will only add or modify the following file
 ```
 Root/
 ├── code/
-│   ├── agent_config.yaml         ← [MODIFY] Add coder and relevance_filter skills
+│   ├── agent_config.yaml         ← [MODIFY] Add coder and github_research skills
 │   ├── bridge_server.py          ← [NEW] Thin HTTP bridge runner (starts Executor)
 │   ├── prompts/
 │   │   ├── coder.md              ← [MODIFY] Add Star Math prompt guidelines
-│   │   ├── relevance_filter.md   ← [NEW] Semantic scoring prompt guidelines
+│   │   ├── github_research.md    ← [NEW] Live GitHub trending fetch prompt guidelines
+│   │   ├── distiller.md          ← [MODIFY] Add keep/drop + "why it matters" relevance pass
 │   │   └── planner.md            ← [MODIFY] Add PulseDAG routing guidelines
 ```
 
@@ -55,12 +56,13 @@ coder:
   max_tokens: 1500
   description: Computes total stars, gains, growth velocity, ranks repositories, and deduplicates cross-source lists.
 
-relevance_filter:
-  prompt: prompts/relevance_filter.md
-  tools_allowed: []
-  temperature: 0.3
-  max_tokens: 1200
-  description: NEW SKILL. Scores and filters repositories semantically matching the user's specific developer interest profile.
+github_research:
+  prompt: prompts/github_research.md
+  provider_pin: gemini
+  tools_allowed: [fetch_url]
+  temperature: 0.2
+  max_tokens: 2000
+  description: NEW SKILL. Fetches live data from GitHub trending pages to list popular or trending repositories.
 ```
 
 ---
@@ -84,18 +86,21 @@ The sandboxed python script receives raw JSON array inputs from the fanned-out d
 }
 ```
 
-#### B. Relevance Filter Contract (`prompts/relevance_filter.md`)
-* **Role:** Takes the ranked computed data from the sandbox and runs a semantic LLM pass to drop irrelevant repos or anomalies (e.g., repos with growth velocities above 100% but under 50 total stars).
+#### B. GitHub Research Contract (`prompts/github_research.md`)
+* **Role:** The graded NEW SKILL. Fetches live GitHub trending pages via the `fetch_url` MCP tool and emits normalised findings (owner/repo, description, stars, URL) for the downstream `distiller`.
 * **System Guidelines:**
 ```text
-Role: You are the Relevance Filter Agent.
-Input: A JSON list of ranked trending repositories from the coder sandbox.
+Role: You are the GitHub Research Agent. Tool surface is ONE MCP tool: fetch_url(url).
+Input: A natural-language question about popular/trending GitHub repositories.
 Task:
-1. Filter the list down to repositories matching the developer interests: Agentic Coding, MCP Servers, Dev Tooling, or Web Frameworks.
-2. Filter out anomalies (e.g., velocity spikes from micro-repos).
-3. For each kept repository, write a concise, one-sentence "why it matters" explanation showing why it fits the criteria.
-Output Format: A JSON object containing the filtered list.
+1. Infer the time window (daily/weekly/monthly, default weekly) and any language filter.
+2. Fetch https://github.com/trending/<language>?since=<window> (omit /<language> if none).
+3. Extract the top 5–10 repos: name (owner/repo), description, stars, URL.
+Output Format: JSON with question, sources[], findings (normalised text). Never fabricate repos.
 ```
+
+#### B′. Relevance pass folds into the Distiller (`prompts/distiller.md`)
+* **Role:** The semantic keep/drop + per-repo `why_it_matters` rationale (formerly the retired `relevance_filter`) is now a responsibility of the `distiller`, grounded in the developer interest profile (Agentic Coding, MCP Servers, Dev Tooling, Web Frameworks). This keeps it upstream of the terminal `formatter` so the alignment critic (FR-305) can verify it.
 
 ---
 
@@ -107,7 +112,7 @@ Output Format: A JSON object containing the filtered list.
 | **Part 2: Concurrency** | Scrape Python and Rust weekly | Overlapping starts, shared finish timestamp, parallel layer elapsed = `max(branches)`. |
 | **Part 3: Critic Verdict** | Intentionally drop a required field in distiller output | Output triggers completeness check, returns `fail`, downstreams skipped, recovery planner runs. |
 | **Part 4: Coder Skill** | Verify star growth math in sandbox | Sandbox output shows zero rounding errors and mathematically precise momentum rankings. |
-| **Part 5: New Skill** | Confirm `relevance_filter` triggers | Graph trace prints: `planner` → `researcher` → `distiller` → `coder` → `sandbox_executor` → `relevance_filter` → `formatter`. |
+| **Part 5: New Skill** | Confirm `github_research` triggers | Graph trace prints: `planner` → `github_research` → `distiller` → `coder` → `sandbox_executor` → `formatter`. |
 
 ---
 
