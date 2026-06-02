@@ -1,0 +1,84 @@
+{
+  "node_id": "n:6",
+  "skill": "distiller",
+  "status": "complete",
+  "inputs": [
+    "n:2",
+    "n:3",
+    "n:4",
+    "n:5"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "distiller",
+    "output": {
+      "repos": [
+        {
+          "owner/repo": "Hmbown/CodeWhale",
+          "language": "rust",
+          "timeframe": "monthly",
+          "total_stars": 35709,
+          "stars_gained": 35709,
+          "description": "A high-performance coding agent integration for terminal environments.",
+          "why_it_matters": "Provides a high-performance terminal-based coding agent, directly supporting the interest in agentic coding."
+        },
+        {
+          "owner/repo": "farion1231/cc-switch",
+          "language": "rust",
+          "timeframe": "monthly",
+          "total_stars": 31143,
+          "stars_gained": 31143,
+          "description": "A cross-platform desktop assistant for managing multiple agentic CLIs.",
+          "why_it_matters": "Centralizes control for multiple coding agents, serving as a critical piece of developer tooling for agent management."
+        },
+        {
+          "owner/repo": "microsoft/markitdown",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 11962,
+          "stars_gained": 11962,
+          "description": "Automates file-to-Markdown conversion for RAG pipelines.",
+          "why_it_matters": "Facilitates data ingestion for RAG pipelines, which is a foundational component of agentic coding workflows."
+        },
+        {
+          "owner/repo": "openai/codex",
+          "language": "rust",
+          "timeframe": "monthly",
+          "total_stars": 8651,
+          "stars_gained": 8651,
+          "description": "A lightweight coding agent designed for terminal environments.",
+          "why_it_matters": "Offers a native CLI-based AI development tool, aligning with the interest in agentic coding and dev tooling."
+        },
+        {
+          "owner/repo": "chopratejas/headroom",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 1868,
+          "stars_gained": 1868,
+          "description": "Reduces LLM token usage via compression and provides an MCP server.",
+          "why_it_matters": "Directly implements an MCP server and provides token-efficiency tools for agentic workflows."
+        },
+        {
+          "owner/repo": "microsoft/agent-governance-toolkit",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 1529,
+          "stars_gained": 1529,
+          "description": "Implements critical security and reliability guardrails for agentic workflows.",
+          "why_it_matters": "Provides essential security infrastructure for managing and governing agentic workflows."
+        }
+      ],
+      "rationale": "Repositories were selected based on their relevance to agentic, MCP, and dev-tooling categories, with momentum data aggregated from the provided research findings."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 5.7382001876831055,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Distiller skill. You receive raw text (typically the\n`findings` of one or more Researcher nodes, or the `chunks` of a\nRetriever node) and produce a small structured record.\n\nYou make no tool calls. You do no web access. Everything you need is\nalready in the prompt under INPUTS.\n\nProcedure:\n  1. Identify what fields the user's question implies (people, dates,\n     numbers, comparisons, percentages, attributions).\n  2. Pull those fields out of the inputs.\n  3. Emit a compact JSON record. Fields with no evidence in the inputs\n     are omitted, not made up.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"fields\": { \"<field_name>\": \"<value>\", ... },\n    \"rationale\": \"<one short sentence saying which input supports each field>\"\n  }\n\nNotes:\n  - The fields dictionary is the load-bearing output; downstream\n    Formatter nodes read it.\n  - When the question is a comparison (`fastest growing`, `largest`),\n    emit a `comparison` key with `winner: <id>` and `reason: <short>`.\n  - When the question's evidence is missing, set `fields: {}` and put\n    the gap in `rationale`. Do not invent.\n\nRepository lists (PulseDAG trending queries):\n  When the inputs are a list of GitHub repositories, emit a `repos`\n  array instead of a flat `fields` dict. Each entry MUST carry\n  `owner/repo`, `language`, `timeframe`, `total_stars`, `stars_gained`, and `description`\n  (the completeness critic checks for exactly these). Identify the language (python/rust) and timeframe (weekly/monthly) from the context of the input findings (e.g., which node or section it came from). Then apply a\n  relevance pass against the interest profile and add one more field\n  per kept repo:\n\n    {\n      \"repos\": [\n        {\n          \"owner/repo\": \"<owner>/<name>\",\n          \"language\": \"<python or rust>\",\n          \"timeframe\": \"<weekly or monthly>\",\n          \"total_stars\": <int>,\n          \"stars_gained\": <int>,\n          \"description\": \"<verbatim from the input>\",\n          \"why_it_matters\": \"<one sentence, grounded ONLY in this repo's description, saying how it fits the interest profile>\"\n        }\n      ],\n      \"rationale\": \"<one short sentence>\"\n    }\n\n  Interest profile (default, override only if the query states one):\n  agentic coding, MCP servers, dev tooling, web frameworks.\n\n  Keep/drop: drop repos whose description does not plausibly fit the\n  interest profile, and drop anomalies (e.g. velocity-looking spikes\n  on micro-repos). Do NOT keep a repo just because it trended.\n\n  `why_it_matters` is the load-bearing field for the alignment critic:\n  it must be entailed by the repo's own `description`. Never assert a\n  feature, capability, or framing the description does not support —\n  a hallucinated rationale will fail the critic and trigger a\n  re-distill.\n\nA Critic node may run after you. The completeness critic fails if a\nrow is missing a required field; the alignment critic fails if any\n`why_it_matters` is unsupported by that repo's description or does not\nmatch the interest criteria. Both also fail if you invented fields or\nmade claims unsupported by the inputs.\n\nUSER_QUERY: Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:2\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"question\": \"Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/python?since=weekly\",\n          \"title\": \"Trending Python repositories this week\"\n        },\n        {\n          \"url\": \"https://github.com/trending/rust?since=monthly\",\n          \"title\": \"Trending Rust repositories this month\"\n        }\n      ],\n      \"findings\": \"Python (Weekly Momentum): microsoft/markitdown (11,962 stars) - Automates file-to-Markdown conversion for RAG pipelines. chopratejas/headroom (1,868 stars) - Reduces LLM token usage via compression and provides an MCP server. mukul975/Anthropic-Cybersecurity-Skills (4,330 stars) - Provides a standardized library of security skills for AI agents. anthropics/claude-code (3,004 stars) - An agentic CLI tool for autonomous codebase interaction. microsoft/agent-governance-toolkit (1,529 stars) - Implements critical security and reliability guardrails for agentic workflows.\\n\\nRust (Monthly Momentum): farion1231/cc-switch (31,143 stars) - A cross-platform desktop assistant for managing multiple agentic CLIs. Hmbown/CodeWhale (35,709 stars) - A high-performance coding agent integration for terminal environments. 1jehuang/jcode (4,681 stars) - A specialized harness for testing and managing coding agents. xingkongliang/skills-manager (859 stars) - A desktop utility to sync and organize agent skills across various development tools. ryoppippi/ccusage (1,751 stars) - Provides observability into token consumption and costs for agentic CLI tools.\"\n    }\n  },\n  {\n    \"id\": \"n:3\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"question\": \"Find the top trending Python and Rust repos this month, relevant to agentic / MCP / dev-tooling.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/python?since=monthly\",\n          \"title\": \"Trending Python Repositories (Monthly)\"\n        },\n        {\n          \"url\": \"https://github.com/trending/rust?since=monthly\",\n          \"title\": \"Trending Rust Repositories (Monthly)\"\n        }\n      ],\n      \"findings\": \"In the Python ecosystem, momentum is heavily focused on agentic tooling and AI-driven development. Notable repos include 'Imbad0202/academic-research-skills' (21,719 stars this month) for Claude Code research workflows, 'microsoft/agent-governance-toolkit' (2,404 stars) for secure agent deployment, and 'chopratejas/headroom' (3,209 stars) which provides an MCP server for token-efficient RAG. 'microsoft/markitdown' (18,736 stars) remains a critical utility for preparing data for LLM ingestion.\\n\\nIn the Rust ecosystem, high-performance agentic tooling dominates. 'farion1231/cc-switch' (31,143 stars this month) acts as a cross-platform assistant for multiple coding agents, while 'Hmbown/CodeWhale' (35,709 stars) offers a terminal-based agent using DeepSeek. 'xingkongliang/skills-manager' (859 stars) provides a dedicated interface for managing agent skills across various platforms, and 'ryoppippi/ccusage' (1,751 stars) is essential for monitoring the cost of agentic CLI operations.\"\n    }\n  },\n  {\n    \"id\": \"n:4\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"question\": \"Find the top trending Rust repos this week relevant to agentic / MCP / dev-tooling.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/rust?since=weekly\",\n          \"title\": \"GitHub Trending Rust Repositories (Weekly)\"\n        }\n      ],\n      \"findings\": \"The Rust ecosystem is seeing significant momentum in agentic tooling and developer productivity utilities. Leading the pack is 'farion1231/cc-switch' (7,357 stars this week), a cross-platform assistant for various coding agents, highlighting the need for unified agent management. 'run-llama/liteparse' (3,381 stars this week) provides a high-performance document parser, essential for RAG and agentic data ingestion.\\n\\nOther notable tools include 'openai/codex' (2,173 stars this week), a terminal-based coding agent, and 'iii-hq/iii' (1,461 stars this week), which focuses on real-time service observation and composition. 'ogulcancelik/herdr' (1,206 stars this week) offers an agent multiplexer for terminal workflows, while 'ryoppippi/ccusage' (710 stars this week) addresses the critical need for monitoring token usage and costs in agentic CLI environments.\"\n    }\n  },\n  {\n    \"id\": \"n:5\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"question\": \"Find the top trending Rust repos this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/rust?since=monthly\",\n          \"title\": \"GitHub Trending Rust Repositories (Monthly)\"\n        }\n      ],\n      \"findings\": \"The following Rust repositories are trending this month and are highly relevant to agentic workflows, MCP, and developer tooling, ranked by monthly momentum (stars gained):\\n\\n1. **farion1231/cc-switch** (31,143 stars gained): A cross-platform desktop assistant for managing various coding agents like Claude Code, Codex, and Gemini CLI, centralizing agent control.\\n2. **Hmbown/CodeWhale** (35,709 stars gained): A terminal-based coding agent integrating DeepSeek and MiMo, highlighting the trend toward local, high-performance agentic interfaces.\\n3. **openai/codex** (8,651 stars gained): A lightweight coding agent designed for terminal environments, representing the push for native CLI-based AI development tools.\\n4. **run-llama/liteparse** (3,934 stars gained): A fast, open-source document parser, essential for building RAG pipelines and context-aware agents.\\n5. **herdr** (3,228 stars gained): An agent multiplexer for the terminal, enabling developers to manage multiple AI agents simultaneously in a single environment.\\n6. **zizmorcore/zizmor** (1,032 stars gained): A static analysis tool for GitHub Actions, crucial for securing CI/CD pipelines as they become increasingly automated by agents.\"\n    }\n  }\n]",
+  "started_at": 1780426147.9048715,
+  "completed_at": 1780426153.6430717,
+  "retries": 0
+}
