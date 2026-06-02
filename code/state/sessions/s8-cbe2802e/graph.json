@@ -1,0 +1,29 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "failed",
+      "result": {
+        "success": false,
+        "agent_name": "planner",
+        "output": {},
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 11.167092084884644,
+        "provider": "gemini",
+        "error": "planner: model returned no parseable JSON object (empty output, no successors); provider=gemini. Raw reply head: '{\\n  \"rationale\": \"Fetch trending Python and Rust repositories in parallel, distill and filter them for agentic AI/ML relevance with why-it-matters statements, verify alignment with a critic, rank them by momentum using Python, and format the final response.\",'"
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    }
+  ],
+  "edges": []
+}
