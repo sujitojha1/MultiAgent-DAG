@@ -1,5 +1,5 @@
 {
-  "node_id": "n:4",
+  "node_id": "n:3",
   "skill": "github_research",
   "status": "complete",
   "inputs": [
@@ -9,28 +9,24 @@
     "success": true,
     "agent_name": "github_research",
     "output": {
-      "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+      "question": "Find the top trending Rust repos this week relevant to agentic / MCP / dev-tooling.",
       "sources": [
         {
           "url": "https://github.com/trending/rust?since=weekly",
-          "title": "Trending Rust repositories this week"
-        },
-        {
-          "url": "https://github.com/trending/python?since=weekly",
-          "title": "Trending Python repositories this week"
+          "title": "GitHub Trending Rust Repositories"
         }
       ],
-      "findings": "The trending landscape is dominated by agentic tooling and developer productivity enhancements. In Rust, notable projects include 'farion1231/cc-switch' (7,357 stars/week), a cross-platform assistant for various coding agents; 'run-llama/liteparse' (3,381 stars/week), a high-performance document parser; and 'openai/codex' (2,173 stars/week), a terminal-based coding agent. These tools emphasize speed and local integration for AI workflows.\n\nIn the Python ecosystem, momentum is driven by agent-specific infrastructure. 'microsoft/markitdown' (11,962 stars/week) simplifies document ingestion for LLMs; 'chopratejas/headroom' (1,868 stars/week) provides critical token-optimization for agentic RAG pipelines; and 'microsoft/agent-governance-toolkit' (1,529 stars/week) addresses the growing need for safety and policy enforcement in autonomous agent deployments. Additionally, 'anthropics/claude-code' (3,004 stars/week) and 'anthropics/knowledge-work-plugins' (3,981 stars/week) highlight the rapid adoption of native agentic coding environments."
+      "findings": "The Rust ecosystem is seeing significant momentum in agentic and developer tooling. Key trending repositories include 'cc-switch' (7,357 stars this week), a cross-platform assistant for various AI coding agents, and 'liteparse' (3,381 stars this week), a fast document parser from the LlamaIndex team. These tools highlight a shift toward high-performance, Rust-based infrastructure for AI workflows.\n\nOther notable projects include 'openai/codex' (2,173 stars this week), a terminal-based coding agent, and 'herdr' (1,206 stars this week), an agent multiplexer for the terminal. Additionally, 'ccusage' (710 stars this week) provides critical visibility into token costs for agentic CLI tools, while 'fff' (850 stars this week) offers high-performance file searching optimized for AI agents and development environments."
     },
     "artifacts": [],
     "successors": [],
     "cost": 0.0,
-    "elapsed_s": 36.10864520072937,
+    "elapsed_s": 31.91567301750183,
     "provider": "gemini",
     "error": null
   },
   "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the specific sub-question/task from the INPUTS list (look at the first literal value). If no specific task is in the INPUTS, read the overall USER_QUERY. Infer the time window (`daily`/`weekly`/`monthly`, default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, total stars, stars gained (or weekly/monthly stars depending on the window), and URL. In your `findings`, list each repo clearly with its description, total stars, and stars gained so that downstream nodes can extract these fields.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"trending rust repos this week\",\n    \"kind\": \"literal\",\n    \"value\": \"trending rust repos this week\"\n  }\n]",
-  "started_at": 1780424000.5170133,
-  "completed_at": 1780424036.6256585,
+  "started_at": 1780424110.604997,
+  "completed_at": 1780424142.52067,
   "retries": 0
 }

@@ -30,8 +30,8 @@ Notes:
 Repository lists (PulseDAG trending queries):
   When the inputs are a list of GitHub repositories, emit a `repos`
   array instead of a flat `fields` dict. Each entry MUST carry
-  `owner/repo`, `total_stars`, `stars_gained`, and `description`
-  (the completeness critic checks for exactly these). Then apply a
+  `owner/repo`, `language`, `timeframe`, `total_stars`, `stars_gained`, and `description`
+  (the completeness critic checks for exactly these). Identify the language (python/rust) and timeframe (weekly/monthly) from the context of the input findings (e.g., which node or section it came from). Then apply a
   relevance pass against the interest profile and add one more field
   per kept repo:
 
@@ -39,6 +39,8 @@ Repository lists (PulseDAG trending queries):
       "repos": [
         {
           "owner/repo": "<owner>/<name>",
+          "language": "<python or rust>",
+          "timeframe": "<weekly or monthly>",
           "total_stars": <int>,
           "stars_gained": <int>,
           "description": "<verbatim from the input>",

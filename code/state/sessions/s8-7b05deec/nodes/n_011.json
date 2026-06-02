@@ -1,0 +1,32 @@
+{
+  "node_id": "n:11",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "trending python repositories this month"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=monthly",
+          "title": "Trending Python repositories on GitHub this month"
+        }
+      ],
+      "findings": "The following Python repositories are trending this month and are highly relevant to agentic workflows, MCP, and developer tooling, ranked by their monthly momentum:\n\n1. **Imbad0202/academic-research-skills** (21,719 stars this month): Provides specialized research, writing, and review skills for Claude Code, essential for automating complex knowledge-work tasks.\n2. **CloakHQ/CloakBrowser** (21,656 stars this month): A stealth Chromium-based tool that serves as a drop-in Playwright replacement, critical for agents needing to bypass bot detection during web automation.\n3. **microsoft/markitdown** (18,736 stars this month): A powerful utility for converting diverse file formats into Markdown, streamlining data ingestion for RAG and agentic context windows.\n4. **chopratejas/headroom** (3,209 stars this month): A specialized tool for compressing LLM inputs and RAG chunks, directly addressing token efficiency and cost-optimization for agentic systems.\n5. **microsoft/agent-governance-toolkit** (2,404 stars this month): Provides essential infrastructure for policy enforcement and security sandboxing, addressing the critical need for reliability and safety in autonomous AI agents."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 23.9302237033844,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the specific sub-question/task from the INPUTS list (look at the first literal value). If no specific task is in the INPUTS, read the overall USER_QUERY. Infer the time window (`daily`/`weekly`/`monthly`, default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, total stars, stars gained (or weekly/monthly stars depending on the window), and URL. In your `findings`, list each repo clearly with its description, total stars, and stars gained so that downstream nodes can extract these fields.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"repos\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: Find the top trending Python and Rust repos this week and this month, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"trending python repositories this month\",\n    \"kind\": \"literal\",\n    \"value\": \"trending python repositories this month\"\n  }\n]",
+  "started_at": 1780424066.6663063,
+  "completed_at": 1780424090.59653,
+  "retries": 0
+}
