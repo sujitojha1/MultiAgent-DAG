@@ -341,6 +341,7 @@ To ensure this submission scores a perfect **10/10** under evaluation against [d
 | **FR-301/2/3**| Part 3 | Critic verdict pass/fail & dynamically spliced recovery planner | **Verified** | [Full Log](logs/part3_critic_recovery.md) / [Showcase](#part-3--critic-verdict-fr-301-fr-304) |
 | **FR-401/2/3**| Part 4 | Coder prompt & auto-appended sandbox_executor chain | **Verified** | [Full Log](logs/part4_coder_trending_metrics.md) / [Showcase](#part-4--coder-skill-fr-401-fr-405) |
 | **FR-501/2/3**| Part 5 | Adding new skill via YAML and markdown prompt only | **Verified** | [Full Log](logs/part5_new_skill.md) / [Showcase](#part-5--new-skill-fr-501-fr-504) |
+| **NFR-301** | All Parts | Atomic persistence: write-temp + `os.replace` on every state write | **Verified** | [Architecture Review](docs/ATOMIC_PERSISTENCE.md) |
 
 ---
 
