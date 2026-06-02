@@ -1,0 +1,139 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Use the github_research skill to fetch the current trending Python repositories from GitHub for the requested timeframe.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "last week, most trending python language repository on github"
+              ],
+              "metadata": {
+                "label": "gh_trend",
+                "question": "What is the most trending Python repository on GitHub from the last week?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:gh_trend"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "last week, most trending python language repository on github"
+            ],
+            "metadata": {
+              "label": "gh_trend",
+              "question": "What is the most trending Python repository on GitHub from the last week?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:gh_trend"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 12.509036779403687,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "n:1"
+      ],
+      "metadata": {
+        "label": "gh_trend",
+        "question": "What is the most trending Python repository on GitHub from the last week?"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "What is the most trending Python repository on GitHub from the last week?",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "GitHub Trending Python Repositories (Weekly)"
+            }
+          ],
+          "findings": "The most trending Python repository on GitHub over the past week is 'MoneyPrinterTurbo' by harry0703, which gained 18,917 stars. It is an AI-powered tool designed to generate high-definition short videos using large language models.\n\nFollowing closely is Microsoft's 'markitdown', a tool for converting various files and office documents into Markdown, which saw 11,962 new stars. Other notable trending repositories include 'ai-engineering-from-scratch' by rohitg00 (8,744 stars) and 'Anthropic-Cybersecurity-Skills' by mukul975 (4,330 stars).\n\nOverall, the trending list is heavily dominated by AI-related projects, including agentic coding tools, voice AI platforms, and educational resources for AI engineering."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 23.48909878730774,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "The most trending Python repository on GitHub over the past week is 'MoneyPrinterTurbo' by harry0703, which gained 18,917 stars. This project is an AI-powered tool designed to generate high-definition short videos using large language models. Other notable trending repositories from the last week include Microsoft's 'markitdown' (11,962 new stars), 'ai-engineering-from-scratch' by rohitg00 (8,744 stars), and 'Anthropic-Cybersecurity-Skills' by mukul975 (4,330 stars). Source: https://github.com/trending/python?since=weekly"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 16.93013882637024,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:1",
+      "target": "n:2"
+    },
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}

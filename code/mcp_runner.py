@@ -88,7 +88,13 @@ async def run_with_tools(*, prompt: str, tools_payload: list[dict],
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.get("id", ""),
-                        "content": result_text[:8_000],  # cap per-tool reply
+                        # Cap per-tool reply. 8 KB was too tight for page
+                        # fetches: a fetch_url of GitHub trending (repos
+                        # ~18 KB even after css selection) was sliced down to
+                        # nav chrome, so the model saw no repos and answered
+                        # "(not found)". 24 KB clears a selected trending list
+                        # while still bounding a runaway fetch.
+                        "content": result_text[:24_000],
                     })
     # Hit the hop cap. Return whatever the gateway last said.
     return last_reply

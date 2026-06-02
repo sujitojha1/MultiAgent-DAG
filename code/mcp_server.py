@@ -182,11 +182,30 @@ class _NullLogger(AsyncLoggerBase):
     def error_status(self, *a, **k): pass
 
 
-async def _crawl4ai_fetch(url: str) -> dict:
-    from crawl4ai import AsyncWebCrawler
+def _content_selector(url: str) -> str | None:
+    """CSS selector to isolate the meaningful content of a known-noisy page.
 
+    GitHub's trending HTML buries the repo list ~75 KB deep, behind the global
+    nav and the full A-to-Z language sidebar. Crawled whole, the markdown is
+    92 KB and the first repo lands far past any sane per-tool truncation, so a
+    tool-using skill sees only chrome and reports "(not found)". Each trending
+    repo is one `<article class="Box-row">`; selecting those drops the page to
+    ~18 KB with the repos at the top. Other URLs are fetched whole (None)."""
+    from urllib.parse import urlparse
+
+    p = urlparse(url)
+    if p.netloc.endswith("github.com") and p.path.startswith("/trending"):
+        return "article.Box-row"
+    return None
+
+
+async def _crawl4ai_fetch(url: str) -> dict:
+    from crawl4ai import AsyncWebCrawler, CrawlerRunConfig
+
+    selector = _content_selector(url)
+    config = CrawlerRunConfig(css_selector=selector) if selector else None
     async with AsyncWebCrawler(verbose=False, logger=_NullLogger()) as crawler:
-        r = await crawler.arun(url=url)
+        r = await crawler.arun(url=url, config=config)
     # r.markdown is a str subclass (StringCompatibleMarkdown) that Pydantic
     # serializes as {} because its real field is private. Pull the raw string
     # out and force a plain str so FastMCP serializes correctly.
