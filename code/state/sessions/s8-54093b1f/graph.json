@@ -1,0 +1,217 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Calculate the result of 234 raised to the power of 234 using the coder skill.",
+          "nodes": [
+            {
+              "skill": "coder",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "calc",
+                "question": "Calculate 234**234"
+              }
+            },
+            {
+              "skill": "sandbox_executor",
+              "inputs": [
+                "n:calc"
+              ],
+              "metadata": {
+                "label": "exec"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:exec"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "coder",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "calc",
+              "question": "Calculate 234**234"
+            }
+          },
+          {
+            "skill": "sandbox_executor",
+            "inputs": [
+              "n:calc"
+            ],
+            "metadata": {
+              "label": "exec"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:exec"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.351189851760864,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "coder",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "calc",
+        "question": "Calculate 234**234"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "coder",
+        "output": {
+          "code": "print(234**234)",
+          "rationale": "Used Python's arbitrary-precision integer arithmetic to compute 234 raised to the power of 234."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.08912205696106,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "sandbox_executor",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "exec"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "sandbox_executor",
+        "output": {
+          "exit_code": 0,
+          "stdout": "249178538343859897602905502443311043993439555524386353334919645233978226164374923992664084240228232612531762046271219867904955214558573629332472984206557670667189362730123279184166580532455983805685592477224145886132226970683610096853152635030854871522599874400057925220369575731646992466829871299057657531920433486693162778218525983666154269364606901276372985321897170775515984390535656224834531099082447321597365396891406594511302843688865574199097101098949624120392314116694942946957629250352843442590129284541608525436456495833414399819834252104564736\r\n",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "files_written": [],
+          "timed_out": false,
+          "cwd": "C:\\Users\\gayad\\AppData\\Local\\Temp\\s8sandbox-gkli30i3"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 0.1078493595123291,
+        "provider": "",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "The value of 234 raised to the power of 234 is 249178538343859897602905502443311043993439555524386353334919645233978226164374923992664084240228232612531762046271219867904955214558573629332472984206557670667189362730123279184166580532455983805685592477224145886132226970683610096853152635030854871522599874400057925220369575731646992466829871299057657531920433486693162778218525983666154269364606901276372985321897170775515984390535656224834531099082447321597365396891406594511302843688865574199097101098949624120392314116694942946957629250352843442590129284541608525436456495833414399819834252104564736."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 5.162497043609619,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:4"
+    },
+    {
+      "skill": "sandbox_executor",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "sandbox_executor",
+        "output": {
+          "exit_code": 0,
+          "stdout": "249178538343859897602905502443311043993439555524386353334919645233978226164374923992664084240228232612531762046271219867904955214558573629332472984206557670667189362730123279184166580532455983805685592477224145886132226970683610096853152635030854871522599874400057925220369575731646992466829871299057657531920433486693162778218525983666154269364606901276372985321897170775515984390535656224834531099082447321597365396891406594511302843688865574199097101098949624120392314116694942946957629250352843442590129284541608525436456495833414399819834252104564736\r\n",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "files_written": [],
+          "timed_out": false,
+          "cwd": "C:\\Users\\gayad\\AppData\\Local\\Temp\\s8sandbox-15q2hsf_"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 0.0910179615020752,
+        "provider": "",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:5"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    },
+    {
+      "source": "n:2",
+      "target": "n:5"
+    },
+    {
+      "source": "n:3",
+      "target": "n:4"
+    }
+  ]
+}

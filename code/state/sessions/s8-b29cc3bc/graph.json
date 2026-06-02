@@ -1,0 +1,143 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Since the memory hits indicate a need for current trending data, I will use the researcher to fetch the latest GitHub trending Python repositories for the last week.",
+          "nodes": [
+            {
+              "skill": "researcher",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "fetch_trending",
+                "question": "What are the top trending Python repositories on GitHub from the last week?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:fetch_trending"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "researcher",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "fetch_trending",
+              "question": "What are the top trending Python repositories on GitHub from the last week?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:fetch_trending"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.336440324783325,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "researcher",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "fetch_trending",
+        "question": "What are the top trending Python repositories on GitHub from the last week?"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "researcher",
+        "output": {
+          "question": "find top trending repo in github for python last week",
+          "sources": [
+            {
+              "url": "https://ossinsight.io/languages/Python",
+              "title": "Top Python GitHub Repositories 2026 \u2014 Trending Open Source ..."
+            },
+            {
+              "url": "https://wangchujiang.com/github-rank/trending.html",
+              "title": "GitHub Repositories Trending - Wang Chujiang"
+            },
+            {
+              "url": "https://repositorystats.com/trending/language/python",
+              "title": "Repositories Trending on Github using the Python language ..."
+            }
+          ],
+          "findings": "(not found)"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 29.348737478256226,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "I am unable to provide the top trending Python repository on GitHub for the last week because the research tool returned '(not found)' for that specific timeframe. You may wish to check GitHub's official trending page directly at https://github.com/trending/python for the most up-to-date information."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.14378809928894,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    }
+  ]
+}

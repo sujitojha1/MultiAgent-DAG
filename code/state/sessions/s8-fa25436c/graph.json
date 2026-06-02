@@ -1,0 +1,214 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Use the coder to perform the mathematical calculation.",
+          "nodes": [
+            {
+              "skill": "coder",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "calc"
+              }
+            },
+            {
+              "skill": "sandbox_executor",
+              "inputs": [
+                "n:calc"
+              ],
+              "metadata": {
+                "label": "exec"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:exec"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "coder",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "calc"
+            }
+          },
+          {
+            "skill": "sandbox_executor",
+            "inputs": [
+              "n:calc"
+            ],
+            "metadata": {
+              "label": "exec"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:exec"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.567426443099976,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "coder",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "calc"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "coder",
+        "output": {
+          "code": "print(12 ** 3)",
+          "rationale": "Calculated 12 raised to the power of 3 using the exponentiation operator."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.270922899246216,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "sandbox_executor",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "exec"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "sandbox_executor",
+        "output": {
+          "exit_code": 0,
+          "stdout": "1728\r\n",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "files_written": [],
+          "timed_out": false,
+          "cwd": "C:\\Users\\gayad\\AppData\\Local\\Temp\\s8sandbox-inabl721"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 0.11829161643981934,
+        "provider": "",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "out"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "12 ^ 3 = 1728"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.006274700164795,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:4"
+    },
+    {
+      "skill": "sandbox_executor",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "sandbox_executor",
+        "output": {
+          "exit_code": 0,
+          "stdout": "1728\r\n",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "files_written": [],
+          "timed_out": false,
+          "cwd": "C:\\Users\\gayad\\AppData\\Local\\Temp\\s8sandbox-e3xqrfdg"
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 0.0849766731262207,
+        "provider": "",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:5"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    },
+    {
+      "source": "n:2",
+      "target": "n:5"
+    },
+    {
+      "source": "n:3",
+      "target": "n:4"
+    }
+  ]
+}
