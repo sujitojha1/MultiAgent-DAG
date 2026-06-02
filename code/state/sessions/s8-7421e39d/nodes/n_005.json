@@ -1,0 +1,110 @@
+{
+  "node_id": "n:5",
+  "skill": "distiller",
+  "status": "complete",
+  "inputs": [
+    "n:2",
+    "n:3",
+    "n:4"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "distiller",
+    "output": {
+      "repos": [
+        {
+          "owner/repo": "Lum1104/Understand-Anything",
+          "language": "typescript",
+          "timeframe": "weekly",
+          "total_stars": 19223,
+          "stars_gained": 19223,
+          "description": "Turns code into interactive knowledge graphs for AI agents.",
+          "why_it_matters": "Provides structured code knowledge graphs to improve agent reasoning and reduce context window usage."
+        },
+        {
+          "owner/repo": "colbymchenry/codegraph",
+          "language": "typescript",
+          "timeframe": "weekly",
+          "total_stars": 12380,
+          "stars_gained": 12380,
+          "description": "Pre-indexed code knowledge graph for AI agents, focusing on local, token-efficient retrieval.",
+          "why_it_matters": "Optimizes agent performance by providing pre-indexed knowledge for token-efficient retrieval."
+        },
+        {
+          "owner/repo": "can1357/oh-my-pi",
+          "language": "typescript",
+          "timeframe": "weekly",
+          "total_stars": 2122,
+          "stars_gained": 2122,
+          "description": "A terminal-based AI coding agent featuring hash-anchored edits and an optimized tool harness.",
+          "why_it_matters": "Serves as a terminal-based orchestration tool for AI coding agents."
+        },
+        {
+          "owner/repo": "EveryInc/compound-engineering-plugin",
+          "language": "typescript",
+          "timeframe": "weekly",
+          "total_stars": 1831,
+          "stars_gained": 1831,
+          "description": "Official plugin for Claude Code and other agents to integrate with Compound Engineering workflows.",
+          "why_it_matters": "Enables direct integration between AI agents and specific engineering workflows."
+        },
+        {
+          "owner/repo": "BenedictKing/ccx",
+          "language": "go",
+          "timeframe": "weekly",
+          "total_stars": 1004,
+          "stars_gained": 1004,
+          "description": "A high-performance API proxy for Claude, Codex, and Gemini.",
+          "why_it_matters": "Provides critical infrastructure for managing high-volume agentic API traffic."
+        },
+        {
+          "owner/repo": "ghostty-org/ghostty",
+          "language": "zig",
+          "timeframe": "weekly",
+          "total_stars": 514,
+          "stars_gained": 514,
+          "description": "A high-performance terminal emulator.",
+          "why_it_matters": "Acts as a high-performance foundation for modern AI-native CLI developer tools."
+        },
+        {
+          "owner/repo": "google/ax",
+          "language": "go",
+          "timeframe": "weekly",
+          "total_stars": 423,
+          "stars_gained": 423,
+          "description": "Google's open-source distributed agent runtime.",
+          "why_it_matters": "Provides scalable infrastructure for executing distributed agent workflows."
+        },
+        {
+          "owner/repo": "Gentleman-Programming/engram",
+          "language": "go",
+          "timeframe": "weekly",
+          "total_stars": 305,
+          "stars_gained": 305,
+          "description": "A persistent memory system for AI coding agents that includes an MCP server and TUI.",
+          "why_it_matters": "Supports agentic memory and provides an MCP server for interoperability."
+        },
+        {
+          "owner/repo": "lightpanda-io/browser",
+          "language": "zig",
+          "timeframe": "weekly",
+          "total_stars": 199,
+          "stars_gained": 199,
+          "description": "A headless browser specifically designed for AI agents and automation.",
+          "why_it_matters": "Offers a lightweight automation tool optimized for AI agent web interaction."
+        }
+      ],
+      "rationale": "Repositories were filtered from the provided findings based on their relevance to agentic workflows, MCP, and dev-tooling, then ranked by weekly stars gained."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 6.5723793506622314,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Distiller skill. You receive raw text (typically the\n`findings` of one or more Researcher nodes, or the `chunks` of a\nRetriever node) and produce a small structured record.\n\nYou make no tool calls. You do no web access. Everything you need is\nalready in the prompt under INPUTS.\n\nProcedure:\n  1. Identify what fields the user's question implies (people, dates,\n     numbers, comparisons, percentages, attributions).\n  2. Pull those fields out of the inputs.\n  3. Emit a compact JSON record. Fields with no evidence in the inputs\n     are omitted, not made up.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"fields\": { \"<field_name>\": \"<value>\", ... },\n    \"rationale\": \"<one short sentence saying which input supports each field>\"\n  }\n\nNotes:\n  - The fields dictionary is the load-bearing output; downstream\n    Formatter nodes read it.\n  - When the question is a comparison (`fastest growing`, `largest`),\n    emit a `comparison` key with `winner: <id>` and `reason: <short>`.\n  - When the question's evidence is missing, set `fields: {}` and put\n    the gap in `rationale`. Do not invent.\n\nRepository lists (PulseDAG trending queries):\n  When the inputs are a list of GitHub repositories, emit a `repos`\n  array instead of a flat `fields` dict. Each entry MUST carry\n  `owner/repo`, `language`, `timeframe`, `total_stars`, `stars_gained`, and `description`\n  (the completeness critic checks for exactly these). Identify the language (python/rust) and timeframe (weekly/monthly) from the context of the input findings (e.g., which node or section it came from). Then apply a\n  relevance pass against the interest profile and add one more field\n  per kept repo:\n\n    {\n      \"repos\": [\n        {\n          \"owner/repo\": \"<owner>/<name>\",\n          \"language\": \"<python or rust>\",\n          \"timeframe\": \"<weekly or monthly>\",\n          \"total_stars\": <int>,\n          \"stars_gained\": <int>,\n          \"description\": \"<verbatim from the input>\",\n          \"why_it_matters\": \"<one sentence, grounded ONLY in this repo's description, saying how it fits the interest profile>\"\n        }\n      ],\n      \"rationale\": \"<one short sentence>\"\n    }\n\n  Interest profile (default, override only if the query states one):\n  agentic coding, MCP servers, dev tooling, web frameworks.\n\n  Keep/drop: drop repos whose description does not plausibly fit the\n  interest profile, and drop anomalies (e.g. velocity-looking spikes\n  on micro-repos). Do NOT keep a repo just because it trended.\n\n  `why_it_matters` is the load-bearing field for the alignment critic:\n  it must be entailed by the repo's own `description`. Never assert a\n  feature, capability, or framing the description does not support —\n  a hallucinated rationale will fail the critic and trigger a\n  re-distill.\n\nA Critic node may run after you. The completeness critic fails if a\nrow is missing a required field; the alignment critic fails if any\n`why_it_matters` is unsupported by that repo's description or does not\nmatch the interest criteria. Both also fail if you invented fields or\nmade claims unsupported by the inputs.\n\nUSER_QUERY: Find the top trending Go and Typescript and Zig repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Find trending Python repositories from the last week and explain why they matter\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Find top trending Python repositories on GitHub from the last week\n      source: user_query\n      raw: find top trending python repositories on GitHub from last week\n  - [tool_outcome] Find top trending GitHub repositories for Python from the last week\n      source: user_query\n      raw: find top trending repo in github for python last week\n  - [tool_outcome] Find trending Rust language repositories on GitHub from last month\n      source: user_query\n      raw: last month, find the most tending rust lanuage repo in github\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Find top trending Python repositories on GitHub\n      source: user_query\n      raw: find top trending repo in github for python\n  - [tool_outcome] Trending Python repositories from the last week filtered by relevance with impact analysis\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n  - [tool_outcome] Trending Python repositories from last week\n      source: user_query\n      raw: find the trending python repositories from last week, filter them by relevance, and provide a 'why it matters' explanation for each one.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:2\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"question\": \"Find the top trending Go, TypeScript, and Zig repositories this week relevant to agentic, MCP, or dev-tooling.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/go?since=weekly\",\n          \"title\": \"Trending Go repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/typescript?since=weekly\",\n          \"title\": \"Trending TypeScript repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/zig?since=weekly\",\n          \"title\": \"Trending Zig repositories\"\n        }\n      ],\n      \"findings\": \"In the Go ecosystem, momentum is driven by AI agent infrastructure: BenedictKing/ccx (1,004 stars) provides a high-performance LLM API proxy, Armur-Ai/Pentest-Swarm-AI (324 stars) enables autonomous security testing, and Gentleman-Programming/engram (305 stars) offers a persistent memory system for AI agents with MCP support. Additionally, google/ax (423 stars) has emerged as a significant distributed agent runtime.\\n\\nTypeScript repositories are heavily focused on AI-integrated development tools: Lum1104/Understand-Anything (19,223 stars) and colbymchenry/codegraph (12,380 stars) are leading the trend in code-to-knowledge-graph indexing for AI agents. Other notable tools include can1357/oh-my-pi (2,122 stars) for terminal-based agent orchestration, EveryInc/compound-engineering-plugin (1,831 stars) for agentic workflows, and NangoHQ/nango (1,768 stars) for AI-integrated product integrations.\\n\\nZig repositories are seeing strong interest in high-performance infrastructure for AI and tooling: lightpanda-io/browser (199 stars) provides a headless browser optimized for AI automation, and tigerbeetle/tigerbeetle (119 stars) continues to gain traction as a mission-critical financial database. The terminal emulator ghostty-org/ghostty (514 stars) remains a top-trending developer tool, while zml/zml (26 stars) is gaining attention for hardware-agnostic AI model execution.\"\n    }\n  },\n  {\n    \"id\": \"n:3\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"question\": \"Find the top trending Go, TypeScript, and Zig repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/typescript?since=weekly\",\n          \"title\": \"Trending TypeScript repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/go?since=weekly\",\n          \"title\": \"Trending Go repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/zig?since=weekly\",\n          \"title\": \"Trending Zig repositories\"\n        }\n      ],\n      \"findings\": \"The TypeScript ecosystem is seeing massive momentum in agentic tooling. Lum1104/Understand-Anything (19,223 stars this week) leads by turning code into interactive knowledge graphs for AI agents. Colbymchenry/codegraph (12,380 stars this week) provides pre-indexed knowledge graphs to reduce token usage for agents. Can1357/oh-my-pi (2,122 stars this week) is a terminal-based AI coding agent with subagent support. EveryInc/compound-engineering-plugin (1,831 stars this week) and NangoHQ/nango (1,768 stars this week) focus on agent-specific plugins and AI-integrated product integrations respectively.\\n\\nIn the Go ecosystem, BenedictKing/ccx (1,004 stars this week) is trending as a high-performance API proxy for AI models. Armur-Ai/Pentest-Swarm-AI (324 stars this week) demonstrates autonomous penetration testing using agent swarms. Gentleman-Programming/engram (305 stars this week) provides a persistent memory system specifically for AI coding agents, while Google/ax (423 stars this week) is gaining traction as a distributed agent runtime.\\n\\nZig's trending repositories are focused on high-performance infrastructure for AI. Lightpanda-io/browser (199 stars this week) is a headless browser optimized for AI automation. Ghostty-org/ghostty (514 stars this week) remains a high-momentum terminal emulator frequently used in modern dev-tooling workflows. Tigerbeetle/tigerbeetle (119 stars this week) continues to be a critical financial database for high-performance systems.\"\n    }\n  },\n  {\n    \"id\": \"n:4\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"question\": \"Find the top trending Go, Typescript, and Zig repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/go?since=weekly\",\n          \"title\": \"Trending Go repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/typescript?since=weekly\",\n          \"title\": \"Trending TypeScript repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/zig?since=weekly\",\n          \"title\": \"Trending Zig repositories\"\n        }\n      ],\n      \"findings\": \"The following repositories are trending this week and are highly relevant to agentic workflows, MCP (Model Context Protocol), and developer tooling. They are ranked by their weekly momentum (stars gained).\\n\\n**TypeScript (Agentic/Dev-Tooling):**\\n- **Lum1104/Understand-Anything** (19,223 stars gained): Turns code into interactive knowledge graphs for AI agents. Essential for reducing context window usage and improving agent reasoning.\\n- **colbymchenry/codegraph** (12,380 stars gained): Pre-indexed code knowledge graph for AI agents, focusing on local, token-efficient retrieval.\\n- **twentyhq/twenty** (2,505 stars gained): An open-source alternative to Salesforce designed specifically for AI integration.\\n- **can1357/oh-my-pi** (2,122 stars gained): A terminal-based AI coding agent featuring hash-anchored edits and an optimized tool harness.\\n- **EveryInc/compound-engineering-plugin** (1,831 stars gained): Official plugin for Claude Code and other agents to integrate with Compound Engineering workflows.\\n\\n**Go (Agentic/Dev-Tooling):**\\n- **BenedictKing/ccx** (1,004 stars gained): A high-performance API proxy for Claude, Codex, and Gemini, critical for managing agentic API traffic.\\n- **google/ax** (423 stars gained): Google's open-source distributed agent runtime, providing infrastructure for scalable agent execution.\\n- **wailsapp/wails** (313 stars gained): Enables building cross-platform desktop applications with Go, often used for creating local AI agent GUIs.\\n- **Gentleman-Programming/engram** (305 stars gained): A persistent memory system for AI coding agents that includes an MCP server and TUI.\\n- **Armur-Ai/Pentest-Swarm-AI** (324 stars gained): An autonomous penetration testing framework using a swarm of AI agents for recon and exploitation.\\n\\n**Zig (Agentic/Dev-Tooling):**\\n- **ghostty-org/ghostty** (514 stars gained): A high-performance terminal emulator increasingly favored by developers building AI-native CLI tools.\\n- **lightpanda-io/browser** (199 stars gained): A headless browser specifically designed for AI agents and automation, offering a lightweight alternative to traditional browser automation tools.\"\n    }\n  }\n]",
+  "started_at": 1780428412.5937252,
+  "completed_at": 1780428419.1661046,
+  "retries": 0
+}
