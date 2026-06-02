@@ -327,6 +327,8 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 
 **RSK-1 — Trending data fetch.** Parts 2/3/4 all depend on researchers obtaining trending data. GitHub Trending is server-rendered HTML and may not parse cleanly via `fetch_url`. **Mitigation (FR-107):** spike `fetch_url` first; fall back to a structured trending JSON API. Decide before implementing the fan-out. Residual `fetch_url` gap → documented S9 browser-skill motivation.
 
+**✅ Spike complete (Issue #49):** `fetch_url` on `https://github.com/trending/<lang>?since=<window>` successfully returns all 4 required fields (`owner/repo`, `description`, `total_stars`, `stars_gained`) across 8+ verified sessions. Decision: Approach A chosen. S9 browser-skill motivation documented. See [docs/idea.md §8](idea.md#-8-data-source-spike-fr-106107-rsk-1--issue-49).
+
 ---
 
 ## 8. Traceability Matrix
@@ -339,7 +341,7 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 | FR-104 | Graceful fail on bad path | Part 1 | `prompts/planner.md` | demo / log | #23 |
 | FR-105 | SIGKILL + resume | Part 1 | `flow.py`, `persistence.py` | demo / log | #24 |
 | FR-106 | Researcher returns trending rows w/ required fields | Parts 2 & 4 | `prompts/researcher.md` | demo / log | #25 |
-| FR-107 | fetch_url → JSON API fallback (data source) | Parts 2 & 4 | `prompts/researcher.md` | spike / RSK-1 | (new) |
+| FR-107 | fetch_url → JSON API fallback (data source) | Parts 2 & 4 | `prompts/github_research.md` | [spike ✅](idea.md#-8-data-source-spike-fr-106107-rsk-1--issue-49) | #49 |
 | FR-201 | Planner emits 4 parallel trending researchers | Part 2 | `prompts/planner.md`, `flow.Graph.extend_from` | demo / log | #25 |
 | FR-202 | Wall-clock = max not sum | Part 2 | `flow.Executor.run` (gather) | demo / timing table | #27 |
 | FR-203 | Shared finish timestamp in log | Part 2 | `flow.Executor.run` stdout | demo / log | #26 |
@@ -374,4 +376,4 @@ When a session is resumed, the system shall re-execute from the node boundary: a
 | CON-105 | Graph acyclic by construction | All | `flow.Graph.add_node` | architecture review | — |
 | CON-106 | MAX_NODES not raised as workaround | All | `flow.py:32` | code review | — |
 | CON-107 | Extension bridge is separate module, no Executor edit | Extension | HTTP bridge module, `flow.py` | `git diff` | (new) |
-| RSK-1 | Trending data fetch risk + mitigation | Parts 2/3/4 | `prompts/researcher.md` | spike | (new) |
+| RSK-1 | Trending data fetch risk + mitigation | Parts 2/3/4 | `prompts/github_research.md` | [spike ✅ idea.md §8](idea.md#-8-data-source-spike-fr-106107-rsk-1--issue-49) | #49 |

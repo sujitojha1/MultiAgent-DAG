@@ -124,3 +124,81 @@ Output Format: JSON with question, sources[], findings (normalised text). Never 
 > **Resolution on Transport:** The Chrome Extension pop-up issues simple POST queries to a local `bridge_server.py` running on port `8109` (separate from gateway V8). The bridge acts as a command bridge, launching `flow.Executor` programmatically and streaming session state JSON blocks back to the browser pop-up.
 > 
 > **Resolution on Random Pick:** Bypassing complex server changes, the Chrome Extension pop-up will implement a client-side randomizer toggle. When activated, it highlights a single spotlight item from the returned ranked digest.
+
+---
+
+## 📡 8. Data Source Spike (FR-106/107, RSK-1) — Issue #49
+
+### Q8.1 — Can `fetch_url` on the GitHub Trending HTML page reliably return all 4 required fields?
+
+**Required fields per repo:** `owner/repo`, `total_stars`, `stars_gained` (period), `description`
+
+#### Approach A — Direct HTML scrape via `fetch_url`
+
+The `github_research` skill uses `fetch_url` on:
+```
+https://github.com/trending/<language>?since=<weekly|monthly>
+```
+
+**Spike result:** When the gateway converts the HTML to markdown for the LLM, the trending table structure is mostly preserved. The model successfully extracts all 4 required fields. However:
+
+| Field | Reliability | Notes |
+|---|---|---|
+| `owner/repo` | ✅ Reliable | Always present as heading links |
+| `description` | ✅ Reliable | Present as paragraph text under each repo |
+| `total_stars` | ✅ Reliable | Rendered as star count in the sidebar |
+| `stars_gained` | ⚠️ Variable | Rendered as "X stars this week/month" — present but sometimes requires LLM inference when the HTML collapses the row |
+
+**Observed latency:** 20–80 s per `github_research` node (LLM tool-call loop over HTML). The HTML-to-markdown conversion adds noise but remains parseable.
+
+#### Approach B — Structured JSON API fallback
+
+If `fetch_url` returns thin HTML (JavaScript-rendered wall or rate limit), the model can fall back to querying the GitHub API:
+```
+https://api.github.com/search/repositories?q=<lang>&sort=stars&order=desc
+```
+This returns clean JSON with `stargazers_count` but **does not include `stars_gained`** natively — the delta must be computed from two time-boxed API calls.
+
+#### ✅ Decision: Approach A (`fetch_url` on trending HTML page)
+
+All 4 fields are consistently present in the HTML and successfully extracted across 8+ sessions (s8-b71eb7c6, s8-4c64a855, s8-7b05deec, s8-17e568f8, etc.).
+
+**Sample extraction (Session `s8-b71eb7c6`, node `n:2`, Python weekly):**
+```
+owner/repo:    harry0703/MoneyPrinterTurbo
+description:   AI-powered video content generator
+total_stars:   77,873
+stars_gained:  18,917  (this week)
+
+owner/repo:    microsoft/markitdown
+description:   Utility for converting files and web content to Markdown
+total_stars:   140,830
+stars_gained:  11,962  (this week)
+
+owner/repo:    rohitg00/ai-engineering-from-scratch
+description:   AI Engineering course from scratch
+total_stars:   27,297
+stars_gained:  8,744  (this week)
+```
+
+All 4 fields present ✅. The `github_research` prompt explicitly instructs the model to list each field in `findings` so the downstream `coder` node can extract numeric values for the velocity computation.
+
+---
+
+### RSK-1 — Risk: `fetch_url` Falls Short (S9 Browser-Skill Motivation)
+
+> [!WARNING]
+> **Risk identified:** GitHub increasingly JavaScript-renders trending page content. If the gateway's HTML-to-markdown converter receives a JS-gated shell (as observed in some rate-limit scenarios), `fetch_url` returns a thin page with no repo rows.
+
+**Observed failure mode (3 out of ~20 calls):**
+- `fetch_url` returns `<div id="repo-list"></div>` or similar empty container
+- LLM receives no star data → emits `"findings": "(not found)"` or fabricates plausible-sounding repos
+- Downstream `critic` catches fabricated repos via field-presence check → triggers recovery planner
+
+**Current mitigation (S8):**
+1. `provider_pin: gemini` in `agent_config.yaml` — Gemini's tool-call loop retries on thin fetch
+2. The `github_research` prompt caps tool calls at 3 and falls back to the GitHub API search endpoint
+3. The `critic` node catches missing or inconsistent fields and triggers a recovery planner (as demonstrated in session `s8-7b05deec`)
+
+**S9 Browser-Skill Motivation:**
+The JS-rendering gap is the primary motivation for the planned **Browser skill** (currently stubbed in `prompts/browser.md` and `agent_config.yaml`). A headless-browser tool call would execute JavaScript before handing the fully-rendered DOM to the markdown converter, eliminating the `fetch_url` thin-page failure mode entirely. This is explicitly deferred to Session 9 (`browser.md` stub present, FR-701..703 in requirements).
