@@ -92,10 +92,26 @@ def resolve_inputs(node_inputs: list[str], graph_nodes, query: str) -> list[dict
         if inp == "USER_QUERY":
             out.append({"id": "USER_QUERY", "kind": "query", "value": query})
         elif inp.startswith("n:") and inp in graph_nodes:
-            upstream = graph_nodes[inp].get("result")
+            node = graph_nodes[inp]
+            upstream = node.get("result")
             if isinstance(upstream, AgentResult):
                 out.append({"id": inp, "kind": "upstream",
                             "skill": upstream.agent_name, "output": upstream.output})
+                # A critic emits only {verdict, rationale} — it carries NO
+                # data. The Planner naturally wires critics as a linear gate
+                # (distiller → critic → formatter), which would starve the
+                # consumer of the payload it must render. Make the critic
+                # transparent to data flow: surface the output of the node(s)
+                # the critic gated so the consumer sees the actual data too.
+                if node.get("skill") == "critic":
+                    for src in node.get("inputs", []):
+                        if src.startswith("n:") and src in graph_nodes:
+                            gated = graph_nodes[src].get("result")
+                            if isinstance(gated, AgentResult):
+                                out.append({"id": src,
+                                            "kind": "upstream-through-critic",
+                                            "skill": gated.agent_name,
+                                            "output": gated.output})
             else:
                 out.append({"id": inp, "kind": "upstream-missing", "output": None})
         elif inp.startswith("art:"):

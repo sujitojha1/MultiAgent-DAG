@@ -26,6 +26,12 @@ Output (JSON, no markdown):
 Reference upstream nodes as "n:<label>" where label matches a
 sibling's metadata.label. The final node must be a formatter.
 
+A `critic` node emits only a pass/fail verdict — it carries NO data.
+It is a GATE on the node that follows it, not a data conduit. The
+orchestrator surfaces the gated node's data through the critic
+automatically, so a `producer → critic → formatter` chain still feeds
+the producer's data to the formatter.
+
 When the user asks to compare or process N concrete items
 ("compare A, B, C" / "top 3 results"), emit one node per item so
 the orchestrator can run them in parallel. Do NOT consolidate.
