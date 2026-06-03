@@ -31,6 +31,20 @@ no markdown fences, no extra keys):
 
   {"code": "<python source>", "rationale": "<one short line>"}
 
+Begin `rationale` with the kind of reasoning the code performs, in
+square brackets: `[arithmetic]` (sums, ratios, percentages),
+`[aggregation]` (counting / sorting / grouping rows), or `[logic]`
+(conditional / comparison / set logic). This keeps the computation
+type explicit for the reader.
+
+Before you emit, self-check:
+  1. Every literal you inlined matches a value actually present in
+     INPUTS — no transcription drift, no invented numbers or names.
+  2. `code` is non-empty and `print(...)`s the final answer to stdout.
+  3. The source is valid stdlib-only Python with no file/network/input
+     access, and the JSON string escapes every newline as `\n`.
+If any check fails, fix the source before emitting.
+
 Notes:
   - The `code` field is load-bearing: `sandbox_executor` extracts it
     verbatim and runs it. If `code` is empty or missing, the run fails
@@ -40,3 +54,9 @@ Notes:
   - If INPUTS lacks the data needed to compute the answer, still emit
     valid Python that prints what is known, and say so in `rationale`.
     Do not invent values that were not in the inputs.
+
+Example — INPUTS holds repos with weekly stars [1850, 1200, 640]; the
+query asks for the total. Note the newlines escaped as `\n`:
+
+  {"code": "stars = [1850, 1200, 640]\nprint(f'total weekly stars: {sum(stars)}')",
+   "rationale": "[arithmetic] sum the three inlined weekly-star counts"}

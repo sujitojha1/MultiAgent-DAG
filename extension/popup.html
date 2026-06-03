@@ -39,26 +39,27 @@
 
         <div class="field grow-1">
           <span class="field-label">Window</span>
-          <select id="window">
-            <option value="daily">Daily</option>
-            <option value="weekly" selected>Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
+          <div class="chips" id="window-chips">
+            <div class="chip" data-value="daily" title="Daily">D</div>
+            <div class="chip on" data-value="weekly" title="Weekly">W</div>
+            <div class="chip" data-value="monthly" title="Monthly">M</div>
+          </div>
         </div>
       </div>
 
-      <div class="field">
-        <span class="field-label">Topic / mode</span>
-        <input id="mode" type="text" placeholder="agentic / MCP / dev-tooling" />
+      <div class="row align-end">
+        <div class="field grow-2">
+          <span class="field-label">Topic / mode</span>
+          <input id="mode" type="text" placeholder="agentic / MCP / dev-tooling" />
+        </div>
+        <button id="dice" class="btn-dice" title="Random pick from the digest">🎲</button>
+        <button id="run" class="btn-run">▶ Run</button>
       </div>
-
-      <button id="run" class="btn-run">▶ Run PulseDAG</button>
     </section>
 
     <section id="result" class="glass result hidden">
       <div class="result-bar">
         <span id="result-meta" class="result-meta"></span>
-        <button id="dice" class="btn-dice" title="Random pick from the digest">🎲 Random pick</button>
       </div>
       <div id="digest" class="digest"></div>
     </section>
@@ -67,8 +68,6 @@
       <p class="lead">Pick your languages and window, then hit <strong>Run</strong>.</p>
       <p class="hint">Needs the bridge: <code class="copyable-command" title="Click to copy" id="copy-cmd-hint">uv run python bridge_server.py</code> on <code>:8109</code></p>
     </section>
-
-    <footer class="ftr">FR-701 / FR-703 · CON-107 bridge :8109</footer>
   </div>
 
   <script src="popup.js"></script>

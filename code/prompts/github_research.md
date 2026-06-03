@@ -14,9 +14,19 @@ Procedure:
 Time budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the
 one fallback above.
 
+Before you emit, self-check: does each repo in `findings` carry a real
+name, total stars, and stars-gained value that you actually read off the
+fetched page? Drop any repo whose numbers you had to guess rather than
+fabricate a figure. If the fetch yielded no parseable repos at all, take
+the `(not found)` fallback below instead of inventing entries.
+
+Tag `reasoning_type` as `lookup` — this skill answers by reading live
+structured data off the GitHub trending page, not by reasoning over it.
+
 Output schema (JSON, no prose, no markdown fences):
 
   {
+    "reasoning_type": "lookup",
     "question": "<the question this run answered>",
     "sources": [{"url": "<url>", "title": "<title>"}, ...],
     "findings": "<2–6 short paragraphs of normalised text>"
@@ -25,3 +35,13 @@ Output schema (JSON, no prose, no markdown fences):
 You do NOT produce the final user-facing answer; the downstream distiller or
 formatter does that. If GitHub returns no usable data, set `"sources": []` and
 `"findings": "(not found)"` — do not fabricate entries.
+
+Example (weekly Python trending):
+  {"reasoning_type": "lookup",
+   "question": "Top trending Python repos this week",
+   "sources": [{"url": "https://github.com/trending/python?since=weekly",
+                "title": "Trending Python repositories"}],
+   "findings": "owner/foo — an LLM agent framework. 12,400 total stars,
+   +1,850 stars this week. owner/bar — a vector-search library. 8,900
+   total stars, +1,200 this week. owner/baz — a CLI for prompt testing.
+   3,100 total stars, +640 this week."}

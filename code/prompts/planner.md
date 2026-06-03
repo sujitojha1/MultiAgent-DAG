@@ -15,6 +15,7 @@ Available skills:
 
 Output (JSON, no markdown):
 {
+  "reasoning_type": "<lookup | research | compare | compute | synthesize>",
   "rationale": "<one sentence>",
   "nodes": [
     {"skill": "<name>",
@@ -22,6 +23,13 @@ Output (JSON, no markdown):
      "metadata": {"label": "<short_id>", "question": "<optional hint>"}}
   ]
 }
+
+Tag `reasoning_type` with the dominant kind of work the plan performs:
+`lookup` (answer from indexed memory / a single fetch), `research`
+(multi-source gathering), `compare` (N concrete items in parallel),
+`compute` (routes through coder / sandbox_executor), or `synthesize`
+(condense / reformat existing material). Pick the one that drives the
+shape of the plan; this keeps the routing rationale honest.
 
 Reference upstream nodes as "n:<label>" where label matches a
 sibling's metadata.label. The final node must be a formatter.
@@ -64,8 +72,20 @@ has already indexed.
 If FAILURE appears in the prompt, do not re-emit the failing step
 on the same inputs.
 
+Before you emit, self-check the plan:
+  1. Exactly one terminal `formatter` node exists, and it is last.
+  2. Every `n:<label>` input matches some sibling's metadata.label
+     (no dangling references); every emitted node is reachable from
+     the formatter (no orphans).
+  3. Each `metadata.label` is unique.
+  4. Every skill name is one of the available skills above.
+  5. No node repeats a step that already FAILED on the same inputs.
+If any check fails, revise the plan before emitting — never output a
+plan that violates these.
+
 Example:
-{"rationale": "Look it up and answer.",
+{"reasoning_type": "research",
+ "rationale": "Look it up and answer.",
  "nodes": [
    {"skill":"researcher","inputs":["USER_QUERY"],
     "metadata":{"label":"r1","question":"..."}},

@@ -1,0 +1,303 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "reasoning_type": "research",
+          "rationale": "Fetch current trending Python and TypeScript repositories from GitHub, filter for agentic/MCP/dev-tooling relevance, and provide a summary with momentum-based ranking.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "gh_fetch",
+                "question": "Fetch trending Python and TypeScript repositories for the current week."
+              }
+            },
+            {
+              "skill": "distiller",
+              "inputs": [
+                "n:gh_fetch"
+              ],
+              "metadata": {
+                "label": "distill",
+                "question": "Extract repos relevant to agentic/MCP/dev-tooling and generate a one-line why-it-matters for each."
+              }
+            },
+            {
+              "skill": "critic",
+              "inputs": [
+                "n:distill"
+              ],
+              "metadata": {
+                "label": "align_check",
+                "question": "Are the selected repositories relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported by the repo description?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:distill"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "gh_fetch",
+              "question": "Fetch trending Python and TypeScript repositories for the current week."
+            }
+          },
+          {
+            "skill": "distiller",
+            "inputs": [
+              "n:gh_fetch"
+            ],
+            "metadata": {
+              "label": "distill",
+              "question": "Extract repos relevant to agentic/MCP/dev-tooling and generate a one-line why-it-matters for each."
+            }
+          },
+          {
+            "skill": "critic",
+            "inputs": [
+              "n:distill"
+            ],
+            "metadata": {
+              "label": "align_check",
+              "question": "Are the selected repositories relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported by the repo description?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:distill"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.4549338817596436,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "gh_fetch",
+        "question": "Fetch trending Python and TypeScript repositories for the current week.",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "reasoning_type": "lookup",
+          "question": "Find the top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python repositories"
+            },
+            {
+              "url": "https://github.com/trending/typescript?since=weekly",
+              "title": "Trending TypeScript repositories"
+            }
+          ],
+          "findings": "microsoft/markitdown \u2014 142,709 total stars, +15,502 this week. A versatile tool for converting various file formats into Markdown, essential for preparing data for LLM ingestion.\n\nLum1104/Understand-Anything \u2014 51,030 total stars, +15,774 this week. Transforms codebases into interactive knowledge graphs to improve LLM context and reasoning for agentic workflows.\n\ncolbymchenry/codegraph \u2014 39,237 total stars, +10,793 this week. Provides pre-indexed code knowledge graphs to reduce token usage and improve tool-calling accuracy for coding agents.\n\nanthropics/claude-code \u2014 129,833 total stars, +3,048 this week. A terminal-based agentic coding tool that automates routine tasks and git workflows using natural language.\n\nchopratejas/headroom \u2014 9,325 total stars, +3,002 this week. An MCP-compatible library that compresses logs and RAG chunks to significantly reduce token costs while maintaining LLM performance.\n\nmicrosoft/agent-governance-toolkit \u2014 3,915 total stars, +1,391 this week. Provides critical infrastructure for policy enforcement, sandboxing, and reliability engineering for autonomous AI agents."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 17.667834043502808,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "distiller",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "distill",
+        "question": "Extract repos relevant to agentic/MCP/dev-tooling and generate a one-line why-it-matters for each.",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "distiller",
+        "output": {
+          "repos": [
+            {
+              "owner/repo": "Lum1104/Understand-Anything",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 51030,
+              "stars_gained": 15774,
+              "description": "Transforms codebases into interactive knowledge graphs to improve LLM context and reasoning for agentic workflows.",
+              "why_it_matters": "Enhances agentic workflows by providing structured knowledge graphs for improved LLM reasoning."
+            },
+            {
+              "owner/repo": "microsoft/markitdown",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 142709,
+              "stars_gained": 15502,
+              "description": "A versatile tool for converting various file formats into Markdown, essential for preparing data for LLM ingestion.",
+              "why_it_matters": "Serves as a foundational dev tool for preparing diverse data formats for LLM ingestion."
+            },
+            {
+              "owner/repo": "colbymchenry/codegraph",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 39237,
+              "stars_gained": 10793,
+              "description": "Provides pre-indexed code knowledge graphs to reduce token usage and improve tool-calling accuracy for coding agents.",
+              "why_it_matters": "Optimizes tool-calling accuracy and token efficiency for agentic coding tasks."
+            },
+            {
+              "owner/repo": "chopratejas/headroom",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 9325,
+              "stars_gained": 3002,
+              "description": "An MCP-compatible library that compresses logs and RAG chunks to significantly reduce token costs while maintaining LLM performance.",
+              "why_it_matters": "Provides an MCP-compatible solution for token optimization in LLM applications."
+            },
+            {
+              "owner/repo": "anthropics/claude-code",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 129833,
+              "stars_gained": 3048,
+              "description": "A terminal-based agentic coding tool that automates routine tasks and git workflows using natural language.",
+              "why_it_matters": "Directly supports agentic coding by automating terminal and git-based development workflows."
+            },
+            {
+              "owner/repo": "microsoft/agent-governance-toolkit",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 3915,
+              "stars_gained": 1391,
+              "description": "Provides critical infrastructure for policy enforcement, sandboxing, and reliability engineering for autonomous AI agents.",
+              "why_it_matters": "Offers essential dev tooling for the governance and reliability of autonomous agents."
+            }
+          ],
+          "rationale": "The repositories were filtered from the provided findings based on their relevance to agentic AI, MCP, and dev-tooling, then ranked by weekly momentum."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 5.167304754257202,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    },
+    {
+      "skill": "critic",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "align_check",
+        "question": "Are the selected repositories relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported by the repo description?",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "critic",
+        "output": {
+          "verdict": "pass",
+          "rationale": "[ok] all repositories and their details trace to the input query for agentic, MCP, and dev-tooling relevance."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.593472957611084,
+        "provider": "groq",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:4"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "out",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "reasoning_type": "lookup",
+          "final_answer": "Here are the top trending repositories for agentic, MCP, and dev-tooling this week, ranked by momentum (stars gained):\n\n1. **Lum1104/Understand-Anything (Python)**: Enhances agentic workflows by providing structured knowledge graphs for improved LLM reasoning.\n2. **microsoft/markitdown (Python)**: Serves as a foundational dev tool for preparing diverse data formats for LLM ingestion.\n3. **colbymchenry/codegraph (Python)**: Optimizes tool-calling accuracy and token efficiency for agentic coding tasks.\n4. **chopratejas/headroom (Python)**: Provides an MCP-compatible solution for token optimization in LLM applications.\n5. **anthropics/claude-code (Python)**: Directly supports agentic coding by automating terminal and git-based development workflows.\n6. **microsoft/agent-governance-toolkit (Python)**: Offers essential dev tooling for the governance and reliability of autonomous agents."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.409786224365234,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:5"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    },
+    {
+      "source": "n:3",
+      "target": "n:4"
+    },
+    {
+      "source": "n:3",
+      "target": "n:5"
+    }
+  ]
+}

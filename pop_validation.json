@@ -20,10 +20,10 @@
       "tool_separation": true,
       "conversation_loop": true,
       "instructional_framing": true,
-      "internal_self_checks": false,
-      "reasoning_type_awareness": false,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": true,
       "fallbacks": true,
-      "overall_clarity": "Strong: clear schema, a worked example, skill-vs-tool separation, critic-insertion rules, and explicit FAILURE handling for re-planning. Missing: reasoning-type tagging and any self-validation of its own emitted plan."
+      "overall_clarity": "Strong: clear schema, a worked example, skill-vs-tool separation, critic-insertion rules, and explicit FAILURE handling for re-planning. Now also tags a reasoning_type on the plan and runs a pre-emit self-check (single terminal formatter, resolvable n:<label> refs, no orphans, unique labels, no repeat of failed steps)."
     },
     {
       "prompt": "researcher.md",
@@ -31,11 +31,11 @@
       "structured_output": true,
       "tool_separation": true,
       "conversation_loop": true,
-      "instructional_framing": false,
-      "internal_self_checks": false,
-      "reasoning_type_awareness": false,
+      "instructional_framing": true,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": true,
       "fallbacks": true,
-      "overall_clarity": "Well-structured search->fetch->synthesise loop with a 4-call budget and a '(not found)' fallback. Add a worked example and an explicit 'are these chunks sufficient' self-check."
+      "overall_clarity": "Well-structured search->fetch->synthesise loop with a 4-call budget and a '(not found)' fallback. Now also runs a 'are these pages sufficient' self-check (spend a remaining call on a better URL rather than pad), tags reasoning_type (lookup/synthesis), requires every finding to trace to a listed source, and includes a worked example."
     },
     {
       "prompt": "github_research.md",
@@ -43,11 +43,11 @@
       "structured_output": true,
       "tool_separation": true,
       "conversation_loop": false,
-      "instructional_framing": false,
-      "internal_self_checks": false,
-      "reasoning_type_awareness": false,
+      "instructional_framing": true,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": true,
       "fallbacks": true,
-      "overall_clarity": "Tight single-tool procedure with a 3-call cap and an anti-fabrication fallback. Schema-consistent: the no-data fallback now sets 'sources: []' / 'findings: (not found)', matching the declared output schema. Effectively single-shot (one trending-page fetch plus one fallback), not a genuine iterative loop, so conversation_loop is false."
+      "overall_clarity": "Tight single-tool procedure with a 3-call cap and an anti-fabrication fallback. Schema-consistent: the no-data fallback sets 'sources: []' / 'findings: (not found)'. Now also runs a self-check (every repo's name/stars/stars-gained was actually read off the page, drop guessed entries), tags reasoning_type as lookup, and includes a worked trending example. Effectively single-shot (one trending-page fetch plus one fallback), not a genuine iterative loop, so conversation_loop is false."
     },
     {
       "prompt": "retriever.md",
@@ -79,11 +79,11 @@
       "structured_output": true,
       "tool_separation": true,
       "conversation_loop": false,
-      "instructional_framing": false,
-      "internal_self_checks": false,
-      "reasoning_type_awareness": false,
-      "fallbacks": false,
-      "overall_clarity": "Clear procedure and a preserved_facts aid for a downstream critic, but no example, no self-check, and no fallback for thin or empty input."
+      "instructional_framing": true,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": true,
+      "fallbacks": true,
+      "overall_clarity": "Clear procedure with a preserved_facts aid for a downstream critic. Now also tags reasoning_type (extractive/abstractive), runs a self-check (every preserved fact appears in the summary, nothing absent from INPUTS, output is genuinely shorter), gives a thin/empty-input fallback that returns the source verbatim instead of padding, and includes a worked paper-length example. Single-shot by design, so no conversation loop."
     },
     {
       "prompt": "critic.md",
@@ -91,11 +91,11 @@
       "structured_output": true,
       "tool_separation": true,
       "conversation_loop": false,
-      "instructional_framing": false,
+      "instructional_framing": true,
       "internal_self_checks": true,
-      "reasoning_type_awareness": false,
+      "reasoning_type_awareness": true,
       "fallbacks": true,
-      "overall_clarity": "This prompt IS the self-check mechanism (fabrication / unsupported-claim / missing-field detection) and routes a 'fail' into Planner recovery. Operates single-shot; would benefit from a worked pass/fail example."
+      "overall_clarity": "This prompt IS the self-check mechanism (fabrication / unsupported-claim / missing-field detection) and routes a 'fail' into Planner recovery. Now tags the defect type as a bracketed prefix in rationale ([fabrication]/[unsupported]/[missing-field]/[contradiction]/[ok]) — naming the verification type without adding a schema key the orchestrator's {verdict, rationale} contract forbids — and includes worked pass and fail examples. Operates single-shot."
     },
     {
       "prompt": "formatter.md",
@@ -103,11 +103,11 @@
       "structured_output": true,
       "tool_separation": true,
       "conversation_loop": false,
-      "instructional_framing": false,
+      "instructional_framing": true,
       "internal_self_checks": true,
-      "reasoning_type_awareness": false,
+      "reasoning_type_awareness": true,
       "fallbacks": true,
-      "overall_clarity": "Good anti-fabrication discipline (answerable-from-INPUTS-alone, surface '(not found)' plainly) and format adaptation to the question. Terminal/single-shot; add an example and note that data carried only by a critic must be read from the producer."
+      "overall_clarity": "Good anti-fabrication discipline (answerable-from-INPUTS-alone, surface '(not found)' plainly) and format adaptation to the question. Now also tags reasoning_type (lookup/synthesis/compare) in a separate key that never reaches the user-facing final_answer, notes that a critic carries no data so its gated producer must be read instead, and includes a worked example. Terminal/single-shot."
     },
     {
       "prompt": "coder.md",
@@ -115,11 +115,11 @@
       "structured_output": true,
       "tool_separation": true,
       "conversation_loop": false,
-      "instructional_framing": false,
-      "internal_self_checks": false,
-      "reasoning_type_awareness": false,
+      "instructional_framing": true,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": true,
       "fallbacks": true,
-      "overall_clarity": "Very precise constraints (stdlib-only, inline literals, escape newlines) with an emit-what's-known fallback. Its 'do not invent values' rule is anti-hallucination guidance, not an active validation of intermediate steps, so internal_self_checks is false. Add a short worked code example to cement the JSON-string escaping rule, and an explicit self-check that the inlined literals match the inputs."
+      "overall_clarity": "Very precise constraints (stdlib-only, inline literals, escape newlines) with an emit-what's-known fallback. Now also runs an explicit pre-emit self-check (inlined literals match INPUTS, code non-empty and prints to stdout, stdlib-only with escaped newlines), tags the reasoning type as an [arithmetic]/[aggregation]/[logic] prefix in rationale (preserving the strict two-key schema the sandbox depends on), and includes a worked code example demonstrating the \\n escaping. Single-shot by design, so no conversation loop."
     },
     {
       "prompt": "sandbox_executor.md",
@@ -165,15 +165,15 @@
       "structured_output": 11,
       "tool_separation": 10,
       "conversation_loop": 3,
-      "instructional_framing": 2,
-      "internal_self_checks": 4,
-      "reasoning_type_awareness": 0,
-      "fallbacks": 9
+      "instructional_framing": 8,
+      "internal_self_checks": 9,
+      "reasoning_type_awareness": 7,
+      "fallbacks": 10
     },
     "observations": [
       "Universal strengths: nearly every prompt mandates a JSON schema, gives a step-by-step procedure, and explicitly fences its tool surface.",
-      "Universal gap: reasoning_type_awareness is absent everywhere - no prompt tags whether a step is arithmetic / logic / lookup.",
-      "Weakest dimension after that: instructional_framing - only planner.md and distiller.md show a concrete worked example; the rest rely on a bare schema.",
+      "reasoning_type_awareness is now present in planner.md, summariser.md, researcher.md, github_research.md, coder.md, critic.md, and formatter.md; only the thin/stub prompts (sandbox_executor.md, browser.md) and course_generator.md still omit it.",
+      "instructional_framing: planner.md, distiller.md, summariser.md, researcher.md, github_research.md, coder.md, critic.md, and formatter.md now show a concrete worked example; only the thin/stub prompts and course_generator.md rely on a bare schema.",
       "conversation_loop is true only for the genuinely iterative skills (planner re-plans across invocations; researcher and retriever run a budgeted search/fetch loop); github_research is effectively a single fetch plus one fallback, and the single-shot transform skills are correctly single-shot."
     ]
   }

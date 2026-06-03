@@ -24,10 +24,23 @@ function loadPrefs() {
     return {};
   }
 }
+function getWindowValue() {
+  const activeChip = $("#window-chips .chip.on");
+  return activeChip ? activeChip.getAttribute("data-value") : "weekly";
+}
+function setWindowActiveChip(val) {
+  document.querySelectorAll("#window-chips .chip").forEach(chip => {
+    if (chip.getAttribute("data-value") === val) {
+      chip.classList.add("on");
+    } else {
+      chip.classList.remove("on");
+    }
+  });
+}
 function savePrefs() {
   localStorage.setItem(STORE_KEY, JSON.stringify({
     langs: [...selectedLangs],
-    window: $("#window").value,
+    window: getWindowValue(),
     mode: $("#mode").value,
   }));
 }
@@ -209,18 +222,14 @@ async function run() {
   runBtn.disabled = true;
   runBtn.textContent = "Running…";
 
-  // Live status note: busy dot + elapsed timer
+  // Reset run timers
   const t0 = performance.now();
-  setStatus("<strong>Running</strong> PulseDAG…", "busy");
   clearRunTimers();
-  runTimers.push(setInterval(() => {
-    $("#status-elapsed").textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s";
-  }, 100));
 
   const sessionId = "s8-" + Math.random().toString(16).slice(2, 10);
   const body = {
     languages: [...selectedLangs].map((l) => l.toLowerCase()),
-    window: $("#window").value,
+    window: getWindowValue(),
     mode: $("#mode").value.trim() || undefined,
     session_id: sessionId,
   };
@@ -254,15 +263,14 @@ async function run() {
 
     const secs = ((performance.now() - t0) / 1000).toFixed(1);
     clearRunTimers();
-    $("#status-elapsed").textContent = "";
-    setStatus(`Done · <strong>${escapeHtml(data.session_id || "session")}</strong>`, "ok");
     $("#result-meta").textContent = `${data.session_id} · ${secs}s`;
     renderDigest(data.answer || "(empty digest)");
   } catch (e) {
     clearRunTimers();
-    $("#status-elapsed").textContent = "";
     const offline = String(e).includes("Failed to fetch");
-    setStatus(offline ? "Bridge <strong>offline</strong>" : "Run failed", "down");
+    if (offline) {
+      setStatus("Bridge <strong>offline</strong>", "down");
+    }
     
     const errorMsg = offline 
       ? `Could not reach the bridge on :8109. Start it using <code class="copyable-command" title="Click to copy">uv run python bridge_server.py</code>`
@@ -271,13 +279,14 @@ async function run() {
     digest.innerHTML = `<p class="err">⚠ <span>${errorMsg}</span></p>`;
   } finally {
     runBtn.disabled = false;
-    runBtn.textContent = "▶ Run PulseDAG";
+    runBtn.textContent = "▶ Run";
   }
 }
 
 // ── Minimal, safe markdown render ────────────────────────────────────
 function renderDigest(text) {
   const digest = $("#digest");
+  digest.classList.remove("has-carousel");
   digest.innerHTML = "";
   const lines = text.replace(/\r/g, "").split("\n");
   let ul = null;
@@ -311,6 +320,7 @@ function renderDigest(text) {
     }
   }
   closeList();
+  initCarousel();
 }
 
 function inline(s) {
@@ -332,13 +342,66 @@ function escapeHtml(s) {
 
 // ── 🎲 Random pick (FR-703) ──────────────────────────────────────────
 function randomPick() {
-  const targets = [...document.querySelectorAll(".digest .pick-target")]
-    .filter((el) => el.textContent.trim().length > 8);
-  if (!targets.length) return;
+  const digest = $("#digest");
+  const slides = [...digest.querySelectorAll("li.line")];
+  if (!slides.length) return;
+  
   document.querySelectorAll(".digest .picked").forEach((el) => el.classList.remove("picked"));
-  const choice = targets[Math.floor(Math.random() * targets.length)];
+  
+  const choiceIdx = Math.floor(Math.random() * slides.length);
+  const choice = slides[choiceIdx];
   choice.classList.add("picked");
+  
+  showSlide(choiceIdx);
   choice.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+let currentSlideIndex = 0;
+
+function initCarousel() {
+  const digest = $("#digest");
+  const slides = [...digest.querySelectorAll("li.line")];
+  if (slides.length <= 1) return;
+
+  digest.classList.add("has-carousel");
+  currentSlideIndex = 0;
+  
+  slides.forEach((slide, idx) => {
+    if (idx === 0) {
+      slide.classList.add("active");
+    } else {
+      slide.classList.remove("active");
+    }
+  });
+
+  const dotsContainer = document.createElement("div");
+  dotsContainer.className = "carousel-dots";
+
+  slides.forEach((_, idx) => {
+    const dot = document.createElement("div");
+    dot.className = "carousel-dot" + (idx === 0 ? " active" : "");
+    dot.addEventListener("click", () => {
+      showSlide(idx);
+    });
+    dotsContainer.appendChild(dot);
+  });
+
+  digest.appendChild(dotsContainer);
+}
+
+function showSlide(index) {
+  const digest = $("#digest");
+  const slides = [...digest.querySelectorAll("li.line")];
+  const dots = [...digest.querySelectorAll(".carousel-dot")];
+  if (index < 0 || index >= slides.length) return;
+
+  slides[currentSlideIndex].classList.remove("active");
+  dots[currentSlideIndex].classList.remove("active");
+
+  currentSlideIndex = index;
+
+  slides[currentSlideIndex].classList.add("active");
+  dots[currentSlideIndex].classList.add("active");
 }
 
 // ── Wire up ──────────────────────────────────────────────────────────
@@ -405,10 +468,19 @@ function init() {
   setupMultiselectEvents();
   setupCopyEvents();
   
-  if (prefs.window) $("#window").value = prefs.window;
+  if (prefs.window) {
+    setWindowActiveChip(prefs.window);
+  }
   if (prefs.mode) $("#mode").value = prefs.mode;
 
-  $("#window").addEventListener("change", savePrefs);
+  // Add click handlers for window chips
+  document.querySelectorAll("#window-chips .chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      setWindowActiveChip(chip.getAttribute("data-value"));
+      savePrefs();
+    });
+  });
+
   $("#mode").addEventListener("input", savePrefs);
   $("#run").addEventListener("click", run);
   $("#dice").addEventListener("click", randomPick);
