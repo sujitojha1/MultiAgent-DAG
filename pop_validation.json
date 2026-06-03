@@ -42,12 +42,12 @@
       "explicit_reasoning": true,
       "structured_output": true,
       "tool_separation": true,
-      "conversation_loop": true,
+      "conversation_loop": false,
       "instructional_framing": false,
       "internal_self_checks": false,
       "reasoning_type_awareness": false,
       "fallbacks": true,
-      "overall_clarity": "Tight single-tool procedure with a 3-call cap and an anti-fabrication fallback. Schema-consistent: the no-data fallback now sets 'sources: []' / 'findings: (not found)', matching the declared output schema."
+      "overall_clarity": "Tight single-tool procedure with a 3-call cap and an anti-fabrication fallback. Schema-consistent: the no-data fallback now sets 'sources: []' / 'findings: (not found)', matching the declared output schema. Effectively single-shot (one trending-page fetch plus one fallback), not a genuine iterative loop, so conversation_loop is false."
     },
     {
       "prompt": "retriever.md",
@@ -116,10 +116,10 @@
       "tool_separation": true,
       "conversation_loop": false,
       "instructional_framing": false,
-      "internal_self_checks": true,
+      "internal_self_checks": false,
       "reasoning_type_awareness": false,
       "fallbacks": true,
-      "overall_clarity": "Very precise constraints (stdlib-only, inline literals, escape newlines) with strong grounding ('do not invent values', emit-what's-known fallback). Add a short worked code example to cement the JSON-string escaping rule."
+      "overall_clarity": "Very precise constraints (stdlib-only, inline literals, escape newlines) with an emit-what's-known fallback. Its 'do not invent values' rule is anti-hallucination guidance, not an active validation of intermediate steps, so internal_self_checks is false. Add a short worked code example to cement the JSON-string escaping rule, and an explicit self-check that the inlined literals match the inputs."
     },
     {
       "prompt": "sandbox_executor.md",
@@ -164,9 +164,9 @@
       "explicit_reasoning": 10,
       "structured_output": 11,
       "tool_separation": 10,
-      "conversation_loop": 4,
+      "conversation_loop": 3,
       "instructional_framing": 2,
-      "internal_self_checks": 5,
+      "internal_self_checks": 4,
       "reasoning_type_awareness": 0,
       "fallbacks": 9
     },
@@ -174,7 +174,7 @@
       "Universal strengths: nearly every prompt mandates a JSON schema, gives a step-by-step procedure, and explicitly fences its tool surface.",
       "Universal gap: reasoning_type_awareness is absent everywhere - no prompt tags whether a step is arithmetic / logic / lookup.",
       "Weakest dimension after that: instructional_framing - only planner.md and distiller.md show a concrete worked example; the rest rely on a bare schema.",
-      "conversation_loop is true only for the loop-driving / tool-using skills (planner, researcher, github_research, retriever); single-shot transform skills are correctly single-shot."
+      "conversation_loop is true only for the genuinely iterative skills (planner re-plans across invocations; researcher and retriever run a budgeted search/fetch loop); github_research is effectively a single fetch plus one fallback, and the single-shot transform skills are correctly single-shot."
     ]
   }
 }
