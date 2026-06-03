@@ -1,0 +1,13 @@
+{
+  "node_id": "n:7",
+  "skill": "github_research",
+  "status": "running",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": null,
+  "prompt_sent": null,
+  "started_at": 1780515690.0957532,
+  "completed_at": null,
+  "retries": 0
+}
