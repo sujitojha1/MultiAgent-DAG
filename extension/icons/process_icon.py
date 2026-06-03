@@ -5,11 +5,12 @@
 # ///
 
 import os
-from PIL import Image, ImageChops
+import math
+from PIL import Image
 
 def process_icon():
-    # Source image path
-    src_path = r"C:\Users\gayad\.gemini\antigravity-ide\brain\179aaa39-92f7-49b2-872d-42f3eb798d9a\pulsedag_3d_icon_1780513879702.png"
+    # Source image path (new flat vector icon)
+    src_path = r"C:\Users\gayad\.gemini\antigravity-ide\brain\7577274b-95c1-426b-923c-5ecf1d8fb03f\pulsedag_icon_flat_1780515317613.png"
     
     if not os.path.exists(src_path):
         print(f"Error: Source image not found at {src_path}")
@@ -17,17 +18,42 @@ def process_icon():
 
     img = Image.open(src_path).convert("RGBA")
     
-    # Let's find the bounding box of non-black pixels to crop it nicely.
-    # Convert to grayscale first to easily find threshold
-    gray = img.convert("L")
-    # Threshold to find non-black pixels (brightness > 15)
-    bw = gray.point(lambda x: 255 if x > 15 else 0)
-    bbox = bw.getbbox()
+    # Pre-crop the image to remove the corner artifacts (decorative lines)
+    # The logo is centered within (163, 163) and (861, 861) on the 1024x1024 canvas.
+    img = img.crop((160, 160, 864, 864))
+    
+    # The background is a uniform dark grey, around (49, 49, 49).
+    # We remove this background and handle transparency mapping to avoid jaggy edges.
+    bg_color = (49, 49, 49)
+    datas = img.getdata()
+    new_data = []
+    
+    for item in datas:
+        r, g, b, a = item
+        # Compute Euclidean distance to the background color
+        dist = math.sqrt((r - bg_color[0])**2 + (g - bg_color[1])**2 + (b - bg_color[2])**2)
+        
+        # If it is very close to the background color, make it fully transparent
+        if dist < 12:
+            new_data.append((0, 0, 0, 0))
+        # If it is in the transition zone, map alpha proportionally
+        elif dist < 45:
+            factor = (dist - 12) / (45 - 12)
+            # Maintain the color but scale down the alpha channel
+            new_data.append((r, g, b, int(255 * factor)))
+        else:
+            new_data.append((r, g, b, 255))
+            
+    img.putdata(new_data)
+    
+    # Find the bounding box of non-transparent pixels to crop it nicely
+    alpha = img.split()[3]
+    bbox = alpha.getbbox()
     
     if bbox:
         # Crop to bounding box
         img = img.crop(bbox)
-        # Make it square by adding padding
+        # Make it square by adding transparent padding
         w, h = img.size
         max_dim = max(w, h)
         square_img = Image.new("RGBA", (max_dim, max_dim), (0, 0, 0, 0))
@@ -36,28 +62,6 @@ def process_icon():
         offset_y = (max_dim - h) // 2
         square_img.paste(img, (offset_x, offset_y))
         img = square_img
-    
-    # Process transparency
-    # For every pixel, if it's very dark, make it transparent.
-    # To avoid jaggy edges, we scale alpha based on pixel brightness for dark pixels.
-    datas = img.getdata()
-    new_data = []
-    for item in datas:
-        r, g, b, a = item
-        # Brightness estimate
-        brightness = (r + g + b) / 3.0
-        
-        # If it's very dark, make it transparent
-        if brightness < 12:
-            new_data.append((0, 0, 0, 0))
-        elif brightness < 45:
-            # Smoothly transition alpha for dark edges
-            factor = (brightness - 12) / (45 - 12)
-            new_data.append((r, g, b, int(255 * factor)))
-        else:
-            new_data.append((r, g, b, 255))
-            
-    img.putdata(new_data)
     
     # Output directory
     out_dir = r"c:\Users\gayad\dev\EAG3\MultiAgent-DAG\extension\icons"

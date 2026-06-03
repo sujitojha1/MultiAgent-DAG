@@ -1,0 +1,180 @@
+{
+  "rubric_source": "https://github.com/sujitojha1/AgentiAI/blob/main/pop_validation.md",
+  "scope": "code/prompts/*.md (12 skill prompts of the MultiAgent-DAG agent)",
+  "criteria": {
+    "explicit_reasoning": "Prompt gives explicit reasoning instructions (step-by-step procedure or a required rationale).",
+    "structured_output": "Prompt mandates a structured output format (a JSON schema).",
+    "tool_separation": "Prompt cleanly delineates its tool surface (names the tools, or states 'no tool calls', and forbids inventing tools).",
+    "conversation_loop": "Prompt is built to operate in an iterative / multi-turn loop (tool loop with a budget, or re-planning across invocations).",
+    "instructional_framing": "Prompt shows a concrete example demonstrating the desired output pattern (not just a bare schema).",
+    "internal_self_checks": "Prompt instructs the model to validate intermediate steps or ground its own output against the inputs before emitting.",
+    "reasoning_type_awareness": "Prompt tags the cognitive approach (arithmetic / logic / lookup) for each step.",
+    "fallbacks": "Prompt gives guidance for uncertain scenarios, missing data, or tool failure ('(not found)', empty result, recovery).",
+    "overall_clarity": "Qualitative note on strengths and the most useful improvement."
+  },
+  "evaluations": [
+    {
+      "prompt": "planner.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": true,
+      "instructional_framing": true,
+      "internal_self_checks": false,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Strong: clear schema, a worked example, skill-vs-tool separation, critic-insertion rules, and explicit FAILURE handling for re-planning. Missing: reasoning-type tagging and any self-validation of its own emitted plan."
+    },
+    {
+      "prompt": "researcher.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": true,
+      "instructional_framing": false,
+      "internal_self_checks": false,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Well-structured search->fetch->synthesise loop with a 4-call budget and a '(not found)' fallback. Add a worked example and an explicit 'are these chunks sufficient' self-check."
+    },
+    {
+      "prompt": "github_research.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": true,
+      "instructional_framing": false,
+      "internal_self_checks": false,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Tight single-tool procedure with a 3-call cap and an anti-fabrication fallback. Schema-consistent: the no-data fallback now sets 'sources: []' / 'findings: (not found)', matching the declared output schema."
+    },
+    {
+      "prompt": "retriever.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": true,
+      "instructional_framing": false,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Includes a genuine intermediate self-check (stop vs. refine on the returned chunks) and a clear found/empty fallback. Add a worked example to lock the chunk shape."
+    },
+    {
+      "prompt": "distiller.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": false,
+      "instructional_framing": true,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Best of the set on grounding: entailment checks on why_it_matters, omit-if-no-evidence, anti-hallucination warnings, and a concrete repos example. Single-shot by design, so no conversation loop; no reasoning-type tagging."
+    },
+    {
+      "prompt": "summariser.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": false,
+      "instructional_framing": false,
+      "internal_self_checks": false,
+      "reasoning_type_awareness": false,
+      "fallbacks": false,
+      "overall_clarity": "Clear procedure and a preserved_facts aid for a downstream critic, but no example, no self-check, and no fallback for thin or empty input."
+    },
+    {
+      "prompt": "critic.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": false,
+      "instructional_framing": false,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "This prompt IS the self-check mechanism (fabrication / unsupported-claim / missing-field detection) and routes a 'fail' into Planner recovery. Operates single-shot; would benefit from a worked pass/fail example."
+    },
+    {
+      "prompt": "formatter.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": false,
+      "instructional_framing": false,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Good anti-fabrication discipline (answerable-from-INPUTS-alone, surface '(not found)' plainly) and format adaptation to the question. Terminal/single-shot; add an example and note that data carried only by a critic must be read from the producer."
+    },
+    {
+      "prompt": "coder.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": false,
+      "instructional_framing": false,
+      "internal_self_checks": true,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Very precise constraints (stdlib-only, inline literals, escape newlines) with strong grounding ('do not invent values', emit-what's-known fallback). Add a short worked code example to cement the JSON-string escaping rule."
+    },
+    {
+      "prompt": "sandbox_executor.md",
+      "explicit_reasoning": false,
+      "structured_output": true,
+      "tool_separation": true,
+      "conversation_loop": false,
+      "instructional_framing": false,
+      "internal_self_checks": false,
+      "reasoning_type_awareness": false,
+      "fallbacks": false,
+      "overall_clarity": "Thin by design - a near-stub post-mortem describer that rarely reaches the LLM (the orchestrator runs the sandbox directly). Minimal reasoning, no example, no fallback."
+    },
+    {
+      "prompt": "course_generator.md",
+      "explicit_reasoning": true,
+      "structured_output": true,
+      "tool_separation": false,
+      "conversation_loop": false,
+      "instructional_framing": false,
+      "internal_self_checks": false,
+      "reasoning_type_awareness": false,
+      "fallbacks": true,
+      "overall_clarity": "Rich pedagogical structure (observe-before-explain ordering, analogies, ASCII data-flow) with a vague-input fallback (omit code_block). It never addresses tools at all, so tool separation is absent; no self-check or reasoning-type tagging."
+    },
+    {
+      "prompt": "browser.md",
+      "explicit_reasoning": false,
+      "structured_output": false,
+      "tool_separation": false,
+      "conversation_loop": false,
+      "instructional_framing": false,
+      "internal_self_checks": false,
+      "reasoning_type_awareness": false,
+      "fallbacks": false,
+      "overall_clarity": "Stub reserved for Session 9 - no functional prompt to evaluate."
+    }
+  ],
+  "summary": {
+    "prompts_evaluated": 12,
+    "criteria_true_counts": {
+      "explicit_reasoning": 10,
+      "structured_output": 11,
+      "tool_separation": 10,
+      "conversation_loop": 4,
+      "instructional_framing": 2,
+      "internal_self_checks": 5,
+      "reasoning_type_awareness": 0,
+      "fallbacks": 9
+    },
+    "observations": [
+      "Universal strengths: nearly every prompt mandates a JSON schema, gives a step-by-step procedure, and explicitly fences its tool surface.",
+      "Universal gap: reasoning_type_awareness is absent everywhere - no prompt tags whether a step is arithmetic / logic / lookup.",
+      "Weakest dimension after that: instructional_framing - only planner.md and distiller.md show a concrete worked example; the rest rely on a bare schema.",
+      "conversation_loop is true only for the loop-driving / tool-using skills (planner, researcher, github_research, retriever); single-shot transform skills are correctly single-shot."
+    ]
+  }
+}

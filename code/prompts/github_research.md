@@ -23,5 +23,5 @@ Output schema (JSON, no prose, no markdown fences):
   }
 
 You do NOT produce the final user-facing answer; the downstream distiller or
-formatter does that. If GitHub returns no usable data, set `"repos": []` and
+formatter does that. If GitHub returns no usable data, set `"sources": []` and
 `"findings": "(not found)"` — do not fabricate entries.
