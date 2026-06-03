@@ -1,0 +1,296 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "rationale": "Since the memory hits indicate the agent has recent context on trending repositories, I will use github_research to fetch the latest live data, distill the results, and validate them against the requested criteria.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "gh_data",
+                "question": "Fetch top trending Rust repositories for this week."
+              }
+            },
+            {
+              "skill": "distiller",
+              "inputs": [
+                "n:gh_data"
+              ],
+              "metadata": {
+                "label": "distilled",
+                "question": "Extract Rust repos, rank by momentum, filter for agentic/MCP/dev-tooling, and provide a one-line why-it-matters."
+              }
+            },
+            {
+              "skill": "critic",
+              "inputs": [
+                "n:distilled"
+              ],
+              "metadata": {
+                "label": "alignment_check",
+                "question": "Are the kept repos relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported by the repo description?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:distilled"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "gh_data",
+              "question": "Fetch top trending Rust repositories for this week."
+            }
+          },
+          {
+            "skill": "distiller",
+            "inputs": [
+              "n:gh_data"
+            ],
+            "metadata": {
+              "label": "distilled",
+              "question": "Extract Rust repos, rank by momentum, filter for agentic/MCP/dev-tooling, and provide a one-line why-it-matters."
+            }
+          },
+          {
+            "skill": "critic",
+            "inputs": [
+              "n:distilled"
+            ],
+            "metadata": {
+              "label": "alignment_check",
+              "question": "Are the kept repos relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported by the repo description?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:distilled"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.599255084991455,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "gh_data",
+        "question": "Fetch top trending Rust repositories for this week.",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "question": "Find the top trending Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "GitHub Trending Rust Repositories"
+            }
+          ],
+          "findings": "The following Rust repositories are trending this week and are highly relevant to the agentic, MCP, and developer tooling ecosystem, ranked by weekly momentum:\n\n1. **farion1231/cc-switch** (7,667 stars this week, 90,514 total): A cross-platform desktop assistant for various coding agents like Claude Code and Gemini CLI, streamlining agent management.\n\n2. **run-llama/liteparse** (3,699 stars this week, 9,045 total): A high-performance document parser designed to improve data ingestion for AI-driven workflows.\n\n3. **openai/codex** (2,158 stars this week, 88,312 total): A lightweight coding agent for the terminal that enhances developer productivity through AI-assisted code generation.\n\n4. **ogulcancelik/herdr** (1,327 stars this week, 4,074 total): An agent multiplexer for the terminal, enabling efficient management of multiple agentic processes.\n\n5. **dmtrKovalenko/fff** (1,228 stars this week, 7,496 total): A high-speed file search toolkit optimized for AI agents and developer environments like Neovim.\n\n6. **ryoppippi/ccusage** (754 stars this week, 15,480 total): A specialized CLI tool for tracking token usage and costs of coding agents, essential for managing AI development budgets."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 14.400264739990234,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "distiller",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "distilled",
+        "question": "Extract Rust repos, rank by momentum, filter for agentic/MCP/dev-tooling, and provide a one-line why-it-matters.",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "distiller",
+        "output": {
+          "repos": [
+            {
+              "owner/repo": "farion1231/cc-switch",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 90514,
+              "stars_gained": 7667,
+              "description": "A cross-platform desktop assistant for various coding agents like Claude Code and Gemini CLI, streamlining agent management.",
+              "why_it_matters": "It provides a centralized management interface for coding agents, directly supporting the agentic workflow interest profile."
+            },
+            {
+              "owner/repo": "run-llama/liteparse",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 9045,
+              "stars_gained": 3699,
+              "description": "A high-performance document parser designed to improve data ingestion for AI-driven workflows.",
+              "why_it_matters": "It serves as a foundational dev-tooling component for optimizing data ingestion in agentic AI pipelines."
+            },
+            {
+              "owner/repo": "openai/codex",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 88312,
+              "stars_gained": 2158,
+              "description": "A lightweight coding agent for the terminal that enhances developer productivity through AI-assisted code generation.",
+              "why_it_matters": "It is a direct implementation of an agentic coding tool designed to improve developer productivity."
+            },
+            {
+              "owner/repo": "ogulcancelik/herdr",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 4074,
+              "stars_gained": 1327,
+              "description": "An agent multiplexer for the terminal, enabling efficient management of multiple agentic processes.",
+              "why_it_matters": "It functions as a specialized dev-tool for orchestrating and managing multiple agentic processes simultaneously."
+            },
+            {
+              "owner/repo": "dmtrKovalenko/fff",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 7496,
+              "stars_gained": 1228,
+              "description": "A high-speed file search toolkit optimized for AI agents and developer environments like Neovim.",
+              "why_it_matters": "It acts as a performance-oriented dev-tool specifically optimized for integration with AI agents."
+            },
+            {
+              "owner/repo": "ryoppippi/ccusage",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 15480,
+              "stars_gained": 754,
+              "description": "A specialized CLI tool for tracking token usage and costs of coding agents, essential for managing AI development budgets.",
+              "why_it_matters": "It provides essential observability and cost-management tooling for developers building with agentic systems."
+            }
+          ],
+          "rationale": "The findings from the github_research node provide the weekly trending Rust repositories, which were filtered and ranked by momentum to match the agentic, MCP, and dev-tooling interest profile."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 5.544814825057983,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    },
+    {
+      "skill": "critic",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "alignment_check",
+        "question": "Are the kept repos relevant to agentic/MCP/dev-tooling and is the why-it-matters rationale supported by the repo description?",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "critic",
+        "output": {
+          "verdict": "pass",
+          "rationale": "The output matches the input requirements, providing weekly trending Rust repositories relevant to agentic, MCP, and dev-tooling, ranked by momentum with a one-line why-it-matters each."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.5365495681762695,
+        "provider": "groq",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:4"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "out",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "final_answer": "Here are the top trending Rust repositories this week, ranked by momentum (stars gained), focused on agentic, MCP, and developer tooling:\n\n1. **farion1231/cc-switch** (7,667 new stars): Provides a centralized management interface for coding agents, streamlining the agentic workflow.\n2. **run-llama/liteparse** (3,699 new stars): A high-performance document parser that optimizes data ingestion for agentic AI pipelines.\n3. **openai/codex** (2,158 new stars): A terminal-based coding agent designed to enhance developer productivity through AI-assisted code generation.\n4. **ogulcancelik/herdr** (1,327 new stars): An agent multiplexer that enables efficient orchestration of multiple agentic processes in the terminal.\n5. **dmtrKovalenko/fff** (1,228 new stars): A high-speed file search toolkit specifically optimized for integration with AI agents and developer environments.\n6. **ryoppippi/ccusage** (754 new stars): Provides essential observability and cost-management tooling for tracking token usage in agentic systems."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.512073993682861,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:5"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    },
+    {
+      "source": "n:3",
+      "target": "n:4"
+    },
+    {
+      "source": "n:3",
+      "target": "n:5"
+    }
+  ]
+}

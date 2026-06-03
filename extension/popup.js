@@ -202,31 +202,59 @@ async function run() {
   $("#empty").classList.add("hidden");
   result.classList.remove("hidden");
   $("#result-meta").textContent = "";
+  
+  // Inject steps-progress container
   digest.innerHTML =
-    '<div class="loader"><div class="spinner"></div><div class="loader-text" id="loader-text">Spinning up the DAG…</div></div>';
+    '<div class="loader">' +
+    '  <div class="spinner"></div>' +
+    '  <div class="loader-text" id="loader-text">Spinning up the DAG…</div>' +
+    '  <div id="steps-progress" class="steps-progress"></div>' +
+    '</div>';
+    
   runBtn.disabled = true;
   runBtn.textContent = "Running…";
 
-  // Live status note: busy dot + elapsed timer + cycling phase labels.
+  // Live status note: busy dot + elapsed timer
   const t0 = performance.now();
   setStatus("<strong>Running</strong> PulseDAG…", "busy");
   clearRunTimers();
   runTimers.push(setInterval(() => {
     $("#status-elapsed").textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s";
   }, 100));
-  let phase = 0;
-  const loaderText = () => $("#loader-text");
-  if (loaderText()) loaderText().textContent = PHASES[0];
-  runTimers.push(setInterval(() => {
-    phase = Math.min(phase + 1, PHASES.length - 1);
-    if (loaderText()) loaderText().textContent = PHASES[phase];
-  }, 1400));
 
+  const sessionId = "s8-" + Math.random().toString(16).slice(2, 10);
   const body = {
     languages: [...selectedLangs].map((l) => l.toLowerCase()),
     window: $("#window").value,
     mode: $("#mode").value.trim() || undefined,
+    session_id: sessionId,
   };
+
+  // Set up polling loop
+  const pollStatus = async () => {
+    try {
+      const r = await fetch(`${BRIDGE}/session/${sessionId}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      if (data && data.nodes) {
+        renderStepsProgress(data.nodes);
+        const runningNode = data.nodes.find(n => n.status === "running");
+        if (runningNode) {
+          const loaderTxt = $("#loader-text");
+          if (loaderTxt) {
+            const skillName = runningNode.skill.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+            loaderTxt.textContent = `Running ${skillName}…`;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error polling session:", err);
+    }
+  };
+  
+  // Run once immediately, then start interval
+  pollStatus();
+  runTimers.push(setInterval(pollStatus, 500));
 
   try {
     const r = await fetch(`${BRIDGE}/run`, {
@@ -324,6 +352,64 @@ function randomPick() {
   const choice = targets[Math.floor(Math.random() * targets.length)];
   choice.classList.add("picked");
   choice.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// ── Wire up ──────────────────────────────────────────────────────────
+// ── Render Steps Progress ───────────────────────────────────────────
+function renderStepsProgress(nodes) {
+  const container = $("#steps-progress");
+  if (!container) return;
+
+  if (!nodes || nodes.length === 0) {
+    container.innerHTML = "";
+    return;
+  }
+
+  // Sort nodes by numeric ID suffix (n:1, n:2, etc.)
+  const sortedNodes = [...nodes].sort((a, b) => {
+    const numA = parseInt(a.node_id.split(":")[1]) || 0;
+    const numB = parseInt(b.node_id.split(":")[1]) || 0;
+    return numA - numB;
+  });
+
+  container.innerHTML = sortedNodes
+    .map((node) => {
+      let statusClass = "step-pending";
+      let statusSymbol = "○";
+
+      if (node.status === "complete") {
+        statusClass = "step-complete";
+        statusSymbol = "✓";
+      } else if (node.status === "running") {
+        statusClass = "step-running";
+        statusSymbol = '<span class="step-spinner"></span>';
+      } else if (node.status === "failed") {
+        statusClass = "step-failed";
+        statusSymbol = "✗";
+      } else if (node.status === "skipped") {
+        statusClass = "step-skipped";
+        statusSymbol = "—";
+      }
+
+      const timeStr = node.elapsed_s ? `${node.elapsed_s.toFixed(1)}s` : "";
+      const errorStr = node.error
+        ? `<span class="step-error-desc" title="${escapeHtml(node.error)}">${escapeHtml(
+            node.error.slice(0, 32)
+          )}${node.error.length > 32 ? "..." : ""}</span>`
+        : "";
+
+      const displayName = node.skill.replace(/_/g, " ");
+
+      return `
+        <div class="step-item ${statusClass}">
+          <span class="step-status">${statusSymbol}</span>
+          <span class="step-name">${escapeHtml(displayName)}</span>
+          ${errorStr}
+          <span class="step-time">${timeStr}</span>
+        </div>
+      `;
+    })
+    .join("");
 }
 
 // ── Wire up ──────────────────────────────────────────────────────────

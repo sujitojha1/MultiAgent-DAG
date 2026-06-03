@@ -53,7 +53,7 @@ import json
 import sys
 import threading
 import uuid
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from typing import Any
 
 # ── Query builder ─────────────────────────────────────────────────────────────
@@ -92,6 +92,9 @@ def _run_executor_sync(query: str, session_id: str | None) -> str:
 
 # ── HTTP handler ──────────────────────────────────────────────────────────────
 
+_active_sessions: set[str] = set()
+
+
 class BridgeHandler(BaseHTTPRequestHandler):
     """Handle POST /run and GET /health."""
 
@@ -107,8 +110,103 @@ class BridgeHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/health":
             self._send_json({"status": "ok", "port": self.server.server_address[1]})
+        elif self.path.startswith("/session/"):
+            session_id = self.path.split("/")[-1]
+            self._handle_session_status(session_id)
         else:
             self._send_json({"error": "not found"}, status=404)
+
+    def _handle_session_status(self, session_id: str) -> None:
+        from persistence import SessionStore
+
+        store = SessionStore(session_id)
+        g = None
+        try:
+            g = store.read_graph()
+        except Exception as exc:
+            self._send_json({"error": f"failed to read session graph: {exc}"}, status=500)
+            return
+
+        if g is None:
+            # Graph not created yet (might be spinning up)
+            status = "running" if session_id in _active_sessions else "unknown"
+            self._send_json({
+                "session_id": session_id,
+                "status": status,
+                "nodes": []
+            })
+            return
+
+        nodes_list = []
+        for nid, d in g.nodes(data=True):
+            node_info = {
+                "node_id": nid,
+                "skill": d.get("skill"),
+                "status": d.get("status"),
+                "inputs": d.get("inputs", []),
+            }
+            res = d.get("result")
+            if res:
+                if hasattr(res, "elapsed_s"):
+                    node_info["elapsed_s"] = res.elapsed_s
+                    node_info["error"] = res.error
+                elif isinstance(res, dict):
+                    node_info["elapsed_s"] = res.get("elapsed_s")
+                    node_info["error"] = res.get("error")
+            nodes_list.append(node_info)
+
+        # Determine overall status
+        if session_id in _active_sessions:
+            overall_status = "running"
+        else:
+            has_formatter_complete = any(
+                n.get("skill") == "formatter" and n.get("status") == "complete"
+                for n in nodes_list
+            )
+            has_any_failed = any(n.get("status") == "failed" for n in nodes_list)
+            
+            if has_formatter_complete:
+                overall_status = "complete"
+            elif has_any_failed:
+                overall_status = "failed"
+            else:
+                has_pending_or_running = any(
+                    n.get("status") in ("pending", "running")
+                    for n in nodes_list
+                )
+                overall_status = "complete" if not has_pending_or_running else "running"
+
+        # Try to find final answer
+        answer = None
+        for n in nodes_list:
+            if n.get("skill") == "formatter" and n.get("status") == "complete":
+                for nid, d in g.nodes(data=True):
+                    if nid == n["node_id"]:
+                        res = d.get("result")
+                        if res:
+                            output = res.output if hasattr(res, "output") else res.get("output", {})
+                            answer = output.get("final_answer")
+                if answer:
+                    break
+
+        if not answer:
+            for nid in reversed(list(g.nodes)):
+                d = g.nodes[nid]
+                if d.get("status") == "complete" and d.get("result"):
+                    res = d.get("result")
+                    output = res.output if hasattr(res, "output") else res.get("output", {})
+                    if isinstance(output, dict):
+                        answer = output.get("final_answer") or json.dumps(output)[:2000]
+                    else:
+                        answer = str(output)
+                    break
+
+        self._send_json({
+            "session_id": session_id,
+            "status": overall_status,
+            "nodes": nodes_list,
+            "answer": answer
+        })
 
     # ------------------------------------------------------------------
     def do_POST(self) -> None:
@@ -145,12 +243,15 @@ class BridgeHandler(BaseHTTPRequestHandler):
         query = build_query(languages, window, mode)
         print(f"\n[bridge] POST /run  sid={session_id}  query={query!r}", flush=True)
 
+        _active_sessions.add(session_id)
         try:
             answer = _run_executor_sync(query, session_id)
         except Exception as exc:
             print(f"[bridge] Executor error: {exc}", file=sys.stderr, flush=True)
             self._send_json({"error": str(exc)}, status=500)
             return
+        finally:
+            _active_sessions.discard(session_id)
 
         self._send_json({"session_id": session_id, "query": query, "answer": answer})
 
@@ -179,8 +280,8 @@ class BridgeHandler(BaseHTTPRequestHandler):
 BRIDGE_PORT = 8109
 
 
-def make_server(port: int = BRIDGE_PORT) -> HTTPServer:
-    server = HTTPServer(("0.0.0.0", port), BridgeHandler)
+def make_server(port: int = BRIDGE_PORT) -> ThreadingHTTPServer:
+    server = ThreadingHTTPServer(("0.0.0.0", port), BridgeHandler)
     server.socket.setsockopt(
         __import__("socket").SOL_SOCKET,
         __import__("socket").SO_REUSEADDR,
