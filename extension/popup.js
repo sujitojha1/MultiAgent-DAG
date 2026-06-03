@@ -204,12 +204,7 @@ async function run() {
   $("#result-meta").textContent = "";
   
   // Inject steps-progress container
-  digest.innerHTML =
-    '<div class="loader">' +
-    '  <div class="spinner"></div>' +
-    '  <div class="loader-text" id="loader-text">Spinning up the DAG…</div>' +
-    '  <div id="steps-progress" class="steps-progress"></div>' +
-    '</div>';
+  digest.innerHTML = '<div id="steps-progress" class="steps-progress"></div>';
     
   runBtn.disabled = true;
   runBtn.textContent = "Running…";
@@ -238,14 +233,6 @@ async function run() {
       const data = await r.json();
       if (data && data.nodes) {
         renderStepsProgress(data.nodes);
-        const runningNode = data.nodes.find(n => n.status === "running");
-        if (runningNode) {
-          const loaderTxt = $("#loader-text");
-          if (loaderTxt) {
-            const skillName = runningNode.skill.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-            loaderTxt.textContent = `Running ${skillName}…`;
-          }
-        }
       }
     } catch (err) {
       console.error("Error polling session:", err);
