@@ -1,16 +1,16 @@
 {
-  "rubric_source": "https://github.com/sujitojha1/AgentiAI/blob/main/pop_validation.md",
+  "rubric_source": "pop_validation.md (local copy of https://github.com/sujitojha1/AgentiAI/blob/main/pop_validation.md)",
   "scope": "code/prompts/*.md (12 skill prompts of the MultiAgent-DAG agent)",
   "criteria": {
-    "explicit_reasoning": "Prompt gives explicit reasoning instructions (step-by-step procedure or a required rationale).",
-    "structured_output": "Prompt mandates a structured output format (a JSON schema).",
-    "tool_separation": "Prompt cleanly delineates its tool surface (names the tools, or states 'no tool calls', and forbids inventing tools).",
-    "conversation_loop": "Prompt is built to operate in an iterative / multi-turn loop (tool loop with a budget, or re-planning across invocations).",
-    "instructional_framing": "Prompt shows a concrete example demonstrating the desired output pattern (not just a bare schema).",
-    "internal_self_checks": "Prompt instructs the model to validate intermediate steps or ground its own output against the inputs before emitting.",
-    "reasoning_type_awareness": "Prompt tags the cognitive approach (arithmetic / logic / lookup) for each step.",
-    "fallbacks": "Prompt gives guidance for uncertain scenarios, missing data, or tool failure ('(not found)', empty result, recovery).",
-    "overall_clarity": "Qualitative note on strengths and the most useful improvement."
+    "explicit_reasoning": "Explicit reasoning instructions: does the prompt tell the model to reason step-by-step / explain its thinking before answering?",
+    "structured_output": "Structured output format: does the prompt enforce a predictable, parseable/validatable format (JSON, numbered steps, FUNCTION_CALL)?",
+    "tool_separation": "Separation of reasoning and tools: are reasoning steps clearly separated from computation/tool-use, and is it clear when to calculate, verify, or reason?",
+    "conversation_loop": "Conversation loop support: could the prompt work back-and-forth (multi-turn), updating context with results from previous steps?",
+    "instructional_framing": "Instructional framing: are there examples of desired behaviour / a defined format showing exactly how responses should look?",
+    "internal_self_checks": "Internal self-checks: does the prompt instruct the model to self-verify or sanity-check its intermediate steps?",
+    "reasoning_type_awareness": "Reasoning type awareness: does the prompt encourage tagging the type of reasoning used (arithmetic / logic / lookup)?",
+    "fallbacks": "Error handling or fallbacks: does the prompt say what to do if an answer is uncertain, a tool fails, or the model is unsure?",
+    "overall_clarity": "Overall clarity and robustness: is the prompt easy to follow and likely to reduce hallucination and drift?"
   },
   "evaluations": [
     {

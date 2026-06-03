@@ -136,7 +136,8 @@ your head.
 ## Provenance and version
 
 This package is the Session 8 build that passes the round-3 review.
-22 unit tests cover the failure-recovery + critic-splice mechanics.
+49 unit tests pass (`test_recovery.py` 22 — failure-recovery + critic-splice;
+`test_sandbox.py` 12 — sandbox limits; `test_bridge.py` 15 — bridge server).
 Five validation queries (hello, S7 carryover Shannon, parallel fan-out
 populations, graceful-fail nonexistent path, SIGKILL+resume) have been
 verified end-to-end on the same code you have here.
@@ -341,8 +342,9 @@ To ensure this submission scores a perfect **10/10** under evaluation against [d
 | **FR-301/2/3**| Part 3 | Critic verdict pass/fail & dynamically spliced recovery planner | **Verified** | [Full Log](logs/part3_critic_recovery.md) / [Showcase](#part-3--critic-verdict-fr-301-fr-304) |
 | **FR-401/2/3**| Part 4 | Coder prompt & auto-appended sandbox_executor chain | **Verified** | [Full Log](logs/part4_coder_trending_metrics.md) / [Showcase](#part-4--coder-skill-fr-401-fr-405) |
 | **FR-501/2/3**| Part 5 | Adding new skill via YAML and markdown prompt only | **Verified** | [Full Log](logs/part5_new_skill.md) / [Showcase](#part-5--new-skill-fr-501-fr-504) |
+| **FR-502** | Part 6 | `github_research` generalises to an unseen language (C++); distiller relevance pass + critic PASS | **Verified** | [Full Log](logs/part6_cpp_trending.md) / [Showcase](#part-6--github_research-on-c-fr-502) |
 | **NFR-301** | All Parts | Atomic persistence: write-temp + `os.replace` on every state write | **Verified** | [Architecture Review](docs/ATOMIC_PERSISTENCE.md) |
-| **NFR-401** | Part 4 | Sandbox: 30 s timeout + 1 MB stdout/stderr cap enforced | **Verified** | [Code Review](docs/SANDBOX_CONSTRAINTS.md) / 34 tests pass |
+| **NFR-401** | Part 4 | Sandbox: 30 s timeout + 1 MB stdout/stderr cap enforced | **Verified** | [Code Review](docs/SANDBOX_CONSTRAINTS.md) / 49 tests pass |
 
 ---
 
@@ -497,4 +499,36 @@ Producer Node ──▶ Critic Node (verdict: fail) ──▶ Skip Child & Spawn
   [n:8] formatter          complete (8.1s)
   ```
   See [logs/part5_new_skill.md](logs/part5_new_skill.md).
+
+---
+
+### Part 6 — `github_research` on C++ (FR-502)
+
+The same `github_research` skill — added by prompt + YAML alone in Part 5 —
+generalises to a **language it was never specifically tuned for (C++)**, with no
+code or prompt changes. The run exercises the full relevance path: the distiller
+applies the agentic / MCP / dev-tooling interest profile, and the alignment
+**critic passes**.
+
+**Session `s8-fccd9e5b`** — query: *"Find the top trending C++ repos today, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each."*
+
+```
+[n:1] planner            complete (4.1s)
+[n:2] github_research    complete (14.0s)   ← C++ trending fetch
+[n:3] distiller          complete (4.8s)    ← relevance pass + why_it_matters
+[n:4] critic             complete (3.5s)    ← verdict: PASS
+[n:5] formatter          complete (4.1s)
+```
+
+**Critic verdict `n:4` (PASS):** *"The output contains relevant C++ repositories, ranked by momentum, with a one-line why-it-matters each, aligning with the agentic, MCP, and dev-tooling criteria."*
+
+**Final answer (`n:5`) — top 3 by daily momentum:**
+
+| Repo | Stars gained | Why it matters |
+|---|---|---|
+| `78/xiaozhi-esp32` | 35 | Implements MCP to let an LLM agent control physical ESP32 hardware |
+| `mozilla-ai/llamafile` | 23 | Dev tooling that simplifies deploying LLMs for local agentic workflows |
+| `vllm-project/vllm-ascend` | 7 | High-performance inference backend for agentic AI on specific hardware |
+
+Full session log: [logs/part6_cpp_trending.md](logs/part6_cpp_trending.md)
 

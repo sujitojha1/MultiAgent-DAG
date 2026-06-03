@@ -91,3 +91,4 @@ if __name__ == "__main__":
     generate_log("s8-7b05deec", "part3_critic_recovery.md", "Part 3 - Critic Verdict Fail & Recovery Planner Splicing")
     generate_log("s8-b71eb7c6", "part4_coder_trending_metrics.md", "Part 4 - Coder Skill & Sandbox Execution")
     generate_log("s8-4c64a855", "part5_new_skill.md", "Part 5 - New Skill (github_research)")
+    generate_log("s8-fccd9e5b", "part6_cpp_trending.md", "Part 6 - github_research on C++ (distiller relevance + critic PASS)")
