@@ -1,0 +1,468 @@
+<section class="module" id="module-3" style="background: var(--color-bg-warm); --color-accent: var(--color-actor-2); --color-accent-hover: #226480; --color-accent-light: #E4F2F7; --color-accent-muted: #7FB3C6">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">The Graph That Grows Itself</h1>
+      <p class="module-subtitle">How the agent builds its own plan while it runs — and runs the independent parts side by side.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: The hook + boxes and arrows -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Who wrote the plan?</h2>
+        <p>Back in Module 1, a friendly "hello" used 2 specialists and a research question used 4. Nobody hand-wrote those two different pipelines. The agent <strong>grows its own plan while it runs</strong>.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🏁</div>
+          <div class="callout-content">
+            <strong class="callout-title">The metaphor: a relay race where the track builds itself</strong>
+            <p>Each runner finishes their leg and lays down the next stretch of track for whoever comes next. Some legs split into several lanes run side by side. The finish line is not drawn in advance — it appears as the race unfolds.</p>
+          </div>
+        </div>
+
+        <p>The plan is a
+          <span class="term" data-definition="A graph is just boxes connected by arrows. Here the boxes are jobs to run and the arrows say which job must finish before another can start.">graph</span>:
+          boxes are
+          <span class="term" data-definition="A node is one box in the graph — a single skill job, like one Researcher fetching one city. In the code each node has a unique name like n:5.">nodes</span>
+          (one skill job each), and arrows are
+          <span class="term" data-definition="An edge is an arrow between two boxes. It means the answer flows this way AND the second box must wait for the first to finish.">edges</span>
+          (dependencies). Here is the Shannon research question from Module 1 as four connected boxes.</p>
+
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-num" style="background: var(--color-actor-4)">P</div>
+            <p>Planner</p>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-num" style="background: var(--color-actor-2)">R</div>
+            <p>Researcher</p>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-num" style="background: var(--color-actor-3)">D</div>
+            <p>Distiller</p>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-num" style="background: var(--color-actor-5)">F</div>
+            <p>Formatter</p>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">🧭</div>
+          <div class="callout-content">
+            <strong class="callout-title">DAG: Directed Acyclic Graph</strong>
+            <p>The arrows have a
+              <span class="term" data-definition="Directed means each arrow points one way only — from the box that must finish first to the box that waits. The dependency has a direction.">direction</span>
+              (directed) and they never circle back on themselves (<span class="term" data-definition="Acyclic means no cycles — you can never follow the arrows and end up back where you started. This guarantees the plan eventually ends.">acyclic</span>). Boxes and one-way arrows that never form a loop — that is a DAG.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The seed -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The graph starts as a single seed</h2>
+        <p>When your question arrives, the plan is not four boxes — it is <strong>one</strong>. A single Planner box, fed your question. Everything else is grown later.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">            store.<span class="code-function">write_query</span>(query)</span>
+<span class="code-line">            graph = <span class="code-function">Graph</span>()</span>
+<span class="code-line">            graph.<span class="code-function">add_node</span>(<span class="code-string">"planner"</span>, inputs=[<span class="code-string">"USER_QUERY"</span>])</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Save the question so every box can read it later.</p>
+              <p class="tl">Create a brand-new, empty graph — no boxes yet.</p>
+              <p class="tl">Drop in exactly ONE box: the Planner, wired to your question. The plan is now a single box.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🌱</div>
+          <div class="callout-content">
+            <strong class="callout-title">From seed to forest</strong>
+            <p>The same one-box start grew into 2 boxes for "hello" and 4 for the Shannon question. Same seed, different plant — because the Planner decides what to grow next.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: A finished skill lays new track -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A finished skill lays new track</h2>
+        <p>When a box finishes, the orchestrator splices in the successors that box asked for: it <strong>adds the new boxes, then wires their arrows</strong>. This is the heart of a graph that grows at
+          <span class="term" data-definition="Runtime means while the program is actually running — as opposed to ahead of time. The plan changes shape mid-execution, not before it starts.">runtime</span>.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">add_node</span>(self, skill: str, inputs: list[str], metadata: dict | <span class="code-keyword">None</span> = <span class="code-keyword">None</span>) -> str:</span>
+<span class="code-line">        self._counter += <span class="code-number">1</span></span>
+<span class="code-line">        nid = <span class="code-string">f"n:{self._counter}"</span></span>
+<span class="code-line">        self.g.<span class="code-function">add_node</span>(nid, skill=skill, inputs=<span class="code-function">list</span>(inputs),</span>
+<span class="code-line">                        metadata=<span class="code-function">dict</span>(metadata <span class="code-keyword">or</span> {}), status=<span class="code-string">"pending"</span>)</span>
+<span class="code-line">        <span class="code-keyword">for</span> inp <span class="code-keyword">in</span> inputs:</span>
+<span class="code-line">            <span class="code-keyword">if</span> inp.<span class="code-function">startswith</span>(<span class="code-string">"n:"</span>) <span class="code-keyword">and</span> inp <span class="code-keyword">in</span> self.g.nodes:</span>
+<span class="code-line">                self.g.<span class="code-function">add_edge</span>(inp, nid)</span>
+<span class="code-line">        <span class="code-keyword">return</span> nid</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A request to add one new box: which skill it runs, and what it reads.</p>
+              <p class="tl">Give it the next number in line...</p>
+              <p class="tl">...so it gets a unique name like <code>n:5</code>.</p>
+              <p class="tl">Record the box: its skill, its inputs, any notes, and mark it <span class="term" data-definition="Pending means the box has been created but has not started yet. It is waiting in line until everything feeding into it is done.">pending</span> — not started.</p>
+              <p class="tl">Now look at each thing this box reads...</p>
+              <p class="tl">...and if it is actually another box (a name like <code>n:...</code>)...</p>
+              <p class="tl">...draw an arrow from that box to this one.</p>
+              <p class="tl">Hand back the new box name. Inputs literally became the dependency arrows.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! The plan is data, not code</strong>
+            <p>The agent edits its own to-do graph while running. That is why two different questions produce two different pipelines from the exact same program — nobody wrote either pipeline by hand.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Parallel lanes — the hero moment -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Parallel lanes — run together, wait only where you must</h2>
+        <p>How does the agent know what can run together? Any box whose feeding boxes are <em>all</em> done is "ready," and all ready boxes fire at once. First, finding the ready ones.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">ready_nodes</span>(self) -> list[str]:</span>
+<span class="code-line">        <span class="code-comment"># A predecessor counts as "satisfied" when it is either complete or</span></span>
+<span class="code-line">        <span class="code-comment"># skipped (the latter is how a Critic-fail removes a child from the</span></span>
+<span class="code-line">        <span class="code-comment"># critical path without blocking unrelated branches downstream).</span></span>
+<span class="code-line">        out = []</span>
+<span class="code-line">        <span class="code-keyword">for</span> nid, d <span class="code-keyword">in</span> self.g.<span class="code-function">nodes</span>(data=<span class="code-keyword">True</span>):</span>
+<span class="code-line">            <span class="code-keyword">if</span> d[<span class="code-string">"status"</span>] != <span class="code-string">"pending"</span>:</span>
+<span class="code-line">                <span class="code-keyword">continue</span></span>
+<span class="code-line">            preds = <span class="code-function">list</span>(self.g.<span class="code-function">predecessors</span>(nid))</span>
+<span class="code-line">            <span class="code-keyword">if</span> <span class="code-function">all</span>(self.g.nodes[p][<span class="code-string">"status"</span>] <span class="code-keyword">in</span> (<span class="code-string">"complete"</span>, <span class="code-string">"skipped"</span>) <span class="code-keyword">for</span> p <span class="code-keyword">in</span> preds):</span>
+<span class="code-line">                out.<span class="code-function">append</span>(nid)</span>
+<span class="code-line">        <span class="code-keyword">return</span> out</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Find every box that is allowed to run right now.</p>
+              <p class="tl">A box that feeds into another (its <span class="term" data-definition="A predecessor is a box with an arrow pointing into the current one — it must finish before the current box can run.">predecessor</span>) counts as done if it either completed or was skipped.</p>
+              <p class="tl">Skipping is how a failed check quietly drops one branch without freezing the unrelated ones.</p>
+              <p class="tl">Start an empty ready-list.</p>
+              <p class="tl">Walk through every box...</p>
+              <p class="tl">...ignore any box that is not still <span class="term" data-definition="Here it means not yet started. Already-running or finished boxes are skipped by this check.">pending</span>...</p>
+              <p class="tl">...look at every box with an arrow into it...</p>
+              <p class="tl">...and if every one of them has finished or been skipped...</p>
+              <p class="tl">...this box is ready — add it.</p>
+              <p class="tl">Return the whole ready list. These can all go now.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Then one line launches them all together — this is the punchline of the module.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">            outcomes = <span class="code-keyword">await</span> asyncio.<span class="code-function">gather</span>(*[self.<span class="code-function">_run_one</span>(nid, graph, sid, query, store, memory_hits)</span>
+<span class="code-line">                                              <span class="code-keyword">for</span> nid <span class="code-keyword">in</span> ready])</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><span class="term" data-definition="asyncio is Python's toolkit for doing many waiting tasks at once. gather launches a list of tasks together and waits for all of them to finish.">asyncio.gather</span> launches every ready box at the same time and waits for all of them to come back.</p>
+              <p class="tl">THIS one line is why three city researchers run <span class="term" data-definition="Concurrent / parallel means happening at the same time rather than one after another. Three web lookups overlap instead of queuing.">concurrently</span> instead of one-after-another.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATA FLOW / PARALLEL FAN-OUT VISUAL -->
+        <h3 class="screen-heading" style="font-size: var(--text-lg); margin-top: var(--space-10)">Watch the fan-out: one Planner, three lanes at once, one Formatter</h3>
+        <div class="flow-animation" data-steps='[
+          {"highlight":"flow-actor-1","label":"Planner finishes and spawns three Researcher boxes, one per city."},
+          {"highlight":"flow-actor-2","label":"London Researcher fires.","packet":true,"from":"actor-1","to":"actor-2"},
+          {"highlight":"flow-actor-3","label":"Paris Researcher fires at the SAME time.","packet":true,"from":"actor-1","to":"actor-3"},
+          {"highlight":"flow-actor-4","label":"Berlin Researcher fires too. All three lanes run together.","packet":true,"from":"actor-1","to":"actor-4"},
+          {"highlight":"flow-actor-5","label":"Formatter waits — it has arrows from all three and cannot start yet."},
+          {"highlight":"flow-actor-5","label":"All three report back. The slowest lane set the pace: 27.3s, not 69.9s."}
+        ]'>
+          <div class="flow-actors">
+            <div class="flow-actor" id="flow-actor-1">
+              <div class="flow-actor-icon" style="background: var(--color-actor-4)">P</div>
+              <span>Planner</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-2">
+              <div class="flow-actor-icon" style="background: var(--color-actor-2)">L</div>
+              <span>Researcher London</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-3">
+              <div class="flow-actor-icon" style="background: var(--color-actor-2)">Pa</div>
+              <span>Researcher Paris</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-4">
+              <div class="flow-actor-icon" style="background: var(--color-actor-2)">B</div>
+              <span>Researcher Berlin</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-5">
+              <div class="flow-actor-icon" style="background: var(--color-actor-5)">F</div>
+              <span>Formatter</span>
+            </div>
+          </div>
+
+          <div class="flow-packet" id="flow-packet"></div>
+
+          <div class="flow-step-label" id="flow-label">Click "Next Step" to watch three lanes run side by side</div>
+
+          <div class="flow-controls">
+            <button class="btn flow-next-btn">Next Step</button>
+            <button class="btn flow-reset-btn">Restart</button>
+            <span class="flow-progress"></span>
+          </div>
+        </div>
+
+        <!-- SPEEDUP NUMBERS -->
+        <div class="pattern-cards" style="margin-top: var(--space-8)">
+          <div class="pattern-card" style="border-top: 3px solid var(--color-error)">
+            <div class="pattern-icon" style="background: var(--color-error)">🐌</div>
+            <h4 class="pattern-title">One after another</h4>
+            <p class="pattern-desc">Three lookups added up: <strong>69.9s</strong>. Each city waits for the last to finish.</p>
+          </div>
+          <div class="pattern-card" style="border-top: 3px solid var(--color-success)">
+            <div class="pattern-icon" style="background: var(--color-success)">⚡</div>
+            <h4 class="pattern-title">All at once</h4>
+            <p class="pattern-desc">The whole layer took <strong>27.3s</strong> — just the slowest single branch.</p>
+          </div>
+          <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+            <div class="pattern-icon" style="background: var(--color-accent)">📈</div>
+            <h4 class="pattern-title">Net result</h4>
+            <p class="pattern-desc">A real <strong>2.56×</strong> speed-up — for free, just by overlapping independent work.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Group chat -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Backstage: the boxes talk it out</h2>
+        <p>Here is the same fan-out as a backstage conversation. Watch the Planner spawn three lanes, the Researchers run side by side, and the Formatter wait until everyone reports back.</p>
+
+        <div class="chat-window" id="chat-module3">
+          <div class="chat-messages">
+            <div class="chat-message" data-msg="0" data-sender="planner" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-4)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-4)">Planner</span>
+                <p>Question is in. This needs web research on three cities — I am spawning three Researcher jobs, one per city.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="1" data-sender="london" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">L</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Researcher (London)</span>
+                <p>On it — fetching London population.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="2" data-sender="paris" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">Pa</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Researcher (Paris)</span>
+                <p>Paris here, running at the same time as you two.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="3" data-sender="berlin" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">B</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Researcher (Berlin)</span>
+                <p>Berlin, same. None of us waits for the others.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="4" data-sender="formatter" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-5)">F</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-5)">Formatter</span>
+                <p>I cannot start until all three of you report back — I am wired to all three.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="5" data-sender="paris" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">Pa</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Researcher (Paris)</span>
+                <p>Done. Slowest of us sets the pace — about 27 seconds, not 70.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="6" data-sender="formatter" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-5)">F</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-5)">Formatter</span>
+                <p>All three in. Writing the final comparison now.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-typing" id="chat-module3-typing" style="display:none">
+            <div class="chat-avatar" id="chat-module3-typing-avatar">?</div>
+            <div class="chat-typing-dots">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </div>
+          </div>
+
+          <div class="chat-controls">
+            <button class="btn chat-next-btn">Next Message</button>
+            <button class="btn chat-all-btn">Play All</button>
+            <button class="btn chat-reset-btn">Replay</button>
+            <span class="chat-progress"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 6: Why no loops -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Why no loops — and a hard safety rail</h2>
+        <p>A DAG is acyclic on purpose. A plan that could point back at itself could keep handing the baton in a circle and run forever. There is also a hard cap so a misbehaving Planner cannot grow the graph endlessly.</p>
+
+        <div class="badge-list">
+          <div class="badge-item">
+            <code class="badge-code">MAX_NODES = 60</code>
+            <span class="badge-desc">Safety rail: the plan can never grow past 60 boxes, no matter what the Planner asks for.</span>
+          </div>
+          <div class="badge-item">
+            <code class="badge-code">acyclic</code>
+            <span class="badge-desc">No cycles allowed — follow the arrows and you can never loop back to where you started. The plan always ends.</span>
+          </div>
+        </div>
+
+        <div class="callout callout-warning">
+          <div class="callout-icon">🔁</div>
+          <div class="callout-content">
+            <strong class="callout-title">A loop is a trap</strong>
+            <p>If box A waited on B and B waited on A, neither could ever become "ready" — both would wait forever. Forbidding cycles is what guarantees the relay always reaches a finish line.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your understanding</h2>
+        <p>Trace the graph in your head. Each question is a little scenario — think it through before you check.</p>
+
+        <div class="quiz-container" id="quiz-module3">
+          <div class="quiz-question-block"
+               data-correct="opt-together"
+               data-explanation-right="Exactly. Each box checks its predecessors. All three have only the Planner feeding them, and the Planner is done — so all three are ready at once, and asyncio.gather launches them together."
+               data-explanation-wrong="Not quite. Each box only waits on the boxes with arrows into it. All three Researchers are fed by the Planner alone, so once it finishes they are all ready simultaneously.">
+            <h3 class="quiz-question">Three Researcher boxes each have only the Planner feeding them. Do they run one-by-one or together?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-onebyone" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>One-by-one, in the order they were created</span>
+              </button>
+              <button class="quiz-option" data-value="opt-together" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Together — all three are ready at the same moment</span>
+              </button>
+              <button class="quiz-option" data-value="opt-never" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>They never run until the Formatter asks for them</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-no"
+               data-explanation-right="Right. A box is ready only when EVERY predecessor is complete or skipped. One Researcher is still running, so the Formatter stays pending and waits."
+               data-explanation-wrong="Not quite. ready_nodes requires that ALL feeding boxes are done. With one Researcher still running, the Formatter is not ready — it waits for the slowest lane.">
+            <h3 class="quiz-question">A Formatter box has arrows coming from three Researchers. Two are done; one is still running. Is the Formatter ready to go?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-yes" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Yes — two out of three is enough to start</span>
+              </button>
+              <button class="quiz-option" data-value="opt-no" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — it waits until all three have finished</span>
+              </button>
+              <button class="quiz-option" data-value="opt-half" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It starts but pauses halfway through</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-ac"
+               data-explanation-right="Exactly. C depends on nothing and A depends on nothing, so A and C share no arrows between them — they can overlap. B must wait for A, so it cannot move up."
+               data-explanation-wrong="Look at the dependencies: B depends on A, but C depends on nothing. The two with no arrow between them — A and C — are the pair that can run concurrently.">
+            <h3 class="quiz-question">Step B depends on A. Step C depends on nothing. A user complains the workflow is slow. Which two steps could overlap to speed it up?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-ab" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A and B — they are next to each other</span>
+              </button>
+              <button class="quiz-option" data-value="opt-ac" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A and C — neither waits on the other</span>
+              </button>
+              <button class="quiz-option" data-value="opt-bc" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>B and C — they both come later</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-forever"
+               data-explanation-right="Exactly. If arrows could circle back, a box could end up waiting on itself — it would never become ready, and the plan could run forever. Acyclic guarantees the race always finishes."
+               data-explanation-wrong="The real reason is about termination: a cycle means a box could wait on itself and never become ready, so the plan might run forever. Forbidding loops guarantees an end.">
+            <h3 class="quiz-question">Why is the plan kept as a DAG, with loops forbidden?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-pretty" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Loops just look messy in a diagram</span>
+              </button>
+              <button class="quiz-option" data-value="opt-forever" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A loop could make a box wait on itself and run forever</span>
+              </button>
+              <button class="quiz-option" data-value="opt-slow" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Loops are slower than straight lines</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🌐</div>
+          <div class="callout-content">
+            <strong class="callout-title">Next up: The Outside World</strong>
+            <p>When a Researcher box actually reaches out to the web or an AI model, it goes through a shared gateway and a set of tools — and that is where real cost, latency, and failure live.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>

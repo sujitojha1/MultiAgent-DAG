@@ -1,0 +1,369 @@
+<section class="module" id="module-4" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">The Outside World</h1>
+      <p class="module-subtitle">When a skill "asks the AI" or "goes to the web," it leaves this program entirely — and crosses through exactly two guarded gates.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: Inside vs outside -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Crossing the boundary</h2>
+        <p>Modules 1–3 were the agent's <em>internal</em> org chart: a cast of skills, wired into a graph that grows and runs itself. But none of that, on its own, knows a single fact about the world. When the Researcher "goes to the web" or "asks the AI," where does that actually go? <strong>Out of this program entirely</strong> — to services that cost money, have rate limits, and sometimes fail.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🏢</div>
+          <div class="callout-content">
+            <strong class="callout-title">The metaphor: an embassy switchboard</strong>
+            <p>Picture a building full of specialists. No one phones a foreign government directly. They hand every request to one front desk — the <strong>Gateway</strong> — which knows which interpreter is on duty, keeps a logbook, and redials when a line drops. And when a specialist needs something from the real world, they request it through a fixed set of <strong>approved hotlines (tools)</strong> — never by reaching out on their own.</p>
+          </div>
+        </div>
+
+        <p>So there are exactly two gates out of the system. Meet them both.</p>
+
+        <div class="icon-rows animate-in">
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-accent)">🧠</div>
+            <div>
+              <strong>The brain — the Gateway</strong>
+              <p>Every call to an
+                <span class="term" data-definition="LLM = large language model: the AI that turns your instructions into text. GPT, Gemini, and Claude are LLMs. Each call to one costs money and can fail.">AI model</span>
+                funnels through one front desk that picks a provider, retries, caches, and logs.</p>
+            </div>
+          </div>
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-2)">🛠️</div>
+            <div>
+              <strong>The hands — tools</strong>
+              <p>A skill can only touch the world through a small, declared menu of
+                <span class="term" data-definition="A tool is a real action a skill is allowed to take beyond just talking — search the web, fetch a page, look something up. The skill can only use tools on its allowlist.">tools</span>.
+                No tools on its list? It can think, but it cannot reach.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The Gateway -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The Gateway: one front desk for every AI call</h2>
+        <p>Why funnel everything through one place? Because one front desk gives you one place to track cost, one logbook, one retry policy, one cache, and one knob to choose
+          <span class="term" data-definition="A provider is the company or service actually running the AI model — OpenAI, Google (Gemini), a local Ollama install. The Gateway decides which one handles each call.">which provider</span>
+          answers. In this repo the
+          <span class="term" data-definition="A gateway is a single service every request passes through. Here it sits between the skills and the outside AI providers, handling routing, retries, caching, and logging in one place.">Gateway</span>
+          is a separate service — a small
+          <span class="term" data-definition="FastAPI is a popular Python toolkit for building web services. The Gateway is one such service, listening for requests over the network.">FastAPI</span>
+          server running at
+          <span class="term" data-definition="localhost means 'this same machine'; the number after the colon is the port — a numbered door processes use to talk to each other. :8108 is the door the Gateway listens on.">http://localhost:8108</span>.
+          A skill never names OpenAI or Gemini directly — it talks to its own switchboard, and the switchboard decides.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">    <span class="code-keyword">else</span>:</span>
+<span class="code-line">        reply = <span class="code-keyword">await</span> asyncio.<span class="code-function">to_thread</span>(</span>
+<span class="code-line">            <span class="code-function">LLM</span>().chat,</span>
+<span class="code-line">            prompt=rendered,</span>
+<span class="code-line">            agent=skill.name,</span>
+<span class="code-line">            session=session_id,</span>
+<span class="code-line">            provider=skill.provider_pin,</span>
+<span class="code-line">            max_tokens=skill.max_tokens,</span>
+<span class="code-line">            temperature=skill.temperature,</span>
+<span class="code-line">        )</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Send the finished instructions to the Gateway's <code>chat</code> door.</p>
+              <p class="tl">Attach <em>who is asking</em> — <code>agent=skill.name</code> — so the front desk can route and bill this call to the right skill.</p>
+              <p class="tl">Attach <em>which conversation</em> it belongs to, so the logbook stays organised.</p>
+              <p class="tl"><code>provider</code> is an optional "I insist on this interpreter" override — usually left blank so the Gateway chooses.</p>
+              <p class="tl"><code>max_tokens</code> and <code>temperature</code> are the per-skill dials from Module 2, passed straight through.</p>
+              <p class="tl">Notice what is <em>missing</em>: no OpenAI, no Gemini, no API key. The skill names none of them.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! One door, one place to fix things</strong>
+            <p>One gateway means <em>one</em> place to see cost, <em>one</em> place to add a missing key, and <em>one</em> place to fix a provider outage — instead of hunting through every skill. That is the whole reason to funnel.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: Routing & provider pins -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Routing: different jobs, different interpreters</h2>
+        <p>Because every call passes through the Gateway, you can send different skills to different providers — and even
+          <span class="term" data-definition="A provider pin forces one skill to always use a specific AI provider, overriding the Gateway's normal choice. Used when only one provider does a job reliably.">pin</span>
+          a skill to a specific one. Here is a <em>real</em> decision from this repo's config — and the honest engineering reason is right there in the comment.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"><span class="code-property">github_research</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/github_research.md</span>
+<span class="code-line">  <span class="code-property">provider_pin</span>: gemini     <span class="code-comment"># drive fetch_url tool-loop + JSON on gemini; ollama</span></span>
+<span class="code-line">                           <span class="code-comment"># returned empty {} after 91s (couldn't tool-call)</span></span>
+<span class="code-line">  <span class="code-property">tools_allowed</span>: [fetch_url]</span>
+<span class="code-line">  <span class="code-property">temperature</span>: <span class="code-number">0.2</span>         <span class="code-comment"># structured extraction; keep it deterministic</span></span>
+<span class="code-line">  <span class="code-property">max_tokens</span>: <span class="code-number">2000</span></span>
+<span class="code-line">  <span class="code-property">description</span>: Fetches live data from GitHub trending pages and the GitHub API.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">This skill is <em>pinned</em> to the Gemini provider — always route its calls there.</p>
+              <p class="tl">Why? The comment says it plainly: another provider couldn't reliably use tools and stalled for 91 seconds, returning nothing.</p>
+              <p class="tl">It is allowed exactly one tool — <code>fetch_url</code> — and nothing else.</p>
+              <p class="tl">Low <span class="term" data-definition="Deterministic means the same input reliably produces the same output. Low temperature (near 0) makes an AI behave deterministically — useful for structured data extraction.">temperature</span> keeps its structured extraction steady.</p>
+              <p class="tl">This is what "choosing a model for a job" looks like in practice — a one-line pin, with the reason recorded.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="badge-list animate-in">
+          <div class="badge-item">
+            <code class="badge-code">github_research</code>
+            <span class="badge-desc">📌 provider_pin: <strong>gemini</strong> — the only provider that reliably tool-called for this job.</span>
+          </div>
+          <div class="badge-item">
+            <code class="badge-code">Gateway</code>
+            <span class="badge-desc">🔌 listening on <strong>:8108</strong> — one numbered door every AI call goes through.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Tools -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Tools: the approved hotlines</h2>
+        <p>The Gateway is the brain; <strong>tools</strong> are the hands. A skill may only call tools on its menu — the <code>tools_allowed</code> list you saw in Module 2. This agent ships with exactly three.</p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">🔎</div>
+            <h4 class="pattern-title">web_search</h4>
+            <p class="pattern-desc">Find pages on the open web (Tavily primary, DuckDuckGo fallback). <strong>Hard-capped at 5 results</strong> — a built-in guardrail against cost and noise.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">📄</div>
+            <h4 class="pattern-title">fetch_url</h4>
+            <p class="pattern-desc">Read <em>one</em> page and return it as clean text. Hand it a URL, get back readable markdown.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">🧠</div>
+            <h4 class="pattern-title">search_knowledge</h4>
+            <p class="pattern-desc">Search what the agent <em>already</em> knows — a
+              <span class="term" data-definition="Vector search finds items by meaning, not exact words. Text is turned into numbers (a vector); the search returns the saved notes closest in meaning to your query.">vector search</span>
+              over its own saved notes, no internet required.</p>
+          </div>
+        </div>
+
+        <p>Each tool is a tiny contract: a name, what it does, and exactly what inputs it accepts. The AI can only ask for tools shaped like this — and only the ones its skill is allowed.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">    <span class="code-string">"web_search"</span>: {</span>
+<span class="code-line">        <span class="code-string">"name"</span>: <span class="code-string">"web_search"</span>,</span>
+<span class="code-line">        <span class="code-string">"description"</span>: <span class="code-string">"Search the web (Tavily primary, DDG fallback). Hard-capped at 5 results."</span>,</span>
+<span class="code-line">        <span class="code-string">"input_schema"</span>: {</span>
+<span class="code-line">            <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,</span>
+<span class="code-line">            <span class="code-string">"properties"</span>: {</span>
+<span class="code-line">                <span class="code-string">"query"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},</span>
+<span class="code-line">                <span class="code-string">"max_results"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"integer"</span>, <span class="code-string">"default"</span>: <span class="code-number">3</span>},</span>
+<span class="code-line">            },</span>
+<span class="code-line">            <span class="code-string">"required"</span>: [<span class="code-string">"query"</span>],</span>
+<span class="code-line">        },</span>
+<span class="code-line">    },</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A tool named <code>web_search</code>.</p>
+              <p class="tl">A one-line description the AI reads to know when to reach for it — note it even states the 5-result cap.</p>
+              <p class="tl">The <span class="term" data-definition="An input schema is a strict shape an AI must fill in to call a tool — which fields exist, their types, and which are mandatory. It stops the AI from sending garbage.">input schema</span>: the exact shape of a valid request.</p>
+              <p class="tl">It takes a <code>query</code> string and an optional <code>max_results</code> number...</p>
+              <p class="tl">...but <code>query</code> is the only <em>required</em> field. No query, no call.</p>
+              <p class="tl">That's the whole contract. The AI fills in this shape; the tool does the rest.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="badge-list animate-in" style="margin-top: var(--space-8)">
+          <div class="badge-item">
+            <code class="badge-code">Researcher</code>
+            <span class="badge-desc">🌐 web_search &nbsp; 🌐 fetch_url — granted the hands to reach the open web.</span>
+          </div>
+          <div class="badge-item">
+            <code class="badge-code">Formatter</code>
+            <span class="badge-desc">🚫 no tools — it polishes text the team already produced; it <em>physically cannot</em> browse.</span>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">🔒</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! Capability is granted, not assumed</strong>
+            <p>A skill with an empty <code>tools_allowed</code> list is <em>thinking-only</em> — it literally cannot touch the internet, no matter what its prompt says. That is a safety feature, not a limitation. Want a skill to gain a new power? Add a tool to its menu. Don't, and it stays blindfolded by design.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: When the line is busy -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">When the line is busy</h2>
+        <p>The outside world is not always available. Providers
+          <span class="term" data-definition="To rate-limit is to cap how many requests a service will accept in a window of time. Go over and it temporarily refuses you — a common reason AI calls suddenly start failing.">rate-limit</span>
+          you, keys expire, services go down. The Gateway already retries transient blips — but when every provider is unavailable, it surfaces a clear signal instead of pretending. The repo's own troubleshooting table spells it out:</p>
+
+        <div class="badge-list animate-in">
+          <div class="badge-item">
+            <code class="badge-code">503 Service Unavailable</code>
+            <span class="badge-desc">All providers are in
+              <span class="term" data-definition="A cooldown is a forced wait after failures before a provider is tried again. If every provider is cooling down at once, there is nobody left to answer — hence the 503.">cooldown</span>
+              or unconfigured. <strong>Fix:</strong> add an API key, or wait a minute for cooldowns to clear.</span>
+          </div>
+        </div>
+
+        <p>A
+          <span class="term" data-definition="A status code is a short number a service returns to say how a request went. 200 = OK; 4xx = you made a bad request; 5xx = the service had a problem. 503 specifically means 'temporarily unavailable.'">503</span>
+          is not a crash — it is the system honestly reporting that the outside world is, for the moment, out of reach. Which raises the real question of the next module: when a call fails, or worse, when the AI confidently makes something <em>up</em> — what does the agent do about it?</p>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">⚖️</div>
+          <div class="callout-content">
+            <strong class="callout-title">Next up: When the AI Is Wrong</strong>
+            <p>Transient errors like <code>503</code> are <em>expected</em> and handled — not treated as catastrophes. The next module shows the agent's quality checker (the Critic) and the failure policy that decides, for every stumble, whether to skip it, retry it, or rethink the whole plan.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 6: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Think it through</h2>
+        <p>Each question is a small debugging scenario. Reason it out before you check.</p>
+
+        <div class="quiz-container" id="quiz-module4">
+
+          <div class="quiz-question-block"
+               data-correct="opt-cooldown"
+               data-explanation-right="Exactly. A 503 means every provider is in cooldown or unconfigured — there is nobody to answer. The first move is to add a working API key or wait a minute for cooldowns to clear, not to rewrite a skill."
+               data-explanation-wrong="Re-read the troubleshooting note: 503 means all providers are unavailable — cooling down after failures or missing a key. The fix is an API key or a short wait, not a prompt change.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>Your agent suddenly returns <code>503 Service Unavailable</code> for every request. What is the most likely cause — and the first fix?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-cooldown" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>All providers are in cooldown or unconfigured — add a key or wait a minute.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-prompt" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A skill's prompt has a typo — rewrite the prompt.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-restart" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The graph has a loop — restart the whole machine.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-addtool"
+               data-explanation-right="Right. The Formatter has no tools on its menu, so it can never browse — no matter what its prompt asks. The smallest fix is to add web_search (or fetch_url) to its tools_allowed list."
+               data-explanation-wrong="The prompt isn't the blocker — capability is granted by config. The Formatter has an empty tools_allowed list, so it physically cannot browse. Add a tool to its menu.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>You want the Formatter to start citing live web pages, but it never browses, no matter how you reword its instructions. Why — and what is the smallest change?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-addtool" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It has no tools allowed — add web_search to its tools_allowed list.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-temp" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Its temperature is too low — raise it so it explores the web.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-pin" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It is pinned to the wrong provider — change its provider_pin.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-oneplace"
+               data-explanation-right="Exactly. With one gateway, cost, logging, retries, caching, and the key live in a single place. Hardcoding a provider into five skills means five places to change when you switch providers, add a key, or fix an outage."
+               data-explanation-wrong="The win isn't speed — it's that a single front desk centralises routing, cost, retries, caching, and keys. Five hardcoded copies means five places to fix every time anything about the provider changes.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>A teammate hardcodes one AI provider's name inside five different skills' code. Why is routing through a single gateway better?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-oneplace" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>One place to change routing, cost, retries, caching, and keys — instead of five.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-faster" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A gateway makes each individual AI call run faster.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-smarter" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The gateway makes the AI model itself more accurate.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-cost"
+               data-explanation-right="Right. Every result is a page that may get fetched and fed to an AI — that costs money and time, and more results add noise. Capping at 5 keeps the loop cheap, fast, and focused."
+               data-explanation-wrong="The cap isn't about correctness of any single result — it's about cost, latency, and noise. Each extra result is more pages to fetch, more tokens to process, and more chances to distract the AI.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p><code>web_search</code> is hard-capped at 5 results. Name one real reason a team would cap that.</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-cost" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Cost and latency — each result is more pages to fetch and more tokens to process.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-illegal" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>More than 5 results is against the law.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-cache" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The cache can only ever hold 5 things total.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+        </div>
+
+        <p style="margin-top: var(--space-10)">You have now followed a skill's request across the boundary: through the Gateway to an AI provider, and out through tools to the web. Next: <strong>When the AI Is Wrong</strong> — because those answers come back imperfect, and the agent has a plan for that.</p>
+      </section>
+
+    </div>
+  </div>
+</section>

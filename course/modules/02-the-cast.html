@@ -1,0 +1,374 @@
+<section class="module" id="module-2" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">The Cast of Skills</h1>
+      <p class="module-subtitle">Meet the troupe of actors the agent can call on — and discover that each one is defined by just two tiny text files, with zero programming.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: Opening hook + roster -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Meet the roster</h2>
+        <p>In Module 1 you met a <em>team</em> that reshuffles for every question. Here is the full roster of who can be on that team. Think of it as a
+          <span class="term" data-definition="An imaginary acting company. Here it's our metaphor: each skill is an actor with an index card listing their name and their one job. The 'engine' running the play never needs to know who the actors are.">theater troupe</span>
+          — each actor has an index card with their name and their one job.</p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">🗂️</div>
+            <h4 class="pattern-title">Planner</h4>
+            <p class="pattern-desc">Decomposes user queries into the initial plan and synthesises recovery steps when a node fails. The assistant director.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">🌐</div>
+            <h4 class="pattern-title">Researcher</h4>
+            <p class="pattern-desc">Performs multi-step web research and produces normalised text outputs.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">🔎</div>
+            <h4 class="pattern-title">Retriever</h4>
+            <p class="pattern-desc">Searches what the agent already knows for material relevant to a query.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">🐙</div>
+            <h4 class="pattern-title">GitHub Research</h4>
+            <p class="pattern-desc">Fetches live data from GitHub trending pages and the GitHub API.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">⚗️</div>
+            <h4 class="pattern-title">Distiller</h4>
+            <p class="pattern-desc">Extracts structured fields from raw text or page content. The fact-extractor.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">📝</div>
+            <h4 class="pattern-title">Summariser</h4>
+            <p class="pattern-desc">Condenses long content into a short form.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">⚖️</div>
+            <h4 class="pattern-title">Critic</h4>
+            <p class="pattern-desc">Evaluates an upstream output; emits pass or fail with rationale. Quality control — full story in Module 5.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">✨</div>
+            <h4 class="pattern-title">Formatter</h4>
+            <p class="pattern-desc">Renders the final answer for the user. The editor.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">💻</div>
+            <h4 class="pattern-title">Coder</h4>
+            <p class="pattern-desc">Emits Python code; the orchestrator hands it on to be run. Module 6.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">📦</div>
+            <h4 class="pattern-title">SandboxExecutor</h4>
+            <p class="pattern-desc">Runs code from a Coder node and returns its output. Module 6.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The big reveal — a skill is two files -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The big reveal: a skill is two files</h2>
+        <p>Here is the surprise. Each
+          <span class="term" data-definition="A skill is one of the agent's roles, like Researcher or Critic. In this codebase a skill is NOT a piece of code — it's a config entry plus an instructions file.">skill</span>
+          is not a program. It is one entry in a
+          <span class="term" data-definition="YAML is a plain-text format for settings and lists, designed to be easy for humans to read. It uses indentation instead of brackets — like a tidy outline.">YAML</span>
+          config file that names the skill and points at its instructions. Let's read the Researcher's casting card line by line.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"><span class="code-property">researcher</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/researcher.md</span>
+<span class="code-line">  <span class="code-property">tools_allowed</span>: [web_search, fetch_url]</span>
+<span class="code-line">  <span class="code-property">temperature</span>: <span class="code-number">0.7</span>         <span class="code-comment"># exploratory; let the model choose phrasings</span></span>
+<span class="code-line">  <span class="code-property">max_tokens</span>: <span class="code-number">2500</span></span>
+<span class="code-line">  <span class="code-property">description</span>: Performs multi-step web research and produces normalised text outputs.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><strong>researcher:</strong> is the skill's name — exactly what a plan refers to when it wants research done.</p>
+              <p class="tl"><strong>prompt:</strong> points at the text file holding this skill's instructions.</p>
+              <p class="tl"><strong>tools_allowed</strong> lists the real-world actions it may take: search the web, fetch a page.</p>
+              <p class="tl"><strong>temperature: 0.7</strong> means "be fairly creative" rather than robotically repeat itself.</p>
+              <p class="tl"><strong>max_tokens</strong> caps how long its answer can get.</p>
+              <p class="tl"><strong>description</strong> is the human one-liner. And that is the <em>entire</em> definition — there is no Researcher.py.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The instructions ARE the skill -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The instructions ARE the skill</h2>
+        <p>So where does the "intelligence" live? In the
+          <span class="term" data-definition="A prompt is the set of written instructions you hand to an AI model. It tells the model who to be and what to do — in plain English, no code.">prompt</span>
+          file. Here are the opening lines of the Retriever's instructions — a
+          <span class="term" data-definition="Markdown is a lightweight way to write formatted text using plain characters (like # for a heading). The file just ends in .md and opens in any text editor.">Markdown</span>
+          file you could edit in any text editor.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">You are the Retriever skill. You search the agent's existing knowledge</span>
+<span class="code-line">base for material relevant to a question.</span>
+<span class="code-line"></span>
+<span class="code-line">Your tool surface is one MCP tool: `search_knowledge(query, k)`. Use it.</span>
+<span class="code-line">Do not narrate; do not invent other tools.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">It opens like a letter: "You are the Retriever skill" — telling the AI who to be.</p>
+              <p class="tl">It states the one job in one sentence: search the agent's own saved knowledge.</p>
+              <p class="tl">It names the single
+                <span class="term" data-definition="A tool is a real action an AI skill is allowed to take outside of just talking — like searching the web, fetching a page, or looking something up in memory.">tool</span>
+                it may reach for, an
+                <span class="term" data-definition="MCP (Model Context Protocol) is a standard way to give an AI model access to tools and data sources. Think of it as a universal plug that lets the model 'call' real functions.">MCP</span>
+                tool called search_knowledge.</p>
+              <p class="tl">It sets guardrails: don't ramble, don't pretend to have other tools.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🧠</div>
+          <div class="callout-content">
+            <strong class="callout-title">The "brain" is a paragraph you can read</strong>
+            <p>What makes this skill smart is a few sentences of English. Want it to behave differently? Edit the paragraph — no engineer required.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: One engine, many actors -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">One engine, many actors</h2>
+        <p>If a skill is just two files, what reads them? One small loader — the
+          <span class="term" data-definition="A registry is a central list that knows about every item of a kind and can hand you one by name — like a coat check that gives you back the right coat for your ticket.">registry</span>.
+          And it does <strong>not</strong> have a special case per skill.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"><span class="code-keyword">class</span> <span class="code-function">SkillRegistry</span>:</span>
+<span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):</span>
+<span class="code-line">        cfg = yaml.safe_load(AGENT_CONFIG_PATH.read_text())</span>
+<span class="code-line">        self._skills: dict[str, Skill] = {n: <span class="code-function">Skill</span>(n, c) <span class="code-keyword">for</span> n, c <span class="code-keyword">in</span> cfg.items()}</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">get</span>(self, name: str) -> Skill:</span>
+<span class="code-line">        <span class="code-keyword">if</span> name <span class="code-keyword">not in</span> self._skills:</span>
+<span class="code-line">            <span class="code-keyword">raise</span> <span class="code-function">KeyError</span>(<span class="code-string">f"unknown skill: {name}"</span>)</span>
+<span class="code-line">        <span class="code-keyword">return</span> self._skills[name]</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A
+                <span class="term" data-definition="A class is a blueprint in code for making objects of a certain kind. One SkillRegistry blueprint can be used to build a working registry.">class</span>
+                called SkillRegistry — the blueprint for our coat-check.</p>
+              <p class="tl">When it starts up, it reads the whole config file.</p>
+              <p class="tl">For every entry it builds one generic
+                <span class="term" data-definition="An instance is an actual object built from a class blueprint — like one specific coat made from a coat pattern. Every skill is an instance of the same generic Skill blueprint.">Skill instance</span>
+                — all from the same blueprint, no exceptions.</p>
+              <p class="tl">Ask for a skill by name and it hands you that one.</p>
+              <p class="tl">Ask for a name that isn't in the config, and it simply says "unknown skill."</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">The engine is skill-agnostic</strong>
+            <p>If you searched this codebase for <code>if skill == 'researcher'</code> you would not find it. The
+              <span class="term" data-definition="The orchestrator is the engine that runs the agent's plan — deciding which skill runs when. It treats every skill identically; it never hard-codes who they are.">orchestrator</span>
+              treats every member identically. Adding a skill to the YAML makes it loadable; removing it makes it unknown. That's it.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Dials, not rewrites -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Dials, not rewrites</h2>
+        <p>Each card also has knobs you can turn. The two big ones:
+          <span class="term" data-definition="Temperature controls how random or creative an AI's output is. 0.0 means 'always give the same steady answer'; higher values (like 0.7) let it explore and vary its wording.">temperature</span>
+          (how creative vs. steady) and the list of
+          <span class="term" data-definition="tools_allowed is a config setting listing exactly which real-world actions a skill may take. An empty list means the skill can only think and write — it can't reach outside.">tools_allowed</span>.
+          Compare two actors:</p>
+
+        <div class="badge-list animate-in" style="margin-bottom: var(--space-8)">
+          <div class="badge-item">
+            <code class="badge-code">Researcher</code>
+            <span class="badge-desc">🌐 web_search &nbsp; 🌐 fetch_url &nbsp; 🎲 temperature 0.7 — let it explore the web and vary phrasing.</span>
+          </div>
+          <div class="badge-item">
+            <code class="badge-code">Critic</code>
+            <span class="badge-desc">🔒 no tools &nbsp; 🎯 temperature 0.0 — we want the same verdict every time on the same input.</span>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🎛️</div>
+          <div class="callout-content">
+            <strong class="callout-title">Same blueprint, different dials</strong>
+            <p>Researcher and Critic share the exact same Skill code. What makes them behave like opposites is two numbers and one list — turned, not rewritten.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 6: Aha — prompt vs engine -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Prompt vs. engine</h2>
+        <p>This is the single most empowering idea for steering AI tools. There are two different things, and people constantly confuse them:</p>
+
+        <div class="icon-rows animate-in">
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-accent)">✍️</div>
+            <div>
+              <strong>The prompt</strong>
+              <p>The English instructions in a .md file. Editable by anyone. This is where most of the "smartness" lives.</p>
+            </div>
+          </div>
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-text-secondary)">⚙️</div>
+            <div>
+              <strong>The engine</strong>
+              <p>The unchanging Python that loads instructions and delivers them. It doesn't know or care which skill it's running.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! Prompt vs. engine</strong>
+            <p>The <em>prompt</em> is the English instructions; the <em>engine</em> is the unchanging code that delivers them. Most of what feels like "the AI being smart" actually lives in editable prompt files you can open and change yourself.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Think it through</h2>
+        <p>No memorising — each question drops you into a situation and asks what you'd do.</p>
+
+        <div class="quiz-container" id="quiz-module2">
+
+          <div class="quiz-question-block"
+               data-correct="opt-files"
+               data-explanation-right="Exactly — a new capability is a new casting card: one YAML entry naming the skill and pointing at its prompt, plus the Markdown prompt itself. The engine picks it up automatically. No Python."
+               data-explanation-wrong="Not quite. Remember the SkillRegistry — it loops over the config and builds every skill from the same generic blueprint. There is no per-skill code to write, so you don't touch Python at all.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>You want the agent to also be able to translate text into French. Roughly what do you need to add?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-class" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A new Translator.py class and wire it into the orchestrator.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-files" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A YAML entry plus a prompt file — no code.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-retrain" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Retrain the AI model on French text.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-research"
+               data-explanation-right="Right. The Researcher reaches outside to the web, so it needs web_search. The Formatter only polishes text the team already produced — it has no reason to touch the outside world, so its tool list stays empty."
+               data-explanation-wrong="Look at each job. The Researcher's whole purpose is going out to the web — it needs web_search. The Formatter only renders the final answer from existing content, so giving it web access would be pointless (and riskier).">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>One of these should have <code>tools_allowed: [web_search]</code> and the other an empty list. Which is which — Researcher or Formatter?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-research" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Researcher gets web_search; Formatter gets none.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-format" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Formatter gets web_search; Researcher gets none.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-both" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Both need web_search to do their jobs.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-temp"
+               data-explanation-right="Exactly. Wobbling verdicts on identical input is the signature of too much randomness. Drop temperature toward 0.0 and the Critic gives the same steady answer every time."
+               data-explanation-wrong="Not quite — that wouldn't fix the wobble. Inconsistent verdicts on the same input mean the skill is being allowed to vary its output. The dial for that is temperature; set it to 0.0.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>The Critic keeps giving slightly different verdicts on identical input. Which dial do you reach for?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-tokens" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Raise max_tokens so it has room to decide.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-temp" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Set temperature to 0.0.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-tools" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Add more tools to tools_allowed.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-correct-pair"
+               data-explanation-right="Spot on. The Researcher reads the outside world (the web); the Retriever reads the agent's own saved knowledge. Same idea — 'go find material' — but very different sources."
+               data-explanation-wrong="Flip it. The one that searches the web is the Researcher; the one that searches the agent's own stored knowledge is the Retriever. The names hint at it — you retrieve from what you already have.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>Two skills do similar-sounding work: one reads the <em>web</em>, one reads the <em>agent's own saved knowledge</em>. Which is which?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-correct-pair" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Researcher = web; Retriever = saved knowledge.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-wrong-pair" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Researcher = saved knowledge; Retriever = web.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+        </div>
+
+        <p style="margin-top: var(--space-10)">You now know the whole cast and the surprising fact that each one is two text files plus a few dials. Next: <strong>The Graph That Grows Itself</strong> — how these actors get wired into a runnable structure that expands at runtime and runs members in parallel.</p>
+      </section>
+
+    </div>
+  </div>
+</section>

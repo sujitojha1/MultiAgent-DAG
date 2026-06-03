@@ -1,0 +1,406 @@
+<section class="module" id="module-6" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">06</span>
+      <h1 class="module-title">Make It Your Own</h1>
+      <p class="module-subtitle">The engine is finished. Everything you'd want to add is a prompt and a config line — and when the answer needs real math, the agent stops guessing and runs actual code.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: Why not just ask the AI to do the math? -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Why not just ask the AI to do the math?</h2>
+        <p>Suppose the answer needs real arithmetic — rank 13 repositories by a formula. You <em>could</em> ask the AI to compute it in its head. Don't. Language models are notoriously shaky at arithmetic and will <strong>confidently</strong> return wrong totals. The fix is better: have the AI <em>write</em> a tiny program, then actually <em>run</em> it and read back the exact result.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🧮</div>
+          <div class="callout-content">
+            <strong class="callout-title">The real task from this repo</strong>
+            <p>Rank trending repos by "velocity" = <code>stars_gained / total_stars × 100</code>. Ask an AI to eyeball that across 13 repos and you'll get plausible-looking nonsense. So the agent hires a one-off contractor instead.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! Bad at arithmetic, good at writing code that does arithmetic</strong>
+            <p>An AI guessing a total is a gamble. An AI <em>writing the program that computes</em> the total is reliable — because a real CPU runs it. Letting it run real code turns a guess into a computation.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The Coder writes a tiny program -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The Coder writes a tiny program</h2>
+        <p>The
+          <span class="term" data-definition="The Coder is a skill whose only output is runnable Python plus a one-line reason. It doesn't run the code itself — the orchestrator hands it to the sandbox next.">Coder</span>
+          skill's whole job is to emit runnable Python plus a one-line reason. But there's a crucial subtlety. The code runs in a
+          <span class="term" data-definition="A subprocess is a separate program the agent launches to run the code, isolated from the agent's own memory. It starts fresh and shares none of the agent's variables.">subprocess</span>
+          sandbox that starts with an <em>empty</em>
+          <span class="term" data-definition="A namespace is the set of names (variables, data) a program can see. An empty namespace means the program starts knowing nothing — none of the agent's data is present.">namespace</span>
+          — it cannot see the agent's data. So the Coder must paste the numbers it needs <strong>directly into the code as literals</strong>.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">Your Python runs in a separate subprocess sandbox that does NOT see</span>
+<span class="code-line">INPUTS. It starts with an empty namespace. Therefore any number, string,</span>
+<span class="code-line">or list you need from INPUTS must be copied into the source you emit as a</span>
+<span class="code-line">literal — the code cannot reference the upstream output at runtime.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">The program runs in a fresh, empty room — none of the agent's data is in it.</p>
+              <p class="tl">So every number, string, or list the program needs...</p>
+              <p class="tl">...must be written straight into the program text as a
+                <span class="term" data-definition="A literal is a value written directly in the source code — like the number 42 or the text 'hello' typed right into the program, rather than fetched from somewhere else.">literal</span>.</p>
+              <p class="tl">The code can't reach back and grab the upstream output while it runs — if it tries, it finds nothing.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🧺</div>
+          <div class="callout-content">
+            <strong class="callout-title">The code must carry its own groceries</strong>
+            <p>The kitchen is bare. If the Coder forgets to pack the numbers into the program itself, the program runs against nothing and produces nothing useful. Inlining the data isn't a quirk — it's the rule.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The automatic hand-off -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The automatic hand-off</h2>
+        <p>How does the written code actually get run? Not by the Planner — by <em>config</em>. One line makes Coder and Sandbox inseparable: whenever a Coder finishes, the orchestrator <strong>automatically</strong> adds a
+          <span class="term" data-definition="internal_successors is a config list naming skills that must always run right after this one — wired automatically by the orchestrator, with no Planner involvement.">internal successor</span>
+          to run its code next.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"><span class="code-property">coder</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/coder.md</span>
+<span class="code-line">  <span class="code-property">internal_successors</span>: [sandbox_executor]</span>
+<span class="code-line">  <span class="code-property">temperature</span>: <span class="code-number">0.2</span></span>
+<span class="code-line">  <span class="code-property">max_tokens</span>: <span class="code-number">1500</span></span>
+<span class="code-line">  <span class="code-property">description</span>: Emits Python code; the orchestrator hands it to sandbox_executor next.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">The Coder skill, defined like any other (Module 2).</p>
+              <p class="tl">It points at its instructions file.</p>
+              <p class="tl"><code>internal_successors: [sandbox_executor]</code> means "whenever a Coder finishes, automatically wire a SandboxExecutor right after it."</p>
+              <p class="tl">The usual dials — steady temperature, a token cap.</p>
+              <p class="tl">The Planner never has to ask for the sandbox. The pairing is baked into the config.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>And here is the orchestrator honouring that config — the generic mechanism, with no skill-specific code:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">        <span class="code-keyword">for</span> child_skill <span class="code-keyword">in</span> src_def.internal_successors:</span>
+<span class="code-line">            nid = self.<span class="code-function">add_node</span>(child_skill, inputs=[src_nid])</span>
+<span class="code-line">            added.<span class="code-function">append</span>(nid)</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">After any node finishes, look up its <code>internal_successors</code> from the config...</p>
+              <p class="tl">...and add each one as a new box, fed by the node that just finished.</p>
+              <p class="tl">That's the whole hand-off — generic, no <code>if skill == "coder"</code> anywhere.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">🔗</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! Some edges are wired by config, not planned</strong>
+            <p>Back in Module 3 the Planner grew the graph at runtime. Here is the other kind of track-laying: <em>static</em> edges decided ahead of time by the YAML. Coder→Sandbox is never planned — it's guaranteed by one config line.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: The rented workshop -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The rented workshop (and what it does NOT protect)</h2>
+        <p>The code runs in a
+          <span class="term" data-definition="A sandbox is a restricted space to run code so accidents stay contained. This one limits runtime and output — but, as it says itself, it is not full isolation.">sandbox</span>.
+          It is tempting to call that a security jail. The sandbox itself, refreshingly, tells you it is not:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">What it is NOT. This is not OS-level isolation. There is no chroot, no</span>
+<span class="code-line">container, no syscall filter, no FS allowlist beyond cwd. A malicious</span>
+<span class="code-line">script can read /etc and call out to the network. The sandbox is a</span>
+<span class="code-line">USABILITY boundary — it keeps a runaway loop or noisy print from</span>
+<span class="code-line">poisoning the orchestrator's stdout — not a SECURITY boundary.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Honest self-documentation: this is <em>not</em>
+                <span class="term" data-definition="Isolation (via chroot, a container, or a syscall filter) walls a program off from the rest of the machine so it can't touch files or the network. This sandbox does none of that.">isolation</span>.</p>
+              <p class="tl">No container, no locked-down filesystem beyond the working folder.</p>
+              <p class="tl">A genuinely malicious script could still read files or reach the network.</p>
+              <p class="tl">What it <em>does</em> do: stop a runaway loop or a giant
+                <span class="term" data-definition="stdout is the standard output stream — where a program's normal printed text goes. A noisy program can flood it; the sandbox caps that.">stdout</span>
+                flood from poisoning the run.</p>
+              <p class="tl">It's a <strong>usability</strong> boundary, not a <strong>security</strong> one. Know the difference.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="badge-list animate-in">
+          <div class="badge-item">
+            <code class="badge-code">⏱ timeout</code>
+            <span class="badge-desc">30 seconds — a runaway script is killed, not left to spin forever.</span>
+          </div>
+          <div class="badge-item">
+            <code class="badge-code">📦 output cap</code>
+            <span class="badge-desc">1 MB — a noisy program can't flood the orchestrator's output.</span>
+          </div>
+          <div class="badge-item">
+            <code class="badge-code">🔒 env scrubbed</code>
+            <span class="badge-desc">Most
+              <span class="term" data-definition="An environment variable is a named value the operating system hands to a program — often secrets like API keys. Scrubbing them means the sandbox runs without those values present.">environment variables</span>
+              removed; only PATH / HOME / LANG kept.</span>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">⚡</div>
+          <div class="callout-content">
+            <strong class="callout-title">And the payoff: an exact answer</strong>
+            <p>On the real velocity task, the emitted code ran in about <strong>0.1 seconds</strong> and produced an exact ranking — top repo at <strong>97.37%</strong> velocity. No guesswork, no hallucinated totals: a real computation with a real number.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Add a skill with zero Python -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Add a whole skill with zero Python</h2>
+        <p>Here is the finale's thesis, and the repo proves it. The <code>github_research</code> skill — a real, working capability — shipped with <strong>no Python changes at all</strong>. Look at the actual
+          <span class="term" data-definition="git diff --stat summarises what a code change touched: which files, and how many lines were added or removed in each. It's a quick map of the size and shape of a change.">diff stat</span>
+          from the commit that introduced it:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"> code/agent_config.yaml          |  18 +++   <span class="code-comment">← skill entry + provider_pin + tools_allowed</span></span>
+<span class="code-line"> code/prompts/github_research.md |  28 ++++  <span class="code-comment">← full system prompt (new file)</span></span>
+<span class="code-line"> gateway/agent_routing.yaml      |   1 +     <span class="code-comment">← routing hint only</span></span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A config entry — the skill's name, its provider pin, its allowed tools.</p>
+              <p class="tl">A new prompt file — the skill's whole "brain," in plain English.</p>
+              <p class="tl">A one-line routing hint so the Gateway (Module 4) knows where to send it.</p>
+              <p class="tl">Three small text edits. Not one line of program logic changed.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>That ties back to Module 2 (a skill is two files) and Module 4 (provider routing). The recipe for a new capability is just three steps:</p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-accent)">
+            <div class="pattern-icon" style="background: var(--color-accent)">1</div>
+            <h4 class="pattern-title">Write the prompt</h4>
+            <p class="pattern-desc">A Markdown file describing who the skill is and its one job — its entire "intelligence."</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">2</div>
+            <h4 class="pattern-title">Add the YAML entry</h4>
+            <p class="pattern-desc">Name it, point at the prompt, set its dials and any tools. The registry picks it up automatically.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">3</div>
+            <h4 class="pattern-title">Routing hint (optional)</h4>
+            <p class="pattern-desc">One line if it needs a specific provider. Otherwise the Gateway just chooses.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! New abilities are content, not code</strong>
+            <p>The engine is done. Adding to this agent is writing text — a prompt and a config line — not editing the machine. That is the whole architectural promise, demonstrated by a real skill that shipped without a single line of Python.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 6: The big picture — close the course -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The whole journey, in six lines</h2>
+        <p>You started not knowing what this agent was. Here is everything you now understand — one line per module, the entire system in a single breath:</p>
+
+        <div class="badge-list animate-in stagger-children">
+          <div class="badge-item animate-in">
+            <code class="badge-code">01 · What It Does</code>
+            <span class="badge-desc">A question comes in, and a team of specialists assembles to answer it — a different team for every question.</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">02 · The Cast</code>
+            <span class="badge-desc">Each specialist is just two text files — a prompt and a config entry — run by one skill-agnostic engine.</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">03 · The Growing Graph</code>
+            <span class="badge-desc">The Planner sizes the team and grows the plan at runtime, running independent boxes side by side.</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">04 · The Outside World</code>
+            <span class="badge-desc">Every AI call funnels through one Gateway; every real-world action goes through a small tool allowlist.</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">05 · When the AI Is Wrong</code>
+            <span class="badge-desc">A Critic guards quality and vetoes bad work; a failure policy decides skip, fix, or re-plan.</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">06 · Make It Your Own</code>
+            <span class="badge-desc">When math matters, it writes and runs real code — and you extend it all with prompts, not code.</span>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">🎓</div>
+          <div class="callout-content">
+            <strong class="callout-title">You can now read this agent, debug it, and add to it</strong>
+            <p>You can trace a question through the graph, reason about why a run got expensive or rate-limited, tell a blip apart from a dead-end, and know exactly where to add a new ability. The engine is finished — everything you'd want to add is a prompt and a config line. Go build.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">One last check</h2>
+        <p>Four scenarios to seal it in. Make the call, then check.</p>
+
+        <div class="quiz-container" id="quiz-module6">
+
+          <div class="quiz-question-block"
+               data-correct="opt-run"
+               data-explanation-right="Exactly. AI is unreliable at arithmetic and will confidently return wrong totals. Routing through Coder+Sandbox writes a real program and executes it, turning a guess into an exact, verifiable computation."
+               data-explanation-wrong="The reason isn't speed or style — it's correctness. An AI doing math in its head guesses. Coder+Sandbox writes real code and runs it, so a 20-item weighted score is computed exactly, not estimated.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>You want the agent to compute a weighted score across 20 items. Why route through Coder + Sandbox instead of asking the AI to do the math in its head?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-run" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>AI guesses at arithmetic; running real code computes the exact answer.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-fast" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The sandbox is the only thing that can hold 20 items.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-pretty" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Code output simply looks tidier than prose.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-literals"
+               data-explanation-right="Right. The sandbox starts with an empty namespace — it can't see the agent's data. The Coder must inline the numbers as literals. If it forgets, the program runs against nothing and prints nothing useful."
+               data-explanation-wrong="The sandbox starts empty and cannot reach the upstream output at runtime. The likely miss is that the Coder didn't paste the needed data into the source as literals, so the program had nothing to work on.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>The Coder wrote correct logic, but the program printed nothing useful. The sandbox starts empty — what did the Coder likely forget?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-literals" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>To inline the input data as literals — the empty sandbox can't fetch it.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-import" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>To raise the temperature so the code is more creative.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-timeout" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>To extend the 30-second timeout to an hour.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-usability"
+               data-explanation-right="Exactly. The sandbox says so itself: it's a usability boundary, not OS-level isolation. It stops runaway loops and output floods — but a malicious script can still read files and hit the network. Don't run untrusted code in it."
+               data-explanation-wrong="Push back on 'it's sandboxed, so it's safe.' This sandbox is a usability boundary, not a security one — no container, no isolation. A hostile script could read files and reach the network.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Security call</span>
+                <p>A teammate says "we can run any untrusted code, it's sandboxed." Based on this module, what do you push back on?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-usability" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It's a usability boundary, not security — a hostile script can still read files and hit the network.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-safe" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Nothing — a sandbox always means full OS-level isolation.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-timeoutonly" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Only that the 30-second timeout is a little short.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-content"
+               data-explanation-right="Right. A new 'translate to Spanish' skill is a prompt file plus a YAML entry (and maybe a routing hint). You would NOT touch the engine, the orchestrator, or write any Python. New abilities are content, not code."
+               data-explanation-wrong="Recall the zero-Python diff. A new skill is a prompt plus a config entry — and optionally a routing line. The engine, orchestrator, and Python stay untouched.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">The finale flex</span>
+                <p>You want to add a "translate to Spanish" skill. What would you create — and what would you NOT need to touch?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-content" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Create a prompt + a YAML entry (maybe a routing hint); touch no engine code or Python.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-classfile" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Write a Translator.py class and wire it into the orchestrator.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-retrain" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Retrain the underlying AI model on Spanish text.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+        </div>
+
+        <p style="margin-top: var(--space-10)">That's the whole agent — from a single question to a self-growing team of skills, across the boundary to the outside world, guarded by a skeptic, and extensible with nothing but text. <strong>Now go make it your own.</strong></p>
+      </section>
+
+    </div>
+  </div>
+</section>

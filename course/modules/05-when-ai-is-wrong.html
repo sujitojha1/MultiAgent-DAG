@@ -1,0 +1,425 @@
+<section class="module" id="module-5" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">When the AI Is Wrong</h1>
+      <p class="module-subtitle">AI makes things up — confidently. So the agent hires a professional skeptic, gives it veto power, and sorts every failure into "retry," "fix it," or "rethink."</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: AI lies confidently -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">AI lies confidently</h2>
+        <p>Large language models
+          <span class="term" data-definition="A hallucination is when an AI states something false as if it were fact — an invented date, a fake source, a dropped requirement. It sounds just as confident as a correct answer.">hallucinate</span>:
+          they invent dates, fabricate sources, and quietly drop half of what you asked for. And it all sounds equally confident. Here is a real miss from this very repo — a run that asked for trending Python <em>and</em> Rust repositories:</p>
+
+        <div class="callout callout-warning">
+          <div class="callout-icon">🐛</div>
+          <div class="callout-content">
+            <strong class="callout-title">A real silent miss</strong>
+            <p>The distilled answer "only includes Python repositories, but the user query also asked for Rust repositories." Nothing crashed. No error was thrown. The answer just <em>quietly</em> left out half the request — exactly the kind of mistake a confident AI makes and a careless pipeline ships.</p>
+          </div>
+        </div>
+
+        <p>So how does this agent avoid shipping garbage? It does not trust any skill's word for it. It hires a
+          <span class="term" data-definition="The Critic is a skill whose only job is to judge another skill's output and return pass or fail with a reason. It transforms nothing — it is purely a gate.">Critic</span>
+          — a professional skeptic — and gives it the power to say <em>no</em>.</p>
+      </section>
+
+      <!-- SCREEN 2: Meet the Critic -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Meet the Critic</h2>
+        <p>The Critic is a skill like any other (Module 2: two files, a few dials). But it is unusual in one way — its output is not a transformed document. It is just a
+          <span class="term" data-definition="A verdict here is the Critic's entire output: 'pass' or 'fail', plus a one- or two-sentence reason. It carries no data of its own.">verdict</span>:
+          pass or fail, plus a sentence of why. It is a
+          <span class="term" data-definition="A gate is a checkpoint that only decides whether work may proceed — it does not change the work itself. The Critic is a gate, not a transforming step.">gate</span>, not a step that changes anything.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">Procedure:</span>
+<span class="code-line">  1. Read the UPSTREAM_OUTPUT.</span>
+<span class="code-line">  2. Check it against the INPUTS that produced it.</span>
+<span class="code-line">  3. Look for: fabricated fields, claims unsupported by the input,</span>
+<span class="code-line">     contradictions, missing fields the input clearly contained.</span>
+<span class="code-line">  4. Emit pass or fail.</span>
+<span class="code-line"></span>
+<span class="code-line">Output schema (JSON, no prose, no markdown fences):</span>
+<span class="code-line"></span>
+<span class="code-line">  {</span>
+<span class="code-line">    <span class="code-string">"verdict"</span>: <span class="code-string">"pass"</span> | <span class="code-string">"fail"</span>,</span>
+<span class="code-line">    <span class="code-string">"rationale"</span>: <span class="code-string">"&lt;one or two short sentences&gt;"</span></span>
+<span class="code-line">  }</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Read the work that was just produced...</p>
+              <p class="tl">...and read the source material it was built from.</p>
+              <p class="tl">Hunt for the four classic sins: invented facts, unsupported claims, contradictions, and dropped fields the input clearly had.</p>
+              <p class="tl">Decide: pass or fail.</p>
+              <p class="tl">Return a tiny object — the verdict, plus a one- or two-sentence
+                <span class="term" data-definition="The rationale is the Critic's short written reason for its verdict. On a fail, this reason is handed to the recovery Planner so it knows what went wrong.">rationale</span>.</p>
+              <p class="tl">That is the entire skeptic: read, compare, judge, explain.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="badge-list animate-in">
+          <div class="badge-item">
+            <code class="badge-code">Critic</code>
+            <span class="badge-desc">🎯 temperature <strong>0.0</strong> — we want the <em>same</em> judgment every time on the same input (callback to Module 2's dials).</span>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🚦</div>
+          <div class="callout-content">
+            <strong class="callout-title">It carries no data of its own</strong>
+            <p>The Critic transforms nothing. It produces no report, no summary, no answer — only a yes-or-no with a reason. Its single power is to say <em>no</em>, and as you will see, that is enough to stop garbage from shipping.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: A FAIL rewires the graph -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A FAIL rewires the graph</h2>
+        <p>Here the growing-graph idea from Module 3 pays off. A failing verdict does not crash the run — it <strong>edits the plan</strong>. The rejected work's child is marked
+          <span class="term" data-definition="A node marked 'skipped' is treated as finished-without-a-result. Downstream boxes stop waiting on it, so one rejected branch does not freeze the rest of the graph.">skipped</span>,
+          and a brand-new Planner box is
+          <span class="term" data-definition="To splice a node in is to insert a new box into the running graph and wire its arrows — exactly the runtime track-laying from Module 3.">spliced</span>
+          in to try again — handed the Critic's reason so it can plan a smarter second attempt.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">    <span class="code-keyword">if</span> child_nid <span class="code-keyword">and</span> child_nid <span class="code-keyword">in</span> graph.g.nodes:</span>
+<span class="code-line">        graph.<span class="code-function">mark</span>(child_nid, <span class="code-string">"skipped"</span>)</span>
+<span class="code-line"></span>
+<span class="code-line">    original_target_nid = <span class="code-function">_get_original_target</span>(graph, target_nid) <span class="code-keyword">if</span> target_nid <span class="code-keyword">else</span> target_nid</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">if</span> target_nid <span class="code-keyword">and not</span> recovered_branches.<span class="code-function">get</span>(original_target_nid):</span>
+<span class="code-line">        recovered_branches[original_target_nid] = <span class="code-keyword">True</span></span>
+<span class="code-line">        rationale = (result.output <span class="code-keyword">or</span> {}).<span class="code-function">get</span>(<span class="code-string">"rationale"</span>, <span class="code-string">"(no rationale)"</span>)</span>
+<span class="code-line">        fr = <span class="code-string">f"critic failed target={target_nid} child={child_nid} rationale={rationale}"</span></span>
+<span class="code-line">        rec_nid = graph.<span class="code-function">add_node</span>(<span class="code-string">"planner"</span>, inputs=[<span class="code-string">"USER_QUERY"</span>],</span>
+<span class="code-line">                                 metadata={<span class="code-string">"failure_report"</span>: fr,</span>
+<span class="code-line">                                           <span class="code-string">"recovers"</span>: target_nid,</span>
+<span class="code-line">                                           <span class="code-string">"recovery_reason"</span>: <span class="code-string">"critic_fail"</span>})</span>
+<span class="code-line">        <span class="code-function">print</span>(<span class="code-string">f"  ↪ critic-fail recovery: planner node {rec_nid} for {target_nid}"</span>)</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">First, the box that was about to <em>use</em> the rejected output gets marked <code>skipped</code>, so the pipeline doesn't stall waiting on it.</p>
+              <p class="tl">Figure out which original step this failure belongs to.</p>
+              <p class="tl">IF this branch hasn't already been rescued once...</p>
+              <p class="tl">...remember that we are rescuing it now (so it can't be rescued twice).</p>
+              <p class="tl">Grab the Critic's reason for failing.</p>
+              <p class="tl">Bundle it into a failure note: what failed, and why.</p>
+              <p class="tl">Add a fresh Planner box, fed the user's question and that failure note...</p>
+              <p class="tl">...so the new Planner knows exactly what went wrong and can plan a smarter retry.</p>
+              <p class="tl">Log it. The new track grows right where the old one failed.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">↪️</div>
+          <div class="callout-content">
+            <strong class="callout-title">A real recovery trace</strong>
+            <p>From the repo's own run log: a Critic rejected the work feeding <code>n:6</code>, and the orchestrator spliced a fresh recovery Planner in at <code>n:9</code> to redo it. The graph literally regrew around the failure — no human, no restart.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Group chat — dramatize the rejection -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Backstage: the rejection, step by step</h2>
+        <p>Watch the Python-and-Rust miss play out as a backstage conversation — the Distiller hands in its work, the Critic catches the dropped half, and a recovery Planner picks up the pieces.</p>
+
+        <div class="chat-window" id="chat-module5">
+          <div class="chat-messages">
+            <div class="chat-message" data-msg="0" data-sender="distiller" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-4)">D</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-4)">Distiller</span>
+                <p>Here is my distilled list of trending repos — all cleaned up and ready to format.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="1" data-sender="critic" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">⚖️</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Critic</span>
+                <p>Hold on. Checking it against the original request… the user asked for Python <strong>and</strong> Rust. You only included Python.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="2" data-sender="critic" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">⚖️</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Critic</span>
+                <p>Verdict: <strong>FAIL</strong>. Rationale: missing Rust repositories. I am not letting this one through.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="3" data-sender="planner" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Planner (recovery)</span>
+                <p>Got the failure note. Re-planning — I will spin up the Rust research that got missed and feed it back in.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="4" data-sender="critic" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">⚖️</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Critic</span>
+                <p>If a second attempt <em>still</em> came up short, that would be the cap. I would let it ship with a noted gap rather than loop forever.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-typing" id="chat-module5-typing" style="display:none">
+            <div class="chat-avatar" id="chat-module5-typing-avatar">?</div>
+            <div class="chat-typing-dots">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </div>
+          </div>
+
+          <div class="chat-controls">
+            <button class="btn chat-next-btn">Next Message</button>
+            <button class="btn chat-all-btn">Play All</button>
+            <button class="btn chat-reset-btn">Replay</button>
+            <span class="chat-progress"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: The one-rework rule -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The one-rework rule</h2>
+        <p>Without a limit, a stubborn failure could
+          <span class="term" data-definition="To re-plan is to add a fresh Planner box that designs a new attempt at a failed step. Useful once — but if allowed without limit, a hopeless step could trigger it endlessly.">re-plan</span>
+          forever. So every
+          <span class="term" data-definition="A branch here is one independent line of work in the graph — one chain of boxes leading toward part of the answer. The cap is counted per branch, not for the whole run.">branch</span>
+          gets exactly <strong>one</strong> rescue. A second failure logs a loud warning and lets the run finish with a noted gap — graceful degradation instead of an infinite loop.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">    <span class="code-keyword">elif</span> target_nid:</span>
+<span class="code-line">        cap_hit.<span class="code-function">append</span>(target_nid)</span>
+<span class="code-line">        <span class="code-function">print</span>(<span class="code-string">f"  ↪ critic-fail on {target_nid} already recovered once; "</span></span>
+<span class="code-line">              <span class="code-string">f"CAP HIT — branch skipped, final will reflect missing data"</span>)</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">True</span></span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">If we reach here, this branch already used its one do-over — and failed again.</p>
+              <p class="tl">Record that the
+                <span class="term" data-definition="The cap is the hard limit of one recovery per branch. 'Cap hit' means a branch failed, was rescued once, and failed a second time — so no further retry is allowed.">cap</span>
+                was hit for this step.</p>
+              <p class="tl">Print a loud warning — and be honest that the final answer will reflect the missing data.</p>
+              <p class="tl">Then let the run finish. No third attempt, no infinite loop.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="badge-list animate-in">
+          <div class="badge-item">
+            <code class="badge-code">recovery cap = 1</code>
+            <span class="badge-desc">Per branch. One rescue, then ship with a noted gap rather than loop.</span>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">🛟</div>
+          <div class="callout-content">
+            <strong class="callout-title">Real trace: the cap in action</strong>
+            <p>From the run log: <code>critic-fail on n:14 already recovered once; CAP HIT — branch skipped</code>. The agent chose a deadline-with-a-gap over an endless retry. <strong>Graceful degradation beats an infinite loop.</strong></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 6: Not all failures are equal -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Not all failures are equal</h2>
+        <p>The Critic catches answers that are <em>wrong but well-formed</em>. A separate
+          <span class="term" data-definition="A classifier sorts each error into a category so the system can react appropriately. Here it labels failures transient, validation_error, or upstream_failure.">classifier</span>
+          handles outright <em>errors</em> — and it sorts every one into a bucket with a clear action. The decision table reads almost like prose:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line">    Decision table (all coverage):</span>
+<span class="code-line">      reason=transient                          → skip (gateway already retried)</span>
+<span class="code-line">      reason=validation_error                   → skip (prompt bug, not runtime)</span>
+<span class="code-line">      reason=upstream_failure, failed=planner   → skip (would loop on Planner errors)</span>
+<span class="code-line">      reason=upstream_failure, failed=other     → replan</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A
+                <span class="term" data-definition="A transient error is a temporary failure — a network blip, a momentary timeout, a 503. It usually clears on its own, so retrying (which the gateway already did) is the right move, not re-planning.">transient</span>
+                blip (like a 503)? Skip it — the gateway already retried, so re-planning would waste time.</p>
+              <p class="tl">A
+                <span class="term" data-definition="A validation error means the output didn't match the required shape — wrong JSON, missing field. That's a bug in the instructions, so running the same prompt again produces the same broken result.">validation error</span>
+                (malformed output)? Skip it — that's a prompt bug; re-running the same prompt won't fix it.</p>
+              <p class="tl">A real content failure in a normal skill? Re-plan — this is the one worth a smarter second try.</p>
+              <p class="tl">But never re-plan a failed <em>Planner</em> — that would just loop on Planner errors.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">Aha! Three debugging questions for any flaky AI step</strong>
+            <p>Is it a <strong>blip</strong> (just retry), a <strong>bad instruction</strong> (fix the prompt — don't retry), or a <strong>real dead-end</strong> (rethink the approach)? This agent encodes exactly that as <em>skip / skip / re-plan</em>. Learn to ask these three and you escape "AI bug loops" instead of mashing retry forever.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">💻</div>
+          <div class="callout-content">
+            <strong class="callout-title">Next up: Make It Your Own</strong>
+            <p>You have seen the engine think, fan out, reach the world, and guard its own quality. The finale shows how you <em>extend</em> it — the Coder that writes and runs real Python in a sandbox, and the punchline that a whole new skill is just a prompt plus a config line.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Spot the bug, make the call</h2>
+        <p>Each question is a situation. Predict what the agent should do before you check.</p>
+
+        <div class="quiz-container" id="quiz-module5">
+
+          <div class="quiz-question-block"
+               data-correct="opt-fail"
+               data-explanation-right="Exactly. The Critic checks the output against the request. The request asked for Python AND Rust; the answer has only Python — a clearly missing field. Verdict: FAIL, reason: missing Rust repositories."
+               data-explanation-wrong="Look at what the Critic checks: the output against the inputs that produced it. The request named Python and Rust; the answer dropped Rust entirely. That's a missing field — a clear FAIL.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Spot the bug</span>
+                <p>The user asked for trending <strong>Python and Rust</strong> repos. The distilled answer lists only Python repos. What verdict does the Critic return?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-pass" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>PASS — the Python list looks well-written and accurate.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-fail" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>FAIL — it dropped the Rust repositories the request clearly asked for.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-skip" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No verdict — the Critic only checks spelling.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-noskip"
+               data-explanation-right="Right. A 503 is a transient error. The gateway already retried it, so re-planning would just burn time on a blip that has likely already cleared. The policy says skip, not re-plan."
+               data-explanation-wrong="A 503 is transient — the gateway already retried it. Re-planning a momentary network blip wastes effort; the decision table says skip transient errors, don't re-plan them.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>A skill failed with <code>503 Service Unavailable</code>. Should the agent re-plan? Why or why not?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-replan" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Yes — re-plan immediately to design a workaround.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-noskip" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — it's transient; the gateway already retried, so skip it.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-crash" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — crash the whole run so a human can look.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-fixprompt"
+               data-explanation-right="Exactly. Identical malformed output every run is the signature of a validation_error — a bug in the instructions, not the runtime. Re-planning runs the same broken prompt again. The real fix is to correct the prompt."
+               data-explanation-wrong="If re-running produces the identical malformed result, the runtime isn't the problem — the prompt is. That's a validation_error: fix the instructions, because re-planning just repeats the same bug.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario</span>
+                <p>An answer comes back malformed because the prompt asks for the wrong JSON shape. Re-planning runs it again — and it fails identically. What's the real fix?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-retry" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Keep re-planning until it happens to come out right.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-fixprompt" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Fix the prompt — it's a validation_error, not a runtime hiccup.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-provider" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Switch AI providers and hope the next one guesses the shape.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-loop"
+               data-explanation-right="Right. Without a cap, a genuinely hopeless step would re-plan, fail, re-plan, fail — forever. One rescue then a noted gap is graceful degradation: the run still finishes and the final answer is honest about what's missing."
+               data-explanation-wrong="The point of the cap isn't speed — it's termination. An uncapped retry on a hopeless step loops forever. One rescue, then ship with a noted gap, guarantees the run ends.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Decision</span>
+                <p>Why cap recovery at one re-plan per branch instead of retrying until it passes?</p>
+              </div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-loop" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>An uncapped retry on a hopeless step loops forever — one rescue then a noted gap guarantees the run ends.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-money" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Re-planning is free, so the cap is purely cosmetic.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-one" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>One attempt is always enough; failures never recur.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+        </div>
+
+        <div class="callout callout-accent" style="margin-top: var(--space-10)">
+          <div class="callout-icon">🤝</div>
+          <div class="callout-content">
+            <strong class="callout-title">Two layers, one promise</strong>
+            <p>The <strong>Critic</strong> catches wrong-but-well-formed answers; the <strong>classifier</strong> handles errors. Together they keep one bad node from sinking the whole run — and a fact-checker that can't <em>fix</em> anything is still invaluable: its only power is to say no, and that's enough.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>

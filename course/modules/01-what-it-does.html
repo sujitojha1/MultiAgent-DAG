@@ -1,0 +1,372 @@
+<section class="module" id="module-1" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">What This Thing Does</h1>
+      <p class="module-subtitle">You type a question. A small team of specialists assembles, does the work, and hands you one answer.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: What the app is -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">It's an agent you ask a question</h2>
+        <p>
+          This project is an
+          <span class="term" data-definition="An agent is a program that takes a goal in plain language, figures out the steps to reach it, and carries them out for you — instead of you clicking through each step yourself.">agent</span>
+          you run from the
+          <span class="term" data-definition="The command line (or CLI, command-line interface) is the text window where you type commands instead of clicking buttons. You'd say to an AI: 'run this from the command line.'">command line</span>.
+          You give it a
+          <span class="term" data-definition="A query is just the question or request you hand to the program — the thing you want answered. Here, it's the text you type after the command.">query</span>,
+          and it hands back a written answer.
+        </p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">YOU TYPE</span>
+            <pre><code>
+<span class="code-line"><span class="code-function">python</span> flow.py <span class="code-string">"Say hello"</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">YOU GET BACK</span>
+            <div class="translation-lines">
+              <p class="tl">Hello! How can I assist you today?</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Same machine, very different jobs. Here is the range of what one command can do:</p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#128075;</div>
+            <h4 class="pattern-title">Just chat</h4>
+            <p class="pattern-desc">Ask it to say hello and it writes a friendly one-liner back.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#128270;</div>
+            <h4 class="pattern-title">Research</h4>
+            <p class="pattern-desc">Ask who someone was, and it reads the web and summarizes.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">&#127961;</div>
+            <h4 class="pattern-title">Compare</h4>
+            <p class="pattern-desc">Ask it to compare three cities, and it looks each one up.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">&#9881;&#65039;</div>
+            <h4 class="pattern-title">Write &amp; run code</h4>
+            <p class="pattern-desc">Ask it to rank GitHub repos, and it can even write and run code.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The big idea / metaphor -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">It works like a film crew</h2>
+        <p>
+          You are the director. You call out one instruction &mdash; "give me a scene where someone reads a letter." Nobody does the whole movie alone.
+        </p>
+
+        <div class="icon-rows stagger-children">
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#127916;</div>
+            <div>
+              <strong>The assistant director breaks it into jobs</strong>
+              <p>Set, lighting, actor &mdash; each becomes a separate task.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-3)">&#127902;</div>
+            <div>
+              <strong>Specialists each do their one job</strong>
+              <p>The lighting person lights; the actor acts. Nobody overlaps.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-5)">&#127909;</div>
+            <div>
+              <strong>The editor stitches the final cut</strong>
+              <p>The polished scene you actually watch is assembled at the end.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">The key insight</strong>
+            <p>This agent doesn't answer in one big step. It breaks your question into a small team of specialists, runs them in order, and assembles their work into one answer &mdash; and the team is decided on the fly, per question.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The simplest possible run -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The simplest run: a team of two</h2>
+        <p>
+          For a trivial "say hello," the team has just two members: a
+          <span class="term" data-definition="The Planner is the first specialist in every run. It reads your question and decides which other specialists are needed to answer it.">Planner</span>
+          who decides who's needed, and a
+          <span class="term" data-definition="The Formatter is the specialist that writes the final, human-readable answer you actually see. It does the phrasing, not the thinking.">Formatter</span>
+          who writes the final words.
+        </p>
+
+        <div class="flow-steps animate-in">
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <p>Planner decides nobody else is needed</p>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <p>Formatter writes the friendly reply</p>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">&#10024;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Even "hello" gets a plan</strong>
+            <p>Every run starts with a Planner. The agent always decides <em>how</em> to answer before it answers &mdash; there is no shortcut around the plan.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: A real run, traced (HERO VISUAL) -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A real run, traced step by step</h2>
+        <p>
+          Now ask something real:
+          <strong>"Who was Claude Shannon and what did he contribute?"</strong>
+          This needs four members. Click through the journey &mdash; this is the behind-the-scenes documentary.
+        </p>
+
+        <div class="flow-animation" data-steps='[
+          {"highlight":"flow-actor-1","label":"You type: Who was Claude Shannon and what did he contribute?"},
+          {"highlight":"flow-actor-2","label":"Planner reads the question and decides which specialists are needed","packet":true,"from":"actor-1","to":"actor-2"},
+          {"highlight":"flow-actor-3","label":"Researcher goes to the web and gathers raw material","packet":true,"from":"actor-2","to":"actor-3"},
+          {"highlight":"flow-actor-4","label":"Distiller pulls out the key facts: born, died, three contributions","packet":true,"from":"actor-3","to":"actor-4"},
+          {"highlight":"flow-actor-5","label":"Formatter writes the final human-readable answer","packet":true,"from":"actor-4","to":"actor-5"},
+          {"highlight":"flow-actor-1","label":"You read the answer: born 1916, died 2001, founded information theory","packet":true,"from":"actor-5","to":"actor-1"}
+        ]'>
+          <div class="flow-actors">
+            <div class="flow-actor" id="flow-actor-1">
+              <div class="flow-actor-icon" style="background: var(--color-actor-1)">&#128100;</div>
+              <span>You</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-2">
+              <div class="flow-actor-icon" style="background: var(--color-actor-2)">&#128221;</div>
+              <span>Planner</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-3">
+              <div class="flow-actor-icon" style="background: var(--color-actor-3)">&#128270;</div>
+              <span>Researcher</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-4">
+              <div class="flow-actor-icon" style="background: var(--color-actor-4)">&#129516;</div>
+              <span>Distiller</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-5">
+              <div class="flow-actor-icon" style="background: var(--color-actor-5)">&#9997;&#65039;</div>
+              <span>Formatter</span>
+            </div>
+          </div>
+
+          <div class="flow-packet" id="flow-packet"></div>
+
+          <div class="flow-step-label" id="flow-label">Click "Next Step" to begin</div>
+
+          <div class="flow-controls">
+            <button class="btn flow-next-btn">Next Step</button>
+            <button class="btn flow-reset-btn">Restart</button>
+            <span class="flow-progress"></span>
+          </div>
+        </div>
+
+        <p>
+          So the chain is
+          <span class="term" data-definition="The Researcher is the specialist that goes out and gathers raw material — for example, reading pages on the web about your topic.">Researcher</span>
+          gathers,
+          <span class="term" data-definition="The Distiller is the specialist that takes the messy raw material and pulls out only the key facts that matter — born, died, main contributions.">Distiller</span>
+          condenses, Formatter phrases. Each one hands its work down the line.
+        </p>
+      </section>
+
+      <!-- SCREEN 5: What actually runs (code translation) -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">What happens the moment you hit enter</h2>
+        <p>Here is the real entry point &mdash; the few lines that run when you type the command. Read the plain-English side.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code>
+<span class="code-line"><span class="code-keyword">def</span> <span class="code-function">main</span>() -&gt; <span class="code-keyword">None</span>:</span>
+<span class="code-line">    args = sys.argv[<span class="code-number">1</span>:]</span>
+<span class="code-line">    resume_sid: <span class="code-keyword">str</span> | <span class="code-keyword">None</span> = <span class="code-keyword">None</span></span>
+<span class="code-line">    <span class="code-keyword">if</span> args <span class="code-keyword">and</span> args[<span class="code-number">0</span>] == <span class="code-string">"--resume"</span>:</span>
+<span class="code-line">        resume_sid = args[<span class="code-number">1</span>] <span class="code-keyword">if</span> <span class="code-function">len</span>(args) &gt; <span class="code-number">1</span> <span class="code-keyword">else</span> <span class="code-keyword">None</span></span>
+<span class="code-line">        query = <span class="code-string">" "</span>.<span class="code-function">join</span>(args[<span class="code-number">2</span>:])</span>
+<span class="code-line">    <span class="code-keyword">else</span>:</span>
+<span class="code-line">        query = <span class="code-string">" "</span>.<span class="code-function">join</span>(args) <span class="code-keyword">or</span> <span class="code-string">"Say hello in one short sentence."</span></span>
+<span class="code-line">    asyncio.<span class="code-function">run</span>(<span class="code-function">Executor</span>().<span class="code-function">run</span>(query, session_id=resume_sid, resume=<span class="code-function">bool</span>(resume_sid)))</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">This is the function that runs first.</p>
+              <p class="tl">Grab the words you typed after the command.</p>
+              <p class="tl">Make an empty slot for "pick up an old session."</p>
+              <p class="tl">If the first word is <code>--resume</code>...</p>
+              <p class="tl">...remember which old session to continue,</p>
+              <p class="tl">and treat the rest as your question.</p>
+              <p class="tl">Otherwise (the normal case)...</p>
+              <p class="tl">...treat everything you typed as the question, with a friendly default if you typed nothing.</p>
+              <p class="tl">Hand the question to the Executor &mdash; the showrunner that builds and runs the team &mdash; and let it work.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Two extra words worth knowing:
+          <span class="term" data-definition="A session is one saved run of the agent. Saving it means you can come back later and continue where it left off instead of starting over.">session</span>
+          (a saved run you can continue) and
+          <span class="term" data-definition="Asynchronous (async) means the program can start a slow task — like fetching a web page — and do other useful work while it waits, instead of freezing. asyncio.run is what kicks that off here.">asynchronous</span>
+          (it can wait on slow tasks without freezing). One mention each is plenty.
+        </p>
+      </section>
+
+      <!-- SCREEN 6: The big idea — team is sized to the question -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The team grows with the question</h2>
+        <p>
+          The list of team members is <strong>not fixed</strong>. The Planner sizes the crew to whatever you asked. The code never changes &mdash; only the plan does.
+        </p>
+
+        <div class="step-cards stagger-children">
+          <div class="step-card animate-in">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>"Say hello" &rarr; two members</strong>
+              <p>Planner, then Formatter. Nothing to research.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>"Who was Claude Shannon?" &rarr; four members</strong>
+              <p>Planner, Researcher, Distiller, Formatter.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">3&times;</div>
+            <div class="step-body">
+              <strong>"Compare three cities" &rarr; three researchers at once</strong>
+              <p>The Planner spins up one Researcher per city, working in
+                <span class="term" data-definition="Parallel means several tasks run at the same time rather than one after another — like three people each looking up one city simultaneously, so the whole job finishes faster.">parallel</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Same machine, different team</strong>
+            <p>The code never changes; the <em>plan</em> changes per question. That single idea &mdash; a team assembled on the fly &mdash; is what the rest of this course unpacks.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your intuition</h2>
+        <p>No memorizing &mdash; just trace what would happen.</p>
+
+        <div class="quiz-container" id="quiz-module1">
+
+          <div class="quiz-question-block"
+               data-correct="opt-b"
+               data-explanation-right="Exactly. Even a trivial greeting goes through the Planner first, which decides no research is needed, then the Formatter writes the reply. The agent always plans before it answers."
+               data-explanation-wrong="Not quite. Remember that every run starts with a Planner — so it is never zero specialists. For a plain hello, the Planner decides nobody else is needed and the Formatter writes the words.">
+            <h3 class="quiz-question">You ask the agent to just say hi. How many specialists run, and which?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Zero &mdash; a greeting is too simple to need any specialists.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Two &mdash; the Planner, then the Formatter.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Four &mdash; Planner, Researcher, Distiller, Formatter, the same as every run.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-c"
+               data-explanation-right="Right. The three cities are independent, so the Planner can run a Researcher for each one at the same time (in parallel) instead of waiting for one to finish before starting the next. That makes the whole answer faster."
+               data-explanation-wrong="Think about whether looking up city A depends on city B. It doesn't — the lookups are independent, so they can run in parallel (all at once) to save time, rather than being forced to wait in line.">
+            <h3 class="quiz-question">You ask it to compare the populations of three cities. Why might three researchers run at the same time?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because each Researcher checks the others' work for mistakes.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because the city lookups must happen strictly in order, one after another.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because the three lookups are independent, so running them in parallel is faster.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="opt-a"
+               data-explanation-right="Exactly. The Researcher is the one that gathered the facts, so a wrong death date most likely came from there. The Formatter only phrases what it was handed — it writes the words you saw but didn't decide the facts."
+               data-explanation-wrong="Reread the chain. The Formatter writes the final words you saw, but it doesn't gather facts — it only phrases what it's given. A wrong death date points back to the specialist that gathered information: the Researcher.">
+            <h3 class="quiz-question">The final answer was wrong about Shannon's death date. Which specialist would you suspect first &mdash; and which one wrote the words you actually saw?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="opt-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Suspect the Researcher (it gathered the facts); the Formatter wrote the words.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Suspect the Formatter (it wrote the words); the Researcher just plans.</span>
+              </button>
+              <button class="quiz-option" data-value="opt-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Suspect the Planner; it controls every fact in the final answer.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">&#128073;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Next up: meet the cast</strong>
+            <p>You've seen the team in action. Module 2 introduces each specialist &mdash; and reveals the surprise that each one is just a config line plus a text file, with no code of its own.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
