@@ -1,13 +1,36 @@
 {
   "node_id": "n:8",
   "skill": "github_research",
-  "status": "running",
+  "status": "complete",
   "inputs": [
     "USER_QUERY"
   ],
-  "result": null,
-  "prompt_sent": null,
-  "started_at": 1780515690.0982692,
-  "completed_at": null,
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "question": "Find the top trending Python and Go repos this week, rank by momentum, and keep only what's relevant to finance with a one-line why-it-matters each.",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=weekly",
+          "title": "Trending Python repositories on GitHub this week"
+        },
+        {
+          "url": "https://github.com/trending/go?since=weekly",
+          "title": "Trending Go repositories on GitHub this week"
+        }
+      ],
+      "findings": "The repository 'shiyu-coder/Kronos' (Python) is the primary finance-relevant project trending this week, gaining 1,766 stars. It provides a foundation model specifically designed for the language of financial markets, making it a critical tool for AI-driven financial analysis and trading strategy development.\n\nNo other repositories in the top trending lists for Python or Go this week were explicitly focused on finance or trading. While infrastructure tools like 'prometheus/prometheus' (Go) or 'etcd-io/etcd' (Go) are frequently used in financial technology stacks for monitoring and distributed state management, they are general-purpose tools rather than finance-specific projects."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 15.823205471038818,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the specific sub-question/task from the INPUTS list (look at the first literal value). If no specific task is in the INPUTS, read the overall USER_QUERY. Infer the time window (`daily`/`weekly`/`monthly`, default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, total stars, stars gained (or weekly/monthly stars depending on the window), and URL. In your `findings`, list each repo clearly with its description, total stars, and stars gained so that downstream nodes can extract these fields.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"sources\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nUSER_QUERY: Find the top trending Python and Go repos this week, rank by momentum, and keep only what's relevant to finance with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [preference] Weekly trending Python and Rust repositories filtered for agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [preference] Preference for weekly Python and Rust trending repos filtered by agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [tool_outcome] Top trending Python and Rust finance and trading repositories ranked by momentum this month\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to finance and trading with a one-line why-it-matters each.\n  - [preference] Preference for finding and ranking weekly trending Python and Rust repositories by momentum, filtered by agentic, MCP, and dev-tooling themes\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [preference] Interest in monthly trending Python and Rust repositories related to agentic AI and machine learning ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"Find the top trending Python and Go repos this week, rank by momentum, and keep only what's relevant to finance with a one-line why-it-matters each.\"\n  }\n]",
+  "started_at": 1780515693.8660545,
+  "completed_at": 1780515709.68926,
   "retries": 0
 }

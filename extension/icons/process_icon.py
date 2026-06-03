@@ -8,8 +8,8 @@ import os
 from PIL import Image
 
 def process_icon():
-    # Source image path (new flat vector icon on black background)
-    src_path = r"C:\Users\gayad\.gemini\antigravity-ide\brain\7577274b-95c1-426b-923c-5ecf1d8fb03f\pulsedag_icon_solid_black_1780515559711.png"
+    # Source image path (new 3D orange icon on black background)
+    src_path = r"C:\Users\gayad\.gemini\antigravity-ide\brain\7577274b-95c1-426b-923c-5ecf1d8fb03f\pulsedag_3d_orange_icon_1780515716560.png"
     
     if not os.path.exists(src_path):
         print(f"Error: Source image not found at {src_path}")
@@ -43,10 +43,10 @@ def process_icon():
     if bbox:
         # Crop to bounding box
         img = img.crop(bbox)
-        # Make it square and add 8% breathing room padding around the logo
+        # Make it square and add a minimal 2% padding around the logo (less border)
         w, h = img.size
         max_dim = max(w, h)
-        padding = int(max_dim * 0.08)
+        padding = int(max_dim * 0.02)
         padded_dim = max_dim + padding * 2
         
         square_img = Image.new("RGBA", (padded_dim, padded_dim), (0, 0, 0, 0))
