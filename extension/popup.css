@@ -10,7 +10,7 @@
   --danger: #ff6b6b;
 
   /* glass tokens */
-  --glass: rgba(255, 255, 255, 0.055);
+  --glass: rgba(3, 3, 10, 0.55);
   --glass-2: rgba(255, 255, 255, 0.09);
   --glass-line: rgba(255, 255, 255, 0.12);
   --glass-line-soft: rgba(255, 255, 255, 0.07);
@@ -143,6 +143,7 @@ body::before {
 }
 .row { display: flex; gap: 10px; align-items: flex-start; }
 .row.align-end { align-items: flex-end; }
+.row.align-center { align-items: center; }
 .grow-2 { flex: 1.8; min-width: 0; }
 .grow-1 { flex: 1; min-width: 0; }
 .relative { position: relative; }
