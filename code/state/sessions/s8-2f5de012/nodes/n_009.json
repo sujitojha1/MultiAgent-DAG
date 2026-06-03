@@ -1,0 +1,73 @@
+{
+  "node_id": "n:9",
+  "skill": "distiller",
+  "status": "complete",
+  "inputs": [
+    "n:7",
+    "n:8"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "distiller",
+    "output": {
+      "repos": [
+        {
+          "owner/repo": "Lum1104/Understand-Anything",
+          "language": "typescript",
+          "timeframe": "weekly",
+          "total_stars": 51033,
+          "stars_gained": 15774,
+          "description": "Turns code into interactive knowledge graphs for AI agents to explore and query.",
+          "why_it_matters": "Enhances agentic coding capabilities by providing structured knowledge graphs for AI exploration."
+        },
+        {
+          "owner/repo": "microsoft/markitdown",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 142711,
+          "stars_gained": 15502,
+          "description": "A versatile tool for converting diverse office documents into Markdown, essential for RAG pipelines.",
+          "why_it_matters": "Serves as a critical dev-tooling utility for preparing data for RAG-based agentic workflows."
+        },
+        {
+          "owner/repo": "colbymchenry/codegraph",
+          "language": "typescript",
+          "timeframe": "weekly",
+          "total_stars": 39237,
+          "stars_gained": 10793,
+          "description": "Provides pre-indexed code knowledge graphs to reduce token usage and improve agentic tool efficiency.",
+          "why_it_matters": "Optimizes agentic tool efficiency and context retrieval through pre-indexed code graphs."
+        },
+        {
+          "owner/repo": "anthropics/claude-code",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 129836,
+          "stars_gained": 3048,
+          "description": "An agentic terminal tool that automates coding tasks, git workflows, and codebase navigation.",
+          "why_it_matters": "Directly advances agentic coding by automating terminal-based development workflows."
+        },
+        {
+          "owner/repo": "chopratejas/headroom",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 9337,
+          "stars_gained": 3002,
+          "description": "Compresses logs and RAG chunks to significantly reduce LLM token consumption while supporting MCP standards.",
+          "why_it_matters": "Provides an MCP server implementation that optimizes token usage for LLM interactions."
+        }
+      ],
+      "rationale": "The repositories were selected from the provided findings based on their relevance to agentic coding, MCP, and dev-tooling, and ranked by weekly momentum."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 4.952733039855957,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Distiller skill. You receive raw text (typically the\n`findings` of one or more Researcher nodes, or the `chunks` of a\nRetriever node) and produce a small structured record.\n\nYou make no tool calls. You do no web access. Everything you need is\nalready in the prompt under INPUTS.\n\nProcedure:\n  1. Identify what fields the user's question implies (people, dates,\n     numbers, comparisons, percentages, attributions).\n  2. Pull those fields out of the inputs.\n  3. Emit a compact JSON record. Fields with no evidence in the inputs\n     are omitted, not made up.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"fields\": { \"<field_name>\": \"<value>\", ... },\n    \"rationale\": \"<one short sentence saying which input supports each field>\"\n  }\n\nNotes:\n  - The fields dictionary is the load-bearing output; downstream\n    Formatter nodes read it.\n  - When the question is a comparison (`fastest growing`, `largest`),\n    emit a `comparison` key with `winner: <id>` and `reason: <short>`.\n  - When the question's evidence is missing, set `fields: {}` and put\n    the gap in `rationale`. Do not invent.\n\nRepository lists (PulseDAG trending queries):\n  When the inputs are a list of GitHub repositories, emit a `repos`\n  array instead of a flat `fields` dict. Each entry MUST carry\n  `owner/repo`, `language`, `timeframe`, `total_stars`, `stars_gained`, and `description`\n  (the completeness critic checks for exactly these). Identify the language (python/rust) and timeframe (weekly/monthly) from the context of the input findings (e.g., which node or section it came from). Then apply a\n  relevance pass against the interest profile and add one more field\n  per kept repo:\n\n    {\n      \"repos\": [\n        {\n          \"owner/repo\": \"<owner>/<name>\",\n          \"language\": \"<python or rust>\",\n          \"timeframe\": \"<weekly or monthly>\",\n          \"total_stars\": <int>,\n          \"stars_gained\": <int>,\n          \"description\": \"<verbatim from the input>\",\n          \"why_it_matters\": \"<one sentence, grounded ONLY in this repo's description, saying how it fits the interest profile>\"\n        }\n      ],\n      \"rationale\": \"<one short sentence>\"\n    }\n\n  Interest profile (default, override only if the query states one):\n  agentic coding, MCP servers, dev tooling, web frameworks.\n\n  Keep/drop: drop repos whose description does not plausibly fit the\n  interest profile, and drop anomalies (e.g. velocity-looking spikes\n  on micro-repos). Do NOT keep a repo just because it trended.\n\n  `why_it_matters` is the load-bearing field for the alignment critic:\n  it must be entailed by the repo's own `description`. Never assert a\n  feature, capability, or framing the description does not support —\n  a hallucinated rationale will fail the critic and trigger a\n  re-distill.\n\nA Critic node may run after you. The completeness critic fails if a\nrow is missing a required field; the alignment critic fails if any\n`why_it_matters` is unsupported by that repo's description or does not\nmatch the interest criteria. Both also fail if you invented fields or\nmade claims unsupported by the inputs.\n\nUSER_QUERY: Find the top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Top trending Python and Typescript repositories for agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [tool_outcome] Top trending Python and Typescript repositories for agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [tool_outcome] Trending Python and Rust repositories for agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [preference] Weekly trending Python and Rust repositories filtered for agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [preference] Preference for weekly Python and Rust trending repos filtered by agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:7\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"reasoning_type\": \"lookup\",\n      \"question\": \"Top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/python?since=weekly\",\n          \"title\": \"Trending Python repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/typescript?since=weekly\",\n          \"title\": \"Trending TypeScript repositories\"\n        }\n      ],\n      \"findings\": \"Lum1104/Understand-Anything (TypeScript) \\u2014 51,033 total stars, +15,774 this week. Turns code into interactive knowledge graphs for AI agents to explore and query. \\n\\nmicrosoft/markitdown (Python) \\u2014 142,711 total stars, +15,502 this week. A versatile tool for converting diverse office documents into Markdown, essential for RAG pipelines. \\n\\ncolbymchenry/codegraph (TypeScript) \\u2014 39,237 total stars, +10,793 this week. Provides pre-indexed code knowledge graphs to reduce token usage and improve agentic tool efficiency. \\n\\nchopratejas/headroom (Python) \\u2014 9,337 total stars, +3,002 this week. Compresses logs and RAG chunks to significantly reduce LLM token consumption while supporting MCP standards. \\n\\nanthropics/claude-code (Python) \\u2014 129,836 total stars, +3,048 this week. An agentic terminal tool that automates coding tasks, git workflows, and codebase navigation. \\n\\ncan1357/oh-my-pi (TypeScript) \\u2014 10,276 total stars, +2,482 this week. A terminal-based coding agent featuring hash-anchored edits and optimized tool harnesses for complex development tasks.\"\n    }\n  },\n  {\n    \"id\": \"n:8\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"reasoning_type\": \"lookup\",\n      \"question\": \"Top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/python?since=weekly\",\n          \"title\": \"Trending Python repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/typescript?since=weekly\",\n          \"title\": \"Trending TypeScript repositories\"\n        }\n      ],\n      \"findings\": \"Lum1104/Understand-Anything (TypeScript) \\u2014 15,774 stars this week. Turns code into interactive knowledge graphs for AI exploration, reducing token overhead for agents. \\n\\nmicrosoft/markitdown (Python) \\u2014 15,502 stars this week. A versatile tool for converting various file formats to Markdown, essential for preparing data for LLM ingestion. \\n\\ncolbymchenry/codegraph (TypeScript) \\u2014 10,793 stars this week. Provides pre-indexed code knowledge graphs for agents like Claude Code, optimizing context retrieval and reducing tool calls. \\n\\nmukul975/Anthropic-Cybersecurity-Skills (Python) \\u2014 3,755 stars this week. Offers a standardized library of cybersecurity skills for AI agents, mapping to major industry frameworks. \\n\\nanthropics/claude-code (Python) \\u2014 3,048 stars this week. An agentic coding tool for the terminal that automates routine tasks and git workflows using natural language. \\n\\nchopratejas/headroom (Python) \\u2014 3,002 stars this week. A library and MCP server that compresses logs and RAG chunks, significantly reducing token usage for LLM interactions.\"\n    }\n  }\n]",
+  "started_at": 1780519549.13912,
+  "completed_at": 1780519554.0918531,
+  "retries": 0
+}

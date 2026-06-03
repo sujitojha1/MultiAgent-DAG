@@ -1,0 +1,303 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "planner",
+        "output": {
+          "reasoning_type": "research",
+          "rationale": "Fetch current trending Python and Rust repositories from GitHub to ensure the data is live, then distill the results for relevance to agentic/MCP/dev-tooling.",
+          "nodes": [
+            {
+              "skill": "github_research",
+              "inputs": [
+                "USER_QUERY"
+              ],
+              "metadata": {
+                "label": "gh_fetch",
+                "question": "Fetch trending Python and Rust repositories for the current week."
+              }
+            },
+            {
+              "skill": "distiller",
+              "inputs": [
+                "n:gh_fetch"
+              ],
+              "metadata": {
+                "label": "distill",
+                "question": "Filter for agentic/MCP/dev-tooling and generate a one-line 'why it matters' for each."
+              }
+            },
+            {
+              "skill": "critic",
+              "inputs": [
+                "n:distill"
+              ],
+              "metadata": {
+                "label": "align_check",
+                "question": "Does each repo's 'why it matters' align with agentic/MCP/dev-tooling criteria?"
+              }
+            },
+            {
+              "skill": "formatter",
+              "inputs": [
+                "n:distill"
+              ],
+              "metadata": {
+                "label": "out"
+              }
+            }
+          ]
+        },
+        "artifacts": [],
+        "successors": [
+          {
+            "skill": "github_research",
+            "inputs": [
+              "USER_QUERY"
+            ],
+            "metadata": {
+              "label": "gh_fetch",
+              "question": "Fetch trending Python and Rust repositories for the current week."
+            }
+          },
+          {
+            "skill": "distiller",
+            "inputs": [
+              "n:gh_fetch"
+            ],
+            "metadata": {
+              "label": "distill",
+              "question": "Filter for agentic/MCP/dev-tooling and generate a one-line 'why it matters' for each."
+            }
+          },
+          {
+            "skill": "critic",
+            "inputs": [
+              "n:distill"
+            ],
+            "metadata": {
+              "label": "align_check",
+              "question": "Does each repo's 'why it matters' align with agentic/MCP/dev-tooling criteria?"
+            }
+          },
+          {
+            "skill": "formatter",
+            "inputs": [
+              "n:distill"
+            ],
+            "metadata": {
+              "label": "out"
+            }
+          }
+        ],
+        "cost": 0.0,
+        "elapsed_s": 4.368143558502197,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    },
+    {
+      "skill": "github_research",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {
+        "label": "gh_fetch",
+        "question": "Fetch trending Python and Rust repositories for the current week.",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "github_research",
+        "output": {
+          "reasoning_type": "lookup",
+          "question": "Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.",
+          "sources": [
+            {
+              "url": "https://github.com/trending/python?since=weekly",
+              "title": "Trending Python repositories"
+            },
+            {
+              "url": "https://github.com/trending/rust?since=weekly",
+              "title": "Trending Rust repositories"
+            }
+          ],
+          "findings": "microsoft/markitdown \u2014 A Python tool for converting files and office documents to Markdown, simplifying data ingestion for LLMs. 142,711 total stars, +15,502 stars this week.\n\nanthropics/claude-code \u2014 An agentic coding tool for the terminal that automates routine tasks and git workflows via natural language. 129,836 total stars, +3,048 stars this week.\n\nchopratejas/headroom \u2014 A library and MCP server that compresses logs and RAG chunks to reduce token usage by 60-95%. 9,340 total stars, +3,002 stars this week.\n\nfarion1231/cc-switch \u2014 A cross-platform desktop assistant for managing various coding agents like Claude Code and Hermes. 90,515 total stars, +7,667 stars this week.\n\nrun-llama/liteparse \u2014 A fast, open-source document parser built in Rust, optimized for efficient data extraction. 9,046 total stars, +3,699 stars this week.\n\nogulcancelik/herdr \u2014 An agent multiplexer written in Rust that runs directly in your terminal for streamlined agent management. 4,081 total stars, +1,327 stars this week."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 18.1679368019104,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:2"
+    },
+    {
+      "skill": "distiller",
+      "inputs": [
+        "n:2"
+      ],
+      "metadata": {
+        "label": "distill",
+        "question": "Filter for agentic/MCP/dev-tooling and generate a one-line 'why it matters' for each.",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "distiller",
+        "output": {
+          "repos": [
+            {
+              "owner/repo": "microsoft/markitdown",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 142711,
+              "stars_gained": 15502,
+              "description": "A Python tool for converting files and office documents to Markdown, simplifying data ingestion for LLMs.",
+              "why_it_matters": "It serves as a critical dev-tooling utility for streamlining data ingestion pipelines for LLM-based agentic workflows."
+            },
+            {
+              "owner/repo": "anthropics/claude-code",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 129836,
+              "stars_gained": 3048,
+              "description": "An agentic coding tool for the terminal that automates routine tasks and git workflows via natural language.",
+              "why_it_matters": "It directly advances agentic coding capabilities by automating terminal-based development workflows."
+            },
+            {
+              "owner/repo": "chopratejas/headroom",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 9340,
+              "stars_gained": 3002,
+              "description": "A library and MCP server that compresses logs and RAG chunks to reduce token usage by 60-95%.",
+              "why_it_matters": "It provides an MCP server implementation that optimizes token efficiency for agentic RAG systems."
+            },
+            {
+              "owner/repo": "farion1231/cc-switch",
+              "language": "python",
+              "timeframe": "weekly",
+              "total_stars": 90515,
+              "stars_gained": 7667,
+              "description": "A cross-platform desktop assistant for managing various coding agents like Claude Code and Hermes.",
+              "why_it_matters": "It acts as a management layer for agentic coding tools, improving the developer experience for managing multiple agents."
+            },
+            {
+              "owner/repo": "run-llama/liteparse",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 9046,
+              "stars_gained": 3699,
+              "description": "A fast, open-source document parser built in Rust, optimized for efficient data extraction.",
+              "why_it_matters": "It functions as a high-performance dev-tooling component for efficient data extraction in agentic pipelines."
+            },
+            {
+              "owner/repo": "ogulcancelik/herdr",
+              "language": "rust",
+              "timeframe": "weekly",
+              "total_stars": 4081,
+              "stars_gained": 1327,
+              "description": "An agent multiplexer written in Rust that runs directly in your terminal for streamlined agent management.",
+              "why_it_matters": "It provides a terminal-based dev-tooling solution for managing and multiplexing multiple agents."
+            }
+          ],
+          "rationale": "The repositories were extracted from the provided GitHub research findings and filtered for relevance to agentic, MCP, and dev-tooling categories."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 5.2027928829193115,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:3"
+    },
+    {
+      "skill": "critic",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "align_check",
+        "question": "Does each repo's 'why it matters' align with agentic/MCP/dev-tooling criteria?",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "critic",
+        "output": {
+          "verdict": "pass",
+          "rationale": "[ok] all repositories and their details trace to the input query for agentic, MCP, and dev-tooling relevance."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 3.5335001945495605,
+        "provider": "groq",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:4"
+    },
+    {
+      "skill": "formatter",
+      "inputs": [
+        "n:3"
+      ],
+      "metadata": {
+        "label": "out",
+        "creator": "n:1"
+      },
+      "status": "complete",
+      "result": {
+        "success": true,
+        "agent_name": "formatter",
+        "output": {
+          "reasoning_type": "lookup",
+          "final_answer": "Here are the top trending Python and Rust repositories for agentic, MCP, and dev-tooling this week, ranked by momentum (stars gained):\n\n1. **microsoft/markitdown (Python)** - 15,502 stars gained: It serves as a critical dev-tooling utility for streamlining data ingestion pipelines for LLM-based agentic workflows.\n2. **farion1231/cc-switch (Python)** - 7,667 stars gained: It acts as a management layer for agentic coding tools, improving the developer experience for managing multiple agents.\n3. **run-llama/liteparse (Rust)** - 3,699 stars gained: It functions as a high-performance dev-tooling component for efficient data extraction in agentic pipelines.\n4. **anthropics/claude-code (Python)** - 3,048 stars gained: It directly advances agentic coding capabilities by automating terminal-based development workflows.\n5. **chopratejas/headroom (Python)** - 3,002 stars gained: It provides an MCP server implementation that optimizes token efficiency for agentic RAG systems.\n6. **ogulcancelik/herdr (Rust)** - 1,327 stars gained: It provides a terminal-based dev-tooling solution for managing and multiplexing multiple agents."
+        },
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 4.508087635040283,
+        "provider": "gemini",
+        "error": null
+      },
+      "_result_typed": true,
+      "id": "n:5"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n:2",
+      "target": "n:3"
+    },
+    {
+      "source": "n:3",
+      "target": "n:4"
+    },
+    {
+      "source": "n:3",
+      "target": "n:5"
+    }
+  ]
+}
