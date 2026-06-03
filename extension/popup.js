@@ -34,23 +34,141 @@ function savePrefs() {
 
 const selectedLangs = new Set(prefs.langs?.length ? prefs.langs : ["Python"]);
 
-// ── Build language chips ─────────────────────────────────────────────
-function renderChips() {
-  const box = $("#lang-chips");
-  box.innerHTML = "";
-  for (const lang of LANGUAGES) {
-    const el = document.createElement("span");
-    el.className = "chip" + (selectedLangs.has(lang) ? " on" : "");
-    el.textContent = lang;
-    el.addEventListener("click", () => {
-      if (selectedLangs.has(lang)) selectedLangs.delete(lang);
-      else selectedLangs.add(lang);
-      if (selectedLangs.size === 0) selectedLangs.add(lang); // keep ≥1
-      renderChips();
-      savePrefs();
+// ── Custom Multiselect Component ─────────────────────────────────────
+function renderMultiselect() {
+  const selectedTagsContainer = $("#selected-tags");
+  const dropdown = $("#multiselect-dropdown");
+  const searchInput = $("#multiselect-search");
+  
+  // Render tags
+  selectedTagsContainer.innerHTML = "";
+  for (const lang of selectedLangs) {
+    const tag = document.createElement("div");
+    tag.className = "tag";
+    tag.textContent = lang;
+    
+    const removeBtn = document.createElement("span");
+    removeBtn.className = "tag-remove";
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (selectedLangs.size > 1) {
+        selectedLangs.delete(lang);
+        renderMultiselect();
+        savePrefs();
+      }
     });
-    box.appendChild(el);
+    
+    tag.appendChild(removeBtn);
+    selectedTagsContainer.appendChild(tag);
   }
+  
+  // Update input placeholder based on selected items
+  if (selectedLangs.size > 0) {
+    searchInput.placeholder = "";
+  } else {
+    searchInput.placeholder = "Select languages...";
+  }
+
+  // Render options in dropdown based on search query
+  const query = searchInput.value.trim().toLowerCase();
+  dropdown.innerHTML = "";
+  
+  let matches = 0;
+  for (const lang of LANGUAGES) {
+    if (query && !lang.toLowerCase().includes(query)) {
+      continue;
+    }
+    matches++;
+    
+    const item = document.createElement("div");
+    item.className = "dropdown-item" + (selectedLangs.has(lang) ? " selected" : "");
+    item.innerHTML = `<span>${lang}</span><span class="dropdown-item-check">✓</span>`;
+    
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (selectedLangs.has(lang)) {
+        if (selectedLangs.size > 1) {
+          selectedLangs.delete(lang);
+        }
+      } else {
+        selectedLangs.add(lang);
+      }
+      // Clear search but keep open and focused
+      searchInput.value = "";
+      searchInput.style.width = "40px";
+      renderMultiselect();
+      savePrefs();
+      searchInput.focus();
+    });
+    
+    dropdown.appendChild(item);
+  }
+  
+  if (matches === 0) {
+    const noResults = document.createElement("div");
+    noResults.className = "dropdown-item";
+    noResults.style.cursor = "default";
+    noResults.style.color = "var(--faint)";
+    noResults.textContent = "No results found";
+    dropdown.appendChild(noResults);
+  }
+}
+
+function setupMultiselectEvents() {
+  const container = $("#multiselect-container");
+  const searchInput = $("#multiselect-search");
+  const inputEl = $("#multiselect-input");
+  
+  // Click on the multiselect area focuses search and opens dropdown
+  inputEl.addEventListener("click", (e) => {
+    container.classList.add("open");
+    $("#multiselect-dropdown").classList.remove("hidden");
+    searchInput.focus();
+  });
+  
+  // Filter on input type
+  searchInput.addEventListener("input", () => {
+    searchInput.style.width = Math.max(40, searchInput.value.length * 8 + 10) + "px";
+    renderMultiselect();
+  });
+  
+  // Prevent click on search input from bubbling
+  searchInput.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  // Close dropdown on click outside
+  document.addEventListener("click", (e) => {
+    if (!container.contains(e.target)) {
+      container.classList.remove("open");
+      $("#multiselect-dropdown").classList.add("hidden");
+      searchInput.value = "";
+      searchInput.style.width = "40px";
+      renderMultiselect();
+    }
+  });
+}
+
+// ── Copy to Clipboard ────────────────────────────────────────────────
+async function copyToClipboard(text, el) {
+  try {
+    await navigator.clipboard.writeText(text);
+    el.classList.add("copied");
+    setTimeout(() => el.classList.remove("copied"), 1500);
+  } catch (err) {
+    console.error("Failed to copy text: ", err);
+  }
+}
+
+function setupCopyEvents() {
+  document.addEventListener("click", (e) => {
+    const copyable = e.target.closest(".copyable-command");
+    if (copyable) {
+      const text = copyable.textContent.trim();
+      copyToClipboard(text, copyable);
+    }
+  });
 }
 
 // ── Health check → status note ───────────────────────────────────────
@@ -129,9 +247,13 @@ async function run() {
     clearRunTimers();
     $("#status-elapsed").textContent = "";
     const offline = String(e).includes("Failed to fetch");
-    setStatus(offline ? "Bridge <strong>offline</strong> — start it on :8109" : "Run failed", "down");
-    digest.innerHTML =
-      `<p class="err">⚠ <span>${escapeHtml(offline ? "Could not reach the bridge on :8109. Is bridge_server.py running?" : e.message)}</span></p>`;
+    setStatus(offline ? "Bridge <strong>offline</strong>" : "Run failed", "down");
+    
+    const errorMsg = offline 
+      ? `Could not reach the bridge on :8109. Start it using <code class="copyable-command" title="Click to copy">uv run python bridge_server.py</code>`
+      : e.message;
+      
+    digest.innerHTML = `<p class="err">⚠ <span>${errorMsg}</span></p>`;
   } finally {
     runBtn.disabled = false;
     runBtn.textContent = "▶ Run PulseDAG";
@@ -206,7 +328,10 @@ function randomPick() {
 
 // ── Wire up ──────────────────────────────────────────────────────────
 function init() {
-  renderChips();
+  renderMultiselect();
+  setupMultiselectEvents();
+  setupCopyEvents();
+  
   if (prefs.window) $("#window").value = prefs.window;
   if (prefs.mode) $("#mode").value = prefs.mode;
 

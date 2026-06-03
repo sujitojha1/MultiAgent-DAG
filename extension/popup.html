@@ -8,39 +8,48 @@
   <div class="wrap">
     <section class="glass">
       <header class="hdr">
-        <img src="icons/icon48.png" alt="" class="logo" />
-        <div class="hdr-text">
-          <h1>PulseDAG</h1>
-          <p>GitHub Repo Radar</p>
+        <div class="hdr-left">
+          <img src="icons/icon48.png" alt="" class="logo" />
+          <div class="hdr-text">
+            <h1>PulseDAG</h1>
+            <p>GitHub Repo Radar</p>
+          </div>
+        </div>
+        <div class="status-note">
+          <span id="status-dot" class="dot dot-unknown"></span>
+          <span id="status-text">Checking bridge…</span>
+          <span id="status-elapsed"></span>
         </div>
       </header>
-      <div class="status-note">
-        <span id="status-dot" class="dot dot-unknown"></span>
-        <span id="status-text">Checking bridge…</span>
-        <span id="status-elapsed"></span>
-      </div>
     </section>
 
     <section class="glass controls">
-      <label class="field">
-        <span class="field-label">Languages</span>
-        <div id="lang-chips" class="chips"></div>
-      </label>
-
       <div class="row">
-        <label class="field grow">
+        <div class="field grow-2 relative">
+          <span class="field-label">Languages</span>
+          <div id="multiselect-container" class="multiselect-container">
+            <div id="multiselect-input" class="multiselect-input">
+              <div id="selected-tags" class="selected-tags"></div>
+              <input type="text" id="multiselect-search" placeholder="Select languages..." autocomplete="off" spellcheck="false" />
+              <span class="multiselect-arrow">▼</span>
+            </div>
+            <div id="multiselect-dropdown" class="multiselect-dropdown hidden"></div>
+          </div>
+        </div>
+
+        <div class="field grow-1">
           <span class="field-label">Window</span>
           <select id="window">
             <option value="daily">Daily</option>
             <option value="weekly" selected>Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
-        </label>
+        </div>
+      </div>
 
-        <label class="field grow">
-          <span class="field-label">Topic / mode</span>
-          <input id="mode" type="text" placeholder="agentic / MCP / dev-tooling" />
-        </label>
+      <div class="field">
+        <span class="field-label">Topic / mode</span>
+        <input id="mode" type="text" placeholder="agentic / MCP / dev-tooling" />
       </div>
 
       <button id="run" class="btn-run">▶ Run PulseDAG</button>
@@ -56,7 +65,7 @@
 
     <section id="empty" class="glass empty">
       <p class="lead">Pick your languages and window, then hit <strong>Run</strong>.</p>
-      <p class="hint">Needs the bridge: <code>uv run python bridge_server.py</code> on <code>:8109</code></p>
+      <p class="hint">Needs the bridge: <code class="copyable-command" title="Click to copy" id="copy-cmd-hint">uv run python bridge_server.py</code> on <code>:8109</code></p>
     </section>
 
     <footer class="ftr">FR-701 / FR-703 · CON-107 bridge :8109</footer>

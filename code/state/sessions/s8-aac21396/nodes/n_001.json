@@ -1,0 +1,12 @@
+{
+  "node_id": "n:1",
+  "skill": "planner",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "planner",
+    "output": {
+      "rationale": "Fetch live GitHub
