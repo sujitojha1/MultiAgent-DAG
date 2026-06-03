@@ -1,0 +1,29 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "skill": "planner",
+      "inputs": [
+        "USER_QUERY"
+      ],
+      "metadata": {},
+      "status": "failed",
+      "result": {
+        "success": false,
+        "agent_name": "planner",
+        "output": {},
+        "artifacts": [],
+        "successors": [],
+        "cost": 0.0,
+        "elapsed_s": 10.883039236068726,
+        "provider": "gemini",
+        "error": "planner: model returned no parseable JSON object (empty output, no successors); provider=gemini. Raw reply head: '_repos\"]`) -> label `ranking_code`\\n- `sandbox_executor` (inputs: `[\"n:ranking_code\"]`) -> label `ranked_repos`\\n- `formatter` (inputs: `[\"n:ranked_repos\"]`) -> label `'"
+      },
+      "_result_typed": true,
+      "id": "n:1"
+    }
+  ],
+  "edges": []
+}
