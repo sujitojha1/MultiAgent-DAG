@@ -9,4 +9,98 @@
     "success": true,
     "agent_name": "planner",
     "output": {
-      "rationale": "Fetch live GitHub
+      "rationale": "Fetch live GitHub trending Python repositories to identify current momentum, then filter and distill them based on agentic, MCP, and dev-tooling relevance.",
+      "nodes": [
+        {
+          "skill": "github_research",
+          "inputs": [
+            "USER_QUERY"
+          ],
+          "metadata": {
+            "label": "gh_fetch",
+            "question": "Fetch trending Python repositories for this week."
+          }
+        },
+        {
+          "skill": "distiller",
+          "inputs": [
+            "n:gh_fetch"
+          ],
+          "metadata": {
+            "label": "distilled_repos",
+            "question": "Extract repos relevant to agentic/MCP/dev-tooling and provide a one-line why-it-matters for each."
+          }
+        },
+        {
+          "skill": "critic",
+          "inputs": [
+            "n:distilled_repos"
+          ],
+          "metadata": {
+            "label": "alignment_check",
+            "question": "Is each kept repo's why_it_matters supported by its description and does it match the agentic/MCP/dev-tooling criteria?"
+          }
+        },
+        {
+          "skill": "formatter",
+          "inputs": [
+            "n:alignment_check"
+          ],
+          "metadata": {
+            "label": "out"
+          }
+        }
+      ]
+    },
+    "artifacts": [],
+    "successors": [
+      {
+        "skill": "github_research",
+        "inputs": [
+          "USER_QUERY"
+        ],
+        "metadata": {
+          "label": "gh_fetch",
+          "question": "Fetch trending Python repositories for this week."
+        }
+      },
+      {
+        "skill": "distiller",
+        "inputs": [
+          "n:gh_fetch"
+        ],
+        "metadata": {
+          "label": "distilled_repos",
+          "question": "Extract repos relevant to agentic/MCP/dev-tooling and provide a one-line why-it-matters for each."
+        }
+      },
+      {
+        "skill": "critic",
+        "inputs": [
+          "n:distilled_repos"
+        ],
+        "metadata": {
+          "label": "alignment_check",
+          "question": "Is each kept repo's why_it_matters supported by its description and does it match the agentic/MCP/dev-tooling criteria?"
+        }
+      },
+      {
+        "skill": "formatter",
+        "inputs": [
+          "n:alignment_check"
+        ],
+        "metadata": {
+          "label": "out"
+        }
+      }
+    ],
+    "cost": 0.0,
+    "elapsed_s": 4.925488710403442,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Planner. Emit the next set of nodes for the orchestrator.\n\nAvailable skills:\n  retriever          search the agent's indexed knowledge base\n  researcher         fetch fresh content from the web (URLs, search)\n  github_research    fetch live GitHub trending pages / GitHub API (use when\n                     the query is about trending, popular, or top repos on GitHub)\n  distiller          extract structured fields from raw text\n  summariser         condense long content\n  critic             pass/fail evaluation of an upstream node\n  formatter          render the final user-facing answer (TERMINAL)\n  coder              emit Python (stub; routes to sandbox_executor)\n  sandbox_executor   run Python from coder\n  (browser           reserved for Session 9)\n\nOutput (JSON, no markdown):\n{\n  \"rationale\": \"<one sentence>\",\n  \"nodes\": [\n    {\"skill\": \"<name>\",\n     \"inputs\": [\"USER_QUERY\" or \"n:<label>\" or \"art:<id>\"],\n     \"metadata\": {\"label\": \"<short_id>\", \"question\": \"<optional hint>\"}}\n  ]\n}\n\nReference upstream nodes as \"n:<label>\" where label matches a\nsibling's metadata.label. The final node must be a formatter.\n\nWhen the user asks to compare or process N concrete items\n(\"compare A, B, C\" / \"top 3 results\"), emit one node per item so\nthe orchestrator can run them in parallel. Do NOT consolidate.\n\nWhen the user demands a strict format constraint the writer might\nmiss (\"exactly 5-7-5 syllables\", \"valid JSON\", \"≤ 280 characters\"),\ninsert a `critic` node between the writing node and the formatter.\nIts input is the writing node id. Its metadata.question repeats\nthe constraint. If the critic fails, the orchestrator re-plans.\n\nWhen the query asks to keep/filter repos by relevance or wants a\n\"why it matters\" per repo, the `distiller` emits per-repo\n`why_it_matters` rationales. In that case insert an **alignment**\n`critic` between the distiller and its downstream consumer (the\n`coder` if there is one, else the `formatter`). Its input is the\ndistiller node id; its metadata.question asks whether each kept\nrepo's `why_it_matters` is supported by that repo's description and\nmatches the interest criteria (default: agentic / MCP / dev-tooling).\nIf it fails, the orchestrator re-distills. (The completeness critic\non the distiller is auto-inserted — do not emit it yourself.)\n\nIf MEMORY HITS appear in the prompt, the agent already has indexed\nmaterial relevant to this query (FAISS-ranked vector hits with\nchunks). Prefer routing the answer through the existing knowledge\nbase: emit a `retriever` or, when the hits clearly answer the query\nalready, go straight to a `formatter` that synthesises from MEMORY\nHITS — do NOT emit a `researcher` to re-fetch material the agent\nhas already indexed.\n\nIf FAILURE appears in the prompt, do not re-emit the failing step\non the same inputs.\n\nExample:\n{\"rationale\": \"Look it up and answer.\",\n \"nodes\": [\n   {\"skill\":\"researcher\",\"inputs\":[\"USER_QUERY\"],\n    \"metadata\":{\"label\":\"r1\",\"question\":\"...\"}},\n   {\"skill\":\"formatter\",\"inputs\":[\"n:r1\"],\"metadata\":{\"label\":\"out\"}}]}\n\nUSER_QUERY: Find the top trending Python repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each\n\nMEMORY HITS (8 from FAISS):\n  - [preference] Weekly trending Python and Rust repositories filtered for agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [preference] Preference for weekly Python and Rust trending repos filtered by agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [preference] Preference for finding and ranking weekly trending Python and Rust repositories by momentum, filtered by agentic, MCP, and dev-tooling themes\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [preference] Interest in monthly trending Python and Rust repositories related to agentic AI and machine learning ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [tool_outcome] Top trending Python and Rust finance and trading repositories ranked by momentum this month\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to finance and trading with a one-line why-it-matters each.\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"Find the top trending Python repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each\"\n  }\n]",
+  "started_at": 1780514370.13287,
+  "completed_at": 1780514375.0583587,
+  "retries": 0
+}
