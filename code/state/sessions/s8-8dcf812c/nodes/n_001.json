@@ -1,0 +1,47 @@
+{
+  "node_id": "n:1",
+  "skill": "planner",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "planner",
+    "output": {
+      "reasoning_type": "synthesize",
+      "rationale": "The user request is a simple greeting, which does not require external research or complex processing.",
+      "nodes": [
+        {
+          "skill": "formatter",
+          "inputs": [
+            "USER_QUERY"
+          ],
+          "metadata": {
+            "label": "out"
+          }
+        }
+      ]
+    },
+    "artifacts": [],
+    "successors": [
+      {
+        "skill": "formatter",
+        "inputs": [
+          "USER_QUERY"
+        ],
+        "metadata": {
+          "label": "out"
+        }
+      }
+    ],
+    "cost": 0.0,
+    "elapsed_s": 4.224740266799927,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Planner. Emit the next set of nodes for the orchestrator.\n\nAvailable skills:\n  retriever          search the agent's indexed knowledge base\n  researcher         fetch fresh content from the web (URLs, search)\n  github_research    fetch live GitHub trending pages / GitHub API (use when\n                     the query is about trending, popular, or top repos on GitHub)\n  distiller          extract structured fields from raw text\n  summariser         condense long content\n  critic             pass/fail evaluation of an upstream node\n  formatter          render the final user-facing answer (TERMINAL)\n  coder              emit Python (stub; routes to sandbox_executor)\n  sandbox_executor   run Python from coder\n  (browser           reserved for Session 9)\n\nOutput (JSON, no markdown):\n{\n  \"reasoning_type\": \"<lookup | research | compare | compute | synthesize>\",\n  \"rationale\": \"<one sentence>\",\n  \"nodes\": [\n    {\"skill\": \"<name>\",\n     \"inputs\": [\"USER_QUERY\" or \"n:<label>\" or \"art:<id>\"],\n     \"metadata\": {\"label\": \"<short_id>\", \"question\": \"<optional hint>\"}}\n  ]\n}\n\nTag `reasoning_type` with the dominant kind of work the plan performs:\n`lookup` (answer from indexed memory / a single fetch), `research`\n(multi-source gathering), `compare` (N concrete items in parallel),\n`compute` (routes through coder / sandbox_executor), or `synthesize`\n(condense / reformat existing material). Pick the one that drives the\nshape of the plan; this keeps the routing rationale honest.\n\nReference upstream nodes as \"n:<label>\" where label matches a\nsibling's metadata.label. The final node must be a formatter.\n\nA `critic` node emits only a pass/fail verdict — it carries NO data.\nIt is a GATE on the node that follows it, not a data conduit. The\norchestrator surfaces the gated node's data through the critic\nautomatically, so a `producer → critic → formatter` chain still feeds\nthe producer's data to the formatter.\n\nWhen the user asks to compare or process N concrete items\n(\"compare A, B, C\" / \"top 3 results\"), emit one node per item so\nthe orchestrator can run them in parallel. Do NOT consolidate.\n\nWhen the user demands a strict format constraint the writer might\nmiss (\"exactly 5-7-5 syllables\", \"valid JSON\", \"≤ 280 characters\"),\ninsert a `critic` node between the writing node and the formatter.\nIts input is the writing node id. Its metadata.question repeats\nthe constraint. If the critic fails, the orchestrator re-plans.\n\nWhen the query asks to keep/filter repos by relevance or wants a\n\"why it matters\" per repo, the `distiller` emits per-repo\n`why_it_matters` rationales. In that case insert an **alignment**\n`critic` between the distiller and its downstream consumer (the\n`coder` if there is one, else the `formatter`). Its input is the\ndistiller node id; its metadata.question asks whether each kept\nrepo's `why_it_matters` is supported by that repo's description and\nmatches the interest criteria (default: agentic / MCP / dev-tooling).\nIf it fails, the orchestrator re-distills. (The completeness critic\non the distiller is auto-inserted — do not emit it yourself.)\n\nIf MEMORY HITS appear in the prompt, the agent already has indexed\nmaterial relevant to this query (FAISS-ranked vector hits with\nchunks). Prefer routing the answer through the existing knowledge\nbase: emit a `retriever` or, when the hits clearly answer the query\nalready, go straight to a `formatter` that synthesises from MEMORY\nHITS — do NOT emit a `researcher` to re-fetch material the agent\nhas already indexed.\n\nIf FAILURE appears in the prompt, do not re-emit the failing step\non the same inputs.\n\nBefore you emit, self-check the plan:\n  1. Exactly one terminal `formatter` node exists, and it is last.\n  2. Every `n:<label>` input matches some sibling's metadata.label\n     (no dangling references); every emitted node is reachable from\n     the formatter (no orphans).\n  3. Each `metadata.label` is unique.\n  4. Every skill name is one of the available skills above.\n  5. No node repeats a step that already FAILED on the same inputs.\nIf any check fails, revise the plan before emitting — never output a\nplan that violates these.\n\nExample:\n{\"reasoning_type\": \"research\",\n \"rationale\": \"Look it up and answer.\",\n \"nodes\": [\n   {\"skill\":\"researcher\",\"inputs\":[\"USER_QUERY\"],\n    \"metadata\":{\"label\":\"r1\",\"question\":\"...\"}},\n   {\"skill\":\"formatter\",\"inputs\":[\"n:r1\"],\"metadata\":{\"label\":\"out\"}}]}\n\nUSER_QUERY: Say hello.\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Population comparison request for London, Paris, and Berlin\n      source: user_query\n      raw: Find the populations of London, Paris, Berlin and tell me which two are closest in size\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [preference] Preference for finding and ranking weekly trending Python and Rust repositories by momentum, filtered by agentic, MCP, and dev-tooling themes\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [preference] Interest in monthly trending Python and Rust repositories related to agentic AI and machine learning ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [tool_outcome] Fetch trending Python and Typescript repos related to agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n  - [tool_outcome] Search trending Python and Rust repositories for agentic, MCP, and dev-tooling projects ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"Say hello.\"\n  }\n]",
+  "started_at": 1780520245.127283,
+  "completed_at": 1780520249.3520234,
+  "retries": 0
+}

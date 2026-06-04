@@ -1,0 +1,41 @@
+{
+  "node_id": "n:2",
+  "skill": "researcher",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "researcher",
+    "output": {
+      "reasoning_type": "synthesis",
+      "question": "For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest",
+      "sources": [
+        {
+          "url": "https://www.macrotrends.net/global-metrics/cities/20853/kinshasa/population",
+          "title": "Kinshasa, Republic of Congo Metro Area Population (1950-2026)"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/List_of_cities_in_africa_by_population",
+          "title": "List of cities in Africa by population"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Lagos",
+          "title": "Lagos"
+        }
+      ],
+      "findings": "As of 2026 estimates, the populations for these cities are approximately 23.2 million for Cairo, 21.9 million for Lagos, and 16.9 million for Kinshasa. While these figures represent the total metropolitan inhabitants, specific population data remains subject to estimation methodologies and occasional disputes between official census figures and independent projections.\n\nRegarding growth rates, Kinshasa is currently experiencing a very high annual growth rate, with recent projections indicating an increase of approximately 4.36% per year. Lagos also maintains a high growth trajectory, characterized by a significant annual influx of new residents, often estimated at several hundred thousand people per year, contributing to its status as one of the fastest-growing major cities globally.\n\nBased on available growth rate percentages, Kinshasa is currently growing fastest among the three. While Lagos continues to see substantial absolute increases in its population due to migration and natural growth, Kinshasa's high percentage-based annual growth rate currently outpaces the others."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 21.53354024887085,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Researcher skill. You go to the web for a specific question\nand bring back normalised text the rest of the DAG can work from.\n\nYour tool surface is two MCP tools: `web_search(query, max_results)` and\n`fetch_url(url)`. Use them. Do not narrate; do not invent other tools.\n\nProcedure:\n  1. Read the QUESTION in the prompt.\n  2. Issue ONE `web_search` to get candidate URLs.\n  3. Pick the 1–3 most authoritative-looking URLs and fetch them with\n     `fetch_url` in sequence. Avoid clearly low-signal results (aggregator\n     spam, ad redirects).\n  4. Synthesise the relevant content from the fetched pages.\n\nTime budget: keep tool calls to 4 max per invocation. If a `fetch_url`\nreturns very little usable text, do not retry; move on.\n\nBefore you synthesise, self-check: are the fetched pages actually\nsufficient to answer the QUESTION? If they only graze it, spend a\nremaining call on one better URL rather than padding `findings` with\nfiller. If the budget is spent and the pages still do not answer it,\nsay so via the `(not found)` fallback instead of guessing.\n\nTag `reasoning_type` with how the answer was built: `lookup` (one\nauthoritative source carried the answer) or `synthesis` (you combined\nseveral sources). Pick the one that describes the bulk of `findings`.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"reasoning_type\": \"<lookup | synthesis>\",\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nEvery claim in `findings` must trace to a fetched page listed in\n`sources` — never introduce facts the pages did not state.\n\nYou do NOT produce the final user-facing answer. The downstream\ndistiller or formatter does that. If the question cannot be answered\nfrom the web within your budget, return `\"findings\": \"(not found)\"`\n(with `\"sources\": []`) and let the next node decide.\n\nExample:\n  {\"reasoning_type\": \"synthesis\",\n   \"question\": \"What is the current stable Python release?\",\n   \"sources\": [\n     {\"url\": \"https://www.python.org/downloads/\", \"title\": \"Python Downloads\"},\n     {\"url\": \"https://devguide.python.org/versions/\", \"title\": \"Python Versions\"}],\n   \"findings\": \"The current stable release is Python 3.13, published in\n   October 2024. It is the default download on python.org. Python 3.12\n   remains in active bugfix support, while 3.8 has reached end-of-life.\"}\n\nUSER_QUERY: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest\n\nMEMORY HITS (8 from FAISS):\n  - [tool_outcome] Current population and growth rate analysis for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest\n  - [tool_outcome] Find trending Python and Go finance repositories ranked by momentum for this week\n      source: user_query\n      raw: Find the top trending Python and Go repos this week, rank by momentum, and keep only what's relevant to finance with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [fact] Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [tool_outcome] Top trending Python and Rust finance and trading repositories ranked by momentum this month\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to finance and trading with a one-line why-it-matters each.\n  - [preference] Interest in monthly trending Python and Rust repositories related to agentic AI and machine learning ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to agentic ai and machine learning with a one-line why-it-matters each.\n  - [tool_outcome] Top trending Python and Typescript repositories for agentic, MCP, and dev-tooling ranked by momentum\n      source: user_query\n      raw: Find the top trending Python and Typescript repos this week, rank by momentum, and keep only what's relevant to agentic / MCP / dev-tooling with a one-line why-it-matters each.\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest\"\n  }\n]",
+  "started_at": 1780520321.0009465,
+  "completed_at": 1780520342.5344868,
+  "retries": 0
+}
