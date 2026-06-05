@@ -183,41 +183,43 @@ All three branches share the same start offset and finish timestamp, confirming 
 
 ### Part 3 — Critic Verdict (FR-301 to FR-304)
 
-**Pass run** — critic approves and pipeline continues to formatter:
+Both runs use the same `github_research` extraction query (top-3 trending
+Python repos with exact name / total stars / weekly stars / language). The
+Critic is **auto-inserted** on the edge out of the Distiller (`critic: true`)
+and verifies — with no tools — that every per-repo field traces to the
+fetched trending rows.
+
+**Pass run** (`s8-805c0c73`) — critic approves the distilled output and the pipeline continues to the formatter:
 
 ```
-session s8-e742b7c9
-[n:1] planner            complete (4.2s)
-[n:2] researcher         complete (19.5s)
-[n:3] researcher         complete (27.3s)
-[n:4] researcher         complete (23.1s)
-[n:5] formatter          complete (4.1s)
-  ✓ critic verdict: PASS — no recovery needed
+session s8-805c0c73
+[n:1] planner            complete (4.5s)
+[n:2] github_research    complete (13.9s)
+[n:3] distiller          complete (4.7s)
+[n:4] critic             complete (3.9s)   ✓ verdict: PASS
+[n:5] formatter          complete (4.2s)
 ```
 
-**Fail + recovery run** (`s8-7b05deec`) — critic rejects distilled output (missing Rust repos), recovery planner spliced in:
+Critic verdict `n:4`: *"[ok] all required fields for the top 3 repos are present and supported by the input."*
+
+**Fail + recovery run** (`s8-f11999ba`) — critic rejects the distilled output, a recovery planner is spliced in, and the re-planned branch passes the second critic and produces the corrected answer:
 
 ```
-[n:1]  planner            complete (5.0s)
-[n:2]  github_research    complete (24.2s)
-[n:3]  github_research    complete (39.8s)
-[n:4]  github_research    complete (36.1s)
-[n:5]  github_research    complete (44.2s)
-[n:6]  distiller          complete (5.8s)
-[n:7]  critic             complete (3.2s)
-  ↪ critic-fail recovery: planner node n:9 for n:6
-[n:9]  planner            complete (4.8s)
-[n:10] github_research    complete (40.1s)
-[n:11] github_research    complete (23.9s)
-[n:12] github_research    complete (27.9s)
-[n:13] github_research    complete (36.0s)
-[n:14] distiller          complete (8.9s)
-[n:15] critic             complete (3.3s)
-  ↪ critic-fail on n:14 already recovered once; CAP HIT — branch skipped
+session s8-f11999ba
+[n:1]  planner            complete (4.5s)
+[n:2]  github_research    complete (14.0s)
+[n:3]  distiller          complete (4.7s)
+[n:4]  critic             complete (3.8s)   ✗ verdict: FAIL
+  ↪ critic-fail recovery: planner node n:6 for n:3
+[n:5]  formatter          complete (4.3s)
+[n:6]  planner            complete (4.3s)   ← recovery planner
+[n:7]  github_research    complete (12.4s)
+[n:8]  distiller          complete (4.6s)
+[n:9]  critic             complete (3.4s)   ✓ verdict: PASS
+[n:10] formatter          complete (4.3s)   → corrected final answer
 ```
 
-Critic verdict `n:7`: *"The output only includes Python repositories, but the user query also asked for Rust repositories."*  
-Recovery cap is enforced at 1 re-plan per branch — hitting the cap does not crash the session, it logs the warning and continues.
+Critic verdict `n:4` (FAIL): *"[missing-field] the input requested exactly four fields … but the output includes extra fields like description and why_it_matters."* The spliced recovery Planner (`n:6`, `recovers=n:3`) re-runs `github_research → distiller → critic`; the second Critic (`n:9`) returns **PASS** and the formatter emits the corrected, field-exact answer. Recovery is capped at 1 re-plan per branch — if the recovery itself failed, the cap logs a warning and continues rather than looping.
 
 Full session logs: [logs/part3_critic_recovery.md](logs/part3_critic_recovery.md)
 
