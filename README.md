@@ -157,7 +157,7 @@ Evidence for Parts 1–3 drawn directly from persisted session logs (see [`logs/
 |---|---|---|---|---|
 | **A** · "Say hello." | `s8-88ceb1a9` | 2 (planner → formatter) | 7.85 s | "Hello! How can I help you today?" |
 | **B** · Claude Shannon bio | `s8-fe86370a` | 4 (planner → researcher → distiller → formatter) | 28.9 s | Born 30 Apr 1916, died 24 Feb 2001; 3 contributions listed |
-| **I** · London/Paris/Berlin populations | `s8-e742b7c9` | 5 (planner → 3× researcher → formatter) | 31.5 s | Berlin & Paris closest (~3.69 M vs 2.05 M) |
+| **I** · London/Paris/Berlin populations | `s8-c687f345` | 7 (planner → 3× researcher → coder → formatter + sandbox_executor) | 54.5 s | Berlin & Paris closest (diff 1,636,793), computed in-sandbox |
 | **J** · Bad path (`/nonexistent/path.txt`) | `s8-4105439a` | 4 (planner → coder → formatter + sandbox_executor) | 12.3 s | Graceful: "…does not exist and cannot be accessed"; no file-read tool dispatched |
 | **K** · Lagos/Cairo/Kinshasa + resume | `s8-03ce0c25` | 5 (planner → 3× researcher → formatter) | 61.5 s + resume | Kinshasa fastest-growing; full answer on resume with 0 repeated nodes |
 
