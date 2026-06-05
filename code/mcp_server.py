@@ -182,43 +182,37 @@ class _NullLogger(AsyncLoggerBase):
     def error_status(self, *a, **k): pass
 
 
-def _markdown_generator():
-    """Site-agnostic boilerplate stripper for fetch_url.
+def _content_selector(url: str) -> str | None:
+    """CSS selector to isolate the meaningful content of a known-noisy page.
 
-    Replaces the old per-site CSS selector (which special-cased only
-    github.com/trending with `article.Box-row`) with a generic, density-based
-    content filter that prunes nav / sidebar / footer chrome on ANY page.
-    PruningContentFilter scores each DOM block by text density and link ratio
-    and drops low-value chrome, so the meaningful content rises to the top of
-    the emitted `fit_markdown`. That ordering matters because the tool-use loop
-    caps each tool reply at 24 KB (mcp_runner): on a 92 KB page like GitHub
-    trending, the repo list would otherwise land past the cap and the model
-    would see only nav and report "(not found)".
+    GitHub's trending HTML buries the repo list ~75 KB deep, behind the global
+    nav and the full A-to-Z language sidebar. Crawled whole, the markdown is
+    92 KB and the first repo lands far past any sane per-tool truncation, so a
+    tool-using skill sees only chrome and reports "(not found)". Each trending
+    repo is one `<article class="Box-row">`; selecting those drops the page to
+    ~18 KB with the repos at the top. Other URLs are fetched whole (None)."""
+    from urllib.parse import urlparse
 
-    threshold=0.48 (fixed) is crawl4ai's default and prunes aggressively enough
-    to clear chrome while keeping list/article bodies."""
-    from crawl4ai.content_filter_strategy import PruningContentFilter
-    from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
-
-    return DefaultMarkdownGenerator(
-        content_filter=PruningContentFilter(threshold=0.48, threshold_type="fixed")
-    )
+    p = urlparse(url)
+    if p.netloc.endswith("github.com") and p.path.startswith("/trending"):
+        return "article.Box-row"
+    return None
 
 
 async def _crawl4ai_fetch(url: str) -> dict:
     from crawl4ai import AsyncWebCrawler, CrawlerRunConfig
 
-    config = CrawlerRunConfig(markdown_generator=_markdown_generator())
+    selector = _content_selector(url)
+    config = CrawlerRunConfig(css_selector=selector) if selector else None
     async with AsyncWebCrawler(verbose=False, logger=_NullLogger()) as crawler:
         r = await crawler.arun(url=url, config=config)
     # r.markdown is a str subclass (StringCompatibleMarkdown) that Pydantic
     # serializes as {} because its real field is private. Pull the raw string
-    # out and force a plain str so FastMCP serializes correctly. Prefer the
-    # pruned `fit_markdown` (chrome stripped) over the unfiltered raw markdown.
+    # out and force a plain str so FastMCP serializes correctly.
     md = r.markdown
     raw = (
-        getattr(md, "fit_markdown", None)
-        or getattr(md, "raw_markdown", None)
+        getattr(md, "raw_markdown", None)
+        or getattr(md, "fit_markdown", None)
         or md
         or r.cleaned_html
         or r.html
