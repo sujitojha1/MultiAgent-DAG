@@ -1,1 +1,0 @@
-Find the top trending Python and Rust repos this month, rank by momentum, and keep only what's relevant to trading with a one-line why-it-matters each.

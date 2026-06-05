@@ -1,1 +1,0 @@
-write python code to find 10 factorial and get the answer

@@ -1,1 +1,0 @@
-Find the top trending Python and Go repos this week, rank by momentum, and keep only what's relevant to hacking with a one-line why-it-matters each.
