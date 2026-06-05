@@ -1,0 +1,32 @@
+{
+  "node_id": "n:7",
+  "skill": "sandbox_executor",
+  "status": "complete",
+  "inputs": [
+    "n:4"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "sandbox_executor",
+    "output": {
+      "exit_code": 0,
+      "stdout": "Ranked by Momentum (Velocity %):\r\n1. chopratejas/headroom: 70.85%\r\n2. ogulcancelik/herdr: 35.45%\r\n3. run-llama/liteparse: 31.44%\r\n4. OpenBMB/VoxCPM: 22.27%\r\n5. harry0703/MoneyPrinterTurbo: 18.29%\r\n6. dmtrKovalenko/fff: 18.08%\r\n7. microsoft/markitdown: 11.87%\r\n8. ryoppippi/ccusage: 3.54%\r\n9. iii-hq/iii: 3.36%\r\n10. anthropics/claude-code: 2.31%\r\n",
+      "stdout_truncated": false,
+      "stderr": "",
+      "stderr_truncated": false,
+      "files_written": [],
+      "timed_out": false,
+      "cwd": "C:\\Users\\gayad\\AppData\\Local\\Temp\\s8sandbox-ca_ui3d4"
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 0.05835723876953125,
+    "provider": "",
+    "error": null
+  },
+  "prompt_sent": "You are the SandboxExecutor skill. You exist to receive Python code\nemitted by an upstream Coder node and run it in a subprocess sandbox.\n\nThis skill almost never sees the LLM: the orchestrator calls\n`sandbox.run_python(code)` directly and packages the result into the\nAgentResult. This file is here so the catalogue listing is complete and\nso a future iteration can extend the skill with LLM-level post-checks.\n\nWhen invoked through the LLM path (only used for post-mortem\nexplanations), you receive `result` in INPUTS — the stdout / stderr /\nexit-code dict the sandbox returned. Your job is to describe what\nhappened:\n\n  {\n    \"summary\": \"<one line — exit code, whether it timed out, what was printed>\"\n  }\n\nYou make no other tool calls. You do not re-execute the code.\n\nUSER_QUERY: Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars�100), rank by momentum using a Python script.\n\nMEMORY HITS (4 from FAISS):\n  - [fact] Population data and growth rates for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [tool_outcome] Comparison of population sizes for London, Paris, and Berlin\n      source: user_query\n      raw: Find the populations of London, Paris, Berlin and tell me which two are closest in size.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:4\",\n    \"kind\": \"upstream\",\n    \"skill\": \"coder\",\n    \"output\": {\n      \"code\": \"repos = [\\n    {'name': 'harry0703/MoneyPrinterTurbo', 'total': 79649, 'gained': 14566},\\n    {'name': 'microsoft/markitdown', 'total': 144640, 'gained': 17165},\\n    {'name': 'chopratejas/headroom', 'total': 13297, 'gained': 9421},\\n    {'name': 'OpenBMB/VoxCPM', 'total': 25919, 'gained': 5771},\\n    {'name': 'anthropics/claude-code', 'total': 130270, 'gained': 3005},\\n    {'name': 'ogulcancelik/herdr', 'total': 4355, 'gained': 1544},\\n    {'name': 'iii-hq/iii', 'total': 17676, 'gained': 594},\\n    {'name': 'ryoppippi/ccusage', 'total': 15579, 'gained': 551},\\n    {'name': 'run-llama/liteparse', 'total': 9151, 'gained': 2877},\\n    {'name': 'dmtrKovalenko/fff', 'total': 7583, 'gained': 1371}\\n]\\n\\nfor r in repos:\\n    r['velocity'] = (r['gained'] / r['total']) * 100\\n\\nranked = sorted(repos, key=lambda x: x['velocity'], reverse=True)\\n\\nprint('Ranked by Momentum (Velocity %):')\\nfor i, r in enumerate(ranked, 1):\\n    print(f\\\"{i}. {r['name']}: {r['velocity']:.2f}%\\\")\",\n      \"rationale\": \"[arithmetic] calculate velocity as (gained/total)*100 and sort repositories by this metric\"\n    }\n  }\n]",
+  "started_at": 1780644679.0085106,
+  "completed_at": 1780644679.0668678,
+  "retries": 0
+}

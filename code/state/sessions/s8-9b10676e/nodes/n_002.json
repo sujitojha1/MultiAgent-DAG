@@ -1,0 +1,37 @@
+{
+  "node_id": "n:2",
+  "skill": "github_research",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "github_research",
+    "output": {
+      "reasoning_type": "lookup",
+      "question": "Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars�100), rank by momentum using a Python script.",
+      "sources": [
+        {
+          "url": "https://github.com/trending/python?since=weekly",
+          "title": "Trending Python repositories"
+        },
+        {
+          "url": "https://github.com/trending/rust?since=weekly",
+          "title": "Trending Rust repositories"
+        }
+      ],
+      "findings": "Python: harry0703/MoneyPrinterTurbo (79,649 total, +14,566 this week), chopratejas/headroom (13,297 total, +9,421 this week), microsoft/markitdown (144,640 total, +17,165 this week), OpenBMB/VoxCPM (25,919 total, +5,771 this week), anthropics/claude-code (130,270 total, +3,005 this week).\n\nRust: ogulcancelik/herdr (4,355 total, +1,544 this week), iii-hq/iii (17,676 total, +594 this week), ryoppippi/ccusage (15,579 total, +551 this week), run-llama/liteparse (9,151 total, +2,877 this week), dmtrKovalenko/fff (7,583 total, +1,371 this week), farion1231/cc-switch (92,105 total, +8,135 this week)."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 18.972522735595703,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the GitHub Research skill. You fetch live data from GitHub to answer\nquestions about popular or trending repositories.\n\nYour tool surface is ONE MCP tool: `fetch_url(url)`. Use it. Do not narrate;\ndo not invent other tools.\n\nProcedure:\n  1. Read the specific sub-question/task from the INPUTS list (look at the first literal value). If no specific task is in the INPUTS, read the overall USER_QUERY. Infer the time window (`daily`/`weekly`/`monthly`, default `weekly`) and language filter if one is mentioned.\n  2. Fetch the trending page:\n     `https://github.com/trending/<language>?since=<window>`\n     (omit `/<language>` if none was mentioned).\n  3. Extract the top 5–10 repos: name (owner/repo), description, total stars, stars gained (or weekly/monthly stars depending on the window), and URL. In your `findings`, list each repo clearly with its description, total stars, and stars gained so that downstream nodes can extract these fields.\n\nTime budget: keep tool calls to 3 max. Do not retry a thin fetch beyond the\none fallback above.\n\nBefore you emit, self-check: does each repo in `findings` carry a real\nname, total stars, and stars-gained value that you actually read off the\nfetched page? Drop any repo whose numbers you had to guess rather than\nfabricate a figure. If the fetch yielded no parseable repos at all, take\nthe `(not found)` fallback below instead of inventing entries.\n\nTag `reasoning_type` as `lookup` — this skill answers by reading live\nstructured data off the GitHub trending page, not by reasoning over it.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"reasoning_type\": \"lookup\",\n    \"question\": \"<the question this run answered>\",\n    \"sources\": [{\"url\": \"<url>\", \"title\": \"<title>\"}, ...],\n    \"findings\": \"<2–6 short paragraphs of normalised text>\"\n  }\n\nYou do NOT produce the final user-facing answer; the downstream distiller or\nformatter does that. If GitHub returns no usable data, set `\"sources\": []` and\n`\"findings\": \"(not found)\"` — do not fabricate entries.\n\nExample (weekly Python trending):\n  {\"reasoning_type\": \"lookup\",\n   \"question\": \"Top trending Python repos this week\",\n   \"sources\": [{\"url\": \"https://github.com/trending/python?since=weekly\",\n                \"title\": \"Trending Python repositories\"}],\n   \"findings\": \"owner/foo — an LLM agent framework. 12,400 total stars,\n   +1,850 stars this week. owner/bar — a vector-search library. 8,900\n   total stars, +1,200 this week. owner/baz — a CLI for prompt testing.\n   3,100 total stars, +640 this week.\"}\n\nUSER_QUERY: Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars�100), rank by momentum using a Python script.\n\nMEMORY HITS (4 from FAISS):\n  - [fact] Population data and growth rates for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [tool_outcome] Comparison of population sizes for London, Paris, and Berlin\n      source: user_query\n      raw: Find the populations of London, Paris, Berlin and tell me which two are closest in size.\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars\\u00d7100), rank by momentum using a Python script.\"\n  }\n]",
+  "started_at": 1780644650.4159586,
+  "completed_at": 1780644669.3899064,
+  "retries": 0
+}

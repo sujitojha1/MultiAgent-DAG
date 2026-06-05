@@ -1,0 +1,1 @@
+Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars×100), rank by momentum using a Python script.

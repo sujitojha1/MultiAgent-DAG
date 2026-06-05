@@ -1,0 +1,26 @@
+{
+  "node_id": "n:5",
+  "skill": "critic",
+  "status": "complete",
+  "inputs": [
+    "n:4"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "critic",
+    "output": {
+      "verdict": "fail",
+      "rationale": "[unsupported] the output contains repositories that are not necessarily trending or written in Python and Rust, and does not explicitly filter or rank by these criteria"
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 3.8606743812561035,
+    "provider": "groq",
+    "error": null
+  },
+  "prompt_sent": "You are the Critic skill. You evaluate one upstream node's output and\nreturn pass-or-fail with a short rationale.\n\nYou make no tool calls. The upstream output and (when the orchestrator\nhas it) the inputs that node received both appear in the prompt.\n\nProcedure:\n  1. Read the UPSTREAM_OUTPUT.\n  2. Check it against the INPUTS that produced it.\n  3. Look for: fabricated fields, claims unsupported by the input,\n     contradictions, missing fields the input clearly contained.\n  4. Emit pass or fail.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"verdict\": \"pass\" | \"fail\",\n    \"rationale\": \"<one or two short sentences>\"\n  }\n\nBegin `rationale` with the kind of defect you checked for, in square\nbrackets, so the recovery planner can target it: `[fabrication]`,\n`[unsupported]`, `[missing-field]`, `[contradiction]`, or `[ok]` on a\npass. This is your reasoning tag — it names the verification type, it\ndoes not add a schema key.\n\nWhen you emit `fail`, the orchestrator may invoke the Planner to\nrecover. Be specific in your rationale so the recovery plan can be\ntargeted. Do not fail for stylistic reasons; only fail when the\nupstream output is wrong, missing, or unsupported.\n\nExamples:\n  Upstream lists a repo with stars the input never stated →\n  {\"verdict\": \"fail\",\n   \"rationale\": \"[fabrication] the 9,800-star figure for owner/foo is\n   absent from the fetched findings.\"}\n\n  Upstream's summary preserves every load-bearing fact and invents\n  nothing →\n  {\"verdict\": \"pass\",\n   \"rationale\": \"[ok] all dates, names, and figures trace to the input.\"}\n\nUSER_QUERY: Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars�100), rank by momentum using a Python script.\n\nMEMORY HITS (4 from FAISS):\n  - [fact] Population data and growth rates for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [tool_outcome] Comparison of population sizes for London, Paris, and Berlin\n      source: user_query\n      raw: Find the populations of London, Paris, Berlin and tell me which two are closest in size.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:4\",\n    \"kind\": \"upstream\",\n    \"skill\": \"coder\",\n    \"output\": {\n      \"code\": \"repos = [\\n    {'name': 'harry0703/MoneyPrinterTurbo', 'total': 79649, 'gained': 14566},\\n    {'name': 'microsoft/markitdown', 'total': 144640, 'gained': 17165},\\n    {'name': 'chopratejas/headroom', 'total': 13297, 'gained': 9421},\\n    {'name': 'OpenBMB/VoxCPM', 'total': 25919, 'gained': 5771},\\n    {'name': 'anthropics/claude-code', 'total': 130270, 'gained': 3005},\\n    {'name': 'ogulcancelik/herdr', 'total': 4355, 'gained': 1544},\\n    {'name': 'iii-hq/iii', 'total': 17676, 'gained': 594},\\n    {'name': 'ryoppippi/ccusage', 'total': 15579, 'gained': 551},\\n    {'name': 'run-llama/liteparse', 'total': 9151, 'gained': 2877},\\n    {'name': 'dmtrKovalenko/fff', 'total': 7583, 'gained': 1371}\\n]\\n\\nfor r in repos:\\n    r['velocity'] = (r['gained'] / r['total']) * 100\\n\\nranked = sorted(repos, key=lambda x: x['velocity'], reverse=True)\\n\\nprint('Ranked by Momentum (Velocity %):')\\nfor i, r in enumerate(ranked, 1):\\n    print(f\\\"{i}. {r['name']}: {r['velocity']:.2f}%\\\")\",\n      \"rationale\": \"[arithmetic] calculate velocity as (gained/total)*100 and sort repositories by this metric\"\n    }\n  }\n]",
+  "started_at": 1780644675.2028816,
+  "completed_at": 1780644679.063556,
+  "retries": 0
+}

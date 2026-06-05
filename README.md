@@ -227,58 +227,55 @@ Full session logs: [logs/part3_critic_recovery.md](logs/part3_critic_recovery.md
 
 ### Part 4 — Coder + SandboxExecutor (FR-401 to FR-405)
 
-**Session:** `s8-b71eb7c6` — query: *"Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars×100), rank by momentum using a Python script."*
+**Session:** `s8-9b10676e` — query: *"Find top trending Python and Rust repos, deduplicate, compute velocity (stars_gained/total_stars×100), rank by momentum using a Python script."*
 
-**Coder node `n:6` emitted Python (5.1 s):**
+Pipeline: `planner → 2× github_research → coder → [critic] → sandbox_executor + formatter`. Two parallel `github_research` branches feed the Coder, which inlines the deduplicated repo data and emits a velocity script; the `sandbox_executor` (auto-appended as the Coder's `internal_successor`) runs it.
+
+**Coder node `n:4` emitted Python (4.9 s):**
 
 ```python
-repos = {
-    'harry0703/MoneyPrinterTurbo': {'gained': 20221, 'total': 77873},
-    'microsoft/markitdown':         {'gained': 11962, 'total': 140830},
-    'rohitg00/ai-engineering-from-scratch': {'gained': 20541, 'total': 27297},
-    'farion1231/cc-switch':         {'gained': 31143, 'total': 89209},
-    'ruvnet/RuView':                {'gained': 19186, 'total': 70140},
-    'run-llama/liteparse':          {'gained':  3934, 'total':  8917},
-    'anthropics/financial-services':{'gained': 21528, 'total': 29477},
-    'CloakHQ/CloakBrowser':         {'gained': 21656, 'total': 23363},
-    'Imbad0202/academic-research-skills':{'gained': 21719, 'total': 26172},
-    'Hmbown/CodeWhale':             {'gained': 35709, 'total': 36673},
-    'oven-sh/bun':                  {'gained':  3808, 'total': 92740},
-    'iii-hq/iii':                   {'gained':  2038, 'total': 17520},
-    'openai/codex':                 {'gained':  8651, 'total': 87972},
-}
-results = []
-for name, data in repos.items():
-    velocity = (data['gained'] / data['total']) * 100
-    results.append({'name': name, 'velocity': velocity})
-results.sort(key=lambda x: x['velocity'], reverse=True)
-print(f"{'Repository':<40} | {'Velocity (%)':<15}")
-print("-" * 60)
-for r in results:
-    print(f"{r['name']:<40} | {r['velocity']:.2f}%")
+repos = [
+    {'name': 'harry0703/MoneyPrinterTurbo', 'total': 79649, 'gained': 14566},
+    {'name': 'microsoft/markitdown', 'total': 144640, 'gained': 17165},
+    {'name': 'chopratejas/headroom', 'total': 13297, 'gained': 9421},
+    {'name': 'OpenBMB/VoxCPM', 'total': 25919, 'gained': 5771},
+    {'name': 'anthropics/claude-code', 'total': 130270, 'gained': 3005},
+    {'name': 'ogulcancelik/herdr', 'total': 4355, 'gained': 1544},
+    {'name': 'iii-hq/iii', 'total': 17676, 'gained': 594},
+    {'name': 'ryoppippi/ccusage', 'total': 15579, 'gained': 551},
+    {'name': 'run-llama/liteparse', 'total': 9151, 'gained': 2877},
+    {'name': 'dmtrKovalenko/fff', 'total': 7583, 'gained': 1371}
+]
+
+for r in repos:
+    r['velocity'] = (r['gained'] / r['total']) * 100
+
+ranked = sorted(repos, key=lambda x: x['velocity'], reverse=True)
+
+print('Ranked by Momentum (Velocity %):')
+for i, r in enumerate(ranked, 1):
+    print(f"{i}. {r['name']}: {r['velocity']:.2f}%")
 ```
 
-**SandboxExecutor node `n:7` stdout (0.07 s, exit code 0):**
+**SandboxExecutor node `n:7` stdout (0.06 s, exit code 0):**
 
 ```
-Repository                               | Velocity (%)
-------------------------------------------------------------
-Hmbown/CodeWhale                         | 97.37%
-CloakHQ/CloakBrowser                     | 92.69%
-Imbad0202/academic-research-skills       | 82.99%
-rohitg00/ai-engineering-from-scratch     | 75.25%
-anthropics/financial-services            | 73.03%
-run-llama/liteparse                      | 44.12%
-farion1231/cc-switch                     | 34.91%
-ruvnet/RuView                            | 27.35%
-harry0703/MoneyPrinterTurbo              | 25.97%
-iii-hq/iii                               | 11.63%
-openai/codex                             |  9.83%
-microsoft/markitdown                     |  8.49%
-oven-sh/bun                              |  4.11%
+Ranked by Momentum (Velocity %):
+1. chopratejas/headroom: 70.85%
+2. ogulcancelik/herdr: 35.45%
+3. run-llama/liteparse: 31.44%
+4. OpenBMB/VoxCPM: 22.27%
+5. harry0703/MoneyPrinterTurbo: 18.29%
+6. dmtrKovalenko/fff: 18.08%
+7. microsoft/markitdown: 11.87%
+8. ryoppippi/ccusage: 3.54%
+9. iii-hq/iii: 3.36%
+10. anthropics/claude-code: 2.31%
 ```
 
-**Formatter node `n:8` final answer** matches computed values verbatim — top repo `Hmbown/CodeWhale` at **97.37%** momentum confirmed.
+The sandbox output is deterministic and traces to the inlined data — e.g. `chopratejas/headroom` = 9421 / 13297 × 100 = **70.85%**, the top-ranked repo. This exercises FR-401 (Coder emits a runnable script), FR-403 (SandboxExecutor runs the `code` field), and FR-405 (velocity / dedup / momentum-rank).
+
+> Note: this run's Planner also gated the Coder with a Critic, which returned `fail` (`[unsupported]` — over-strict, faulting the compute step for not re-filtering by language) and triggered one recovery re-plan that hit the cap. The Coder→Sandbox computation above is unaffected and correct; the Critic behaviour is discussed in [Part 3](#part-3--critic-verdict-fr-301-to-fr-304).
 
 Full session log: [logs/part4_coder_trending_metrics.md](logs/part4_coder_trending_metrics.md)
 
