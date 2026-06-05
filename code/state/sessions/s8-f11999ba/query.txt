@@ -1,0 +1,2 @@
+Fetch the GitHub trending Python repositories for this week and extract, for the top 3 repos,
+  exactly these fields: full name (owner/repo), total star count, stars gained this week, and primary language.
