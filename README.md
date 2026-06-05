@@ -404,6 +404,7 @@ For populations queries, the Planner generates concurrent researcher nodes:
 
 * **Wall-Clock Time:** Verified that the concurrent layer execution time matches `max(branches) = 27.3s`, rather than the sum of branches (`19.5s + 27.3s + 23.1s = 69.9s`).
 * **asyncio.gather Barrier:** Overlapping start times and identical finish timestamps are printed to stdout, confirming the concurrent dispatch barrier. See [logs/part2_parallel_fanout.md](logs/part2_parallel_fanout.md).
+* **Token Efficiency (NFR-201):** The fan-out run uses **19,646** input tokens vs **~25,858** for an equivalent sequential single-agent run (**~24% fewer**), because each researcher's bulky `web_search` results are billed once inside its own branch instead of accumulating across a growing transcript. Side-by-side `/v1/cost/by_agent` comparison in [logs/part2_token_efficiency.md](logs/part2_token_efficiency.md).
 
 **Log Excerpt (Session s8-e742b7c9):**
 ```
