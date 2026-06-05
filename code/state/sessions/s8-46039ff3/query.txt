@@ -1,0 +1,2 @@
+Find the top trending Python, Rust, and Go repositories this week, rank each by momentum, and
+  keep only those relevant to agentic / MCP / dev-tooling with a one-line why-it-matters for each.

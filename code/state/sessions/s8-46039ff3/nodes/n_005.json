@@ -1,0 +1,74 @@
+{
+  "node_id": "n:5",
+  "skill": "distiller",
+  "status": "complete",
+  "inputs": [
+    "n:2",
+    "n:3",
+    "n:4"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "distiller",
+    "output": {
+      "repos": [
+        {
+          "owner/repo": "microsoft/markitdown",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 144629,
+          "stars_gained": 17165,
+          "description": "A versatile tool for converting diverse file formats into Markdown for LLM ingestion.",
+          "why_it_matters": "Facilitates agentic coding workflows by streamlining the ingestion of diverse data formats into LLMs."
+        },
+        {
+          "owner/repo": "chopratejas/headroom",
+          "language": "python",
+          "timeframe": "weekly",
+          "total_stars": 13258,
+          "stars_gained": 9421,
+          "description": "An MCP-compatible library that compresses data to significantly reduce LLM token usage.",
+          "why_it_matters": "Directly supports MCP server development by providing token-efficient data compression for LLM interactions."
+        },
+        {
+          "owner/repo": "farion1231/cc-switch",
+          "language": "rust",
+          "timeframe": "weekly",
+          "total_stars": 92091,
+          "stars_gained": 8135,
+          "description": "A cross-platform desktop assistant for managing various coding agents like Claude Code and Hermes.",
+          "why_it_matters": "Provides essential dev tooling for managing and switching between multiple agentic coding environments."
+        },
+        {
+          "owner/repo": "run-llama/liteparse",
+          "language": "rust",
+          "timeframe": "weekly",
+          "total_stars": 9148,
+          "stars_gained": 2877,
+          "description": "A high-performance document parser designed to improve data extraction for AI workflows.",
+          "why_it_matters": "Enhances dev tooling capabilities by optimizing data extraction pipelines for AI-driven applications."
+        },
+        {
+          "owner/repo": "Armur-Ai/Pentest-Swarm-AI",
+          "language": "go",
+          "timeframe": "weekly",
+          "total_stars": 1680,
+          "stars_gained": 385,
+          "description": "An autonomous penetration testing framework that orchestrates specialized AI agents for security tasks.",
+          "why_it_matters": "Demonstrates advanced agentic orchestration for specialized security automation tasks."
+        }
+      ],
+      "rationale": "Repositories were selected based on their relevance to agentic workflows, MCP, and dev tooling, and ranked by weekly momentum (stars gained)."
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 5.212026596069336,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Distiller skill. You receive raw text (typically the\n`findings` of one or more Researcher nodes, or the `chunks` of a\nRetriever node) and produce a small structured record.\n\nYou make no tool calls. You do no web access. Everything you need is\nalready in the prompt under INPUTS.\n\nProcedure:\n  1. Identify what fields the user's question implies (people, dates,\n     numbers, comparisons, percentages, attributions).\n  2. Pull those fields out of the inputs.\n  3. Emit a compact JSON record. Fields with no evidence in the inputs\n     are omitted, not made up.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"fields\": { \"<field_name>\": \"<value>\", ... },\n    \"rationale\": \"<one short sentence saying which input supports each field>\"\n  }\n\nNotes:\n  - The fields dictionary is the load-bearing output; downstream\n    Formatter nodes read it.\n  - When the question is a comparison (`fastest growing`, `largest`),\n    emit a `comparison` key with `winner: <id>` and `reason: <short>`.\n  - When the question's evidence is missing, set `fields: {}` and put\n    the gap in `rationale`. Do not invent.\n\nRepository lists (PulseDAG trending queries):\n  When the inputs are a list of GitHub repositories, emit a `repos`\n  array instead of a flat `fields` dict. Each entry MUST carry\n  `owner/repo`, `language`, `timeframe`, `total_stars`, `stars_gained`, and `description`\n  (the completeness critic checks for exactly these). Identify the language (python/rust) and timeframe (weekly/monthly) from the context of the input findings (e.g., which node or section it came from). Then apply a\n  relevance pass against the interest profile and add one more field\n  per kept repo:\n\n    {\n      \"repos\": [\n        {\n          \"owner/repo\": \"<owner>/<name>\",\n          \"language\": \"<python or rust>\",\n          \"timeframe\": \"<weekly or monthly>\",\n          \"total_stars\": <int>,\n          \"stars_gained\": <int>,\n          \"description\": \"<verbatim from the input>\",\n          \"why_it_matters\": \"<one sentence, grounded ONLY in this repo's description, saying how it fits the interest profile>\"\n        }\n      ],\n      \"rationale\": \"<one short sentence>\"\n    }\n\n  Interest profile (default, override only if the query states one):\n  agentic coding, MCP servers, dev tooling, web frameworks.\n\n  Keep/drop: drop repos whose description does not plausibly fit the\n  interest profile, and drop anomalies (e.g. velocity-looking spikes\n  on micro-repos). Do NOT keep a repo just because it trended.\n\n  `why_it_matters` is the load-bearing field for the alignment critic:\n  it must be entailed by the repo's own `description`. Never assert a\n  feature, capability, or framing the description does not support —\n  a hallucinated rationale will fail the critic and trigger a\n  re-distill.\n\nA Critic node may run after you. The completeness critic fails if a\nrow is missing a required field; the alignment critic fails if any\n`why_it_matters` is unsupported by that repo's description or does not\nmatch the interest criteria. Both also fail if you invented fields or\nmade claims unsupported by the inputs.\n\nUSER_QUERY: Find the top trending Python, Rust, and Go repositories this week, rank each by momentum, and\n  keep only those relevant to agentic / MCP / dev-tooling with a one-line why-it-matters for each.\n\nMEMORY HITS (4 from FAISS):\n  - [tool_outcome] Comparison of population sizes for London, Paris, and Berlin\n      source: user_query\n      raw: Find the populations of London, Paris, Berlin and tell me which two are closest in size.\n  - [fact] Population data and growth rates for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n  - [fact] Current population and growth rate inquiry for Lagos, Cairo, and Kinshasa\n      source: user_query\n      raw: For Lagos, Cairo, and Kinshasa, find current populations and growth rates and tell me which is growing fastest.\n\nINPUTS:\n[\n  {\n    \"id\": \"n:2\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"reasoning_type\": \"lookup\",\n      \"question\": \"Find the top trending Python, Rust, and Go repositories this week, rank each by momentum, and keep only those relevant to agentic / MCP / dev-tooling with a one-line why-it-matters for each.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/python?since=weekly\",\n          \"title\": \"Trending Python repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/rust?since=weekly\",\n          \"title\": \"Trending Rust repositories\"\n        },\n        {\n          \"url\": \"https://github.com/trending/go?since=weekly\",\n          \"title\": \"Trending Go repositories\"\n        }\n      ],\n      \"findings\": \"microsoft/markitdown (Python) \\u2014 144,629 total stars, +17,165 this week. A versatile tool for converting diverse file formats into Markdown for LLM ingestion. \\n\\nfarion1231/cc-switch (Rust) \\u2014 92,091 total stars, +8,135 this week. A cross-platform desktop assistant for managing various coding agents like Claude Code and Hermes.\\n\\nrun-llama/liteparse (Rust) \\u2014 9,148 total stars, +2,877 this week. A high-performance document parser designed to improve data extraction for AI workflows.\\n\\nchopratejas/headroom (Python) \\u2014 13,258 total stars, +9,421 this week. An MCP-compatible library that compresses data to significantly reduce LLM token usage.\\n\\nanthropics/claude-code (Python) \\u2014 130,260 total stars, +3,005 this week. An agentic coding tool that executes terminal tasks and manages git workflows via natural language.\\n\\nArmur-Ai/Pentest-Swarm-AI (Go) \\u2014 1,680 total stars, +385 this week. An autonomous penetration testing framework that orchestrates specialized AI agents for security tasks.\"\n    }\n  },\n  {\n    \"id\": \"n:3\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"reasoning_type\": \"lookup\",\n      \"question\": \"Find the top trending Rust repositories this week relevant to agentic / MCP / dev-tooling.\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/rust?since=weekly\",\n          \"title\": \"Trending Rust repositories\"\n        }\n      ],\n      \"findings\": \"farion1231/cc-switch \\u2014 A cross-platform desktop assistant for various AI coding agents and CLI tools. 92,091 total stars, +8,135 stars this week.\\n\\nrun-llama/liteparse \\u2014 A fast, open-source document parser for AI workflows. 9,148 total stars, +2,877 stars this week.\\n\\nogulcancelik/herdr \\u2014 An agent multiplexer designed to run directly in your terminal. 4,352 total stars, +1,544 stars this week.\\n\\ndmtrKovalenko/fff \\u2014 A high-performance file search toolkit optimized for AI agents and development environments. 7,583 total stars, +1,371 stars this week.\\n\\nryoppippi/ccusage \\u2014 A CLI tool for analyzing token usage and costs of coding agents. 15,578 total stars, +551 stars this week.\\n\\nNVIDIA/OpenShell \\u2014 A safe, private runtime environment specifically built for autonomous AI agents. 6,787 total stars, +453 stars this week.\"\n    }\n  },\n  {\n    \"id\": \"n:4\",\n    \"kind\": \"upstream\",\n    \"skill\": \"github_research\",\n    \"output\": {\n      \"reasoning_type\": \"lookup\",\n      \"question\": \"Top trending Go repositories this week relevant to agentic / MCP / dev-tooling\",\n      \"sources\": [\n        {\n          \"url\": \"https://github.com/trending/go?since=weekly\",\n          \"title\": \"Trending Go repositories\"\n        }\n      ],\n      \"findings\": \"BenedictKing/ccx \\u2014 A proxy for Claude, Codex, and Gemini APIs. 3,202 total stars, +875 stars this week. Why it matters: Simplifies LLM integration for developers by providing a unified proxy interface.\\n\\nArmur-Ai/Pentest-Swarm-AI \\u2014 Autonomous penetration testing using a swarm of AI agents. 1,680 total stars, +385 stars this week. Why it matters: Demonstrates advanced agentic orchestration for security automation.\\n\\nrunkids/skillshare \\u2014 A tool to sync skills across AI CLI tools. 2,137 total stars, +146 stars this week. Why it matters: Enhances developer productivity by managing AI tool configurations and sharing.\"\n    }\n  }\n]",
+  "started_at": 1780643716.80193,
+  "completed_at": 1780643722.0139565,
+  "retries": 0
+}
