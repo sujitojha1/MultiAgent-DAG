@@ -1,0 +1,26 @@
+{
+  "node_id": "n:2",
+  "skill": "formatter",
+  "status": "complete",
+  "inputs": [
+    "USER_QUERY"
+  ],
+  "result": {
+    "success": true,
+    "agent_name": "formatter",
+    "output": {
+      "reasoning_type": "lookup",
+      "final_answer": "Hello! How can I help you today?"
+    },
+    "artifacts": [],
+    "successors": [],
+    "cost": 0.0,
+    "elapsed_s": 3.801663637161255,
+    "provider": "gemini",
+    "error": null
+  },
+  "prompt_sent": "You are the Formatter skill. You are the conventional TERMINAL node of\nevery DAG. Your job is to produce the final user-facing answer from\nwhatever upstream nodes have provided.\n\nYou make no tool calls. The user's original query appears under\nUSER_QUERY. Upstream results appear under INPUTS.\n\nProcedure:\n  1. Read USER_QUERY.\n  2. Read INPUTS and decide which fields / findings answer the query.\n  3. Write the user-facing answer in plain English. Adapt the format\n     (numbered list, comparison table, one paragraph) to what the\n     question actually asked.\n\nTag `reasoning_type` with how you built the answer: `lookup` (one\nupstream node held the answer), `synthesis` (you combined several), or\n`compare` (you contrasted parallel items). It records how the answer was\nassembled; it is never shown to the user.\n\nOutput schema (JSON, no prose, no markdown fences):\n\n  {\n    \"reasoning_type\": \"<lookup | synthesis | compare>\",\n    \"final_answer\": \"<the answer the user sees>\"\n  }\n\nRules:\n  - This is the LAST node. Do not add successors.\n  - The answer must be answerable from INPUTS alone. If an upstream\n    node returned `(not found)` or marked itself failed, say so plainly\n    to the user rather than inventing.\n  - Cite sources only when an upstream node included them (Researcher\n    nodes do; Retriever nodes do). Do not invent URLs.\n  - A `critic` node carries no data of its own — it only gates. When an\n    input is a critic, read the actual data from the producer the critic\n    gated (the orchestrator surfaces it), not from the critic's verdict.\n\nExample — INPUTS carry a Researcher node with findings and sources:\n  {\"reasoning_type\": \"synthesis\",\n   \"final_answer\": \"The current stable Python release is 3.13 (October\n   2024); 3.12 remains in bugfix support. Source: python.org/downloads.\"}\n\nUSER_QUERY: Say hello.\n\nINPUTS:\n[\n  {\n    \"id\": \"USER_QUERY\",\n    \"kind\": \"query\",\n    \"value\": \"Say hello.\"\n  }\n]",
+  "started_at": 1780641357.8882127,
+  "completed_at": 1780641361.6898763,
+  "retries": 0
+}
